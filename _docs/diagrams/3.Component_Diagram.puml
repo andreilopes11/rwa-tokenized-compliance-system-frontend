@@ -1,0 +1,51 @@
+@startuml
+title RWA Tokenized Compliance System - Components
+left to right direction
+
+package "Investor Dashboard" {
+    component "Wallet Connector" as WalletConnector
+    component "KYC Request Form" as KycForm
+    component "Asset Offering View" as AssetView
+    component "Subscription and\nRedemption Forms" as LifecycleForms
+    component "Token Activity View" as TokenActivity
+    component "Admin Route" as AdminRoute
+}
+
+package "Compliance Service" {
+    component "KycController" as KycController
+    component "AssetController" as AssetController
+    component "AdminController" as AdminController
+    component "Asset Service" as AssetService
+    component "Lifecycle Service" as LifecycleService
+    component "Compliance Rule\nService" as RuleService
+    component "Document Processor" as DocumentProcessor
+    component "Compliance Validator" as ComplianceValidator
+    component "Blockchain Signer" as BlockchainSigner
+}
+
+package "EVM Contracts" {
+    component "PermissionedToken" as PermissionedToken
+    component "IdentityManager" as IdentityManager
+    component "Emergency Freeze\nControl" as FreezeControl
+}
+
+WalletConnector --> KycForm : Wallet address
+KycForm --> KycController : Pending KYC request
+KycController --> DocumentProcessor : Hash document reference
+KycController --> ComplianceValidator : Validate KYC AML rules
+AssetView --> AssetController : GET active offerings
+LifecycleForms --> AssetController : POST subscriptions\nand redemptions
+AdminRoute --> AdminController : Approve or reject
+AdminRoute --> AdminController : Create asset offering
+AdminRoute --> AdminController : Configure profiles\nand asset rules
+AdminController --> AssetService : Persist offering config
+AdminController --> LifecycleService : Approve or reject\nlifecycle requests
+AdminController --> RuleService : Maintain rule state
+LifecycleService --> RuleService : Explain allow/deny\ndecisions
+LifecycleService --> BlockchainSigner : Approved subscription mint
+AdminController --> BlockchainSigner : Approved identity
+BlockchainSigner --> IdentityManager : addIdentity(wallet, hash)
+PermissionedToken --> IdentityManager : Check transfer eligibility
+FreezeControl --> PermissionedToken : Pause or resume transfers
+TokenActivity --> PermissionedToken : Read token status
+@enduml

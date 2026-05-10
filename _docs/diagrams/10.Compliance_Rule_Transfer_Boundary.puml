@@ -1,0 +1,23 @@
+@startuml
+title RWA Tokenized Compliance System - Compliance Rule And Transfer Boundary
+
+actor Investor
+participant "Investor Dashboard" as InvestorUI
+participant "Compliance API" as API
+participant "Compliance Rule Service" as Rules
+database "PostgreSQL" as DB
+participant "Permissioned Token" as Token
+participant "Identity Registry" as Registry
+
+Investor -> InvestorUI : Subscribe or redeem
+InvestorUI -> API : Lifecycle request
+API -> Rules : Evaluate status, profile,\njurisdiction, lockup, cap
+Rules -> DB : Read profiles and asset rules
+Rules --> API : Allow or deny with reason
+
+Investor -> Token : transfer(to, amount)
+Token -> Registry : Check sender identity
+Token -> Registry : Check receiver identity
+Registry --> Token : Valid or rejected
+Token --> Investor : Transfer succeeds or reverts
+@enduml

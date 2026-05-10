@@ -1,0 +1,25 @@
+@startuml
+title RWA Tokenized Compliance System - Approval and Transfer Flow
+
+actor Investor
+actor "Compliance Admin" as Admin
+participant "Frontend" as Frontend
+participant "Backend" as Backend
+participant "Admin Signer" as Signer
+participant "Identity Registry" as Registry
+participant "Permissioned Token" as Token
+
+Investor -> Frontend : Connect wallet and submit document
+Frontend -> Backend : POST KYC request
+Backend -> Backend : Validate KYC and hash document
+Backend --> Frontend : Pending request
+Admin -> Backend : Approve request
+Backend -> Signer : Request identity authorization
+Signer -> Registry : addIdentity(wallet, documentHash)
+Registry --> Backend : IdentityAdded event
+Backend --> Frontend : Approved with tx hash
+Investor -> Token : Transfer token
+Token -> Registry : Check sender and receiver
+Registry --> Token : Valid identities
+Token --> Investor : Transfer succeeds
+@enduml
