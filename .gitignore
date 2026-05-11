@@ -53,6 +53,7 @@ coverage/
 .cache/
 .home/
 .vitest-temp/
+.local-runtime/
 .turbo/
 .vercel/
 .netlify/
@@ -61,29 +62,6 @@ playwright-report/
 blob-report/
 *.tsbuildinfo
 
-# Java / Maven
-target/
-*.class
-*.jar
-*.war
-*.ear
-*.hprof
-hs_err_pid*
-replay_pid*
-.mvn/wrapper/maven-wrapper.jar
-backend/compliance-service/data/
-
-# Foundry / Solidity
-blockchain/evm/cache/
-blockchain/evm/cache_forge/
-blockchain/evm/out/
-blockchain/evm/broadcast/
-blockchain/evm/deployments/*.json
-blockchain/evm/coverage/
-blockchain/evm/lcov.info
-blockchain/evm/gas-snapshot
-blockchain/evm/.gas-snapshot
-
 # Local databases and generated state
 *.db
 *.sqlite
@@ -91,7 +69,3 @@ blockchain/evm/.gas-snapshot
 *.h2.db
 *.mv.db
 *.trace.db
-
-# Demo runtime
-.anvil.log
-anvil.log

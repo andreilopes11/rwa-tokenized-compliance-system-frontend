@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { sessionCookieName } from "@/lib/server-auth";
+import { sessionCookieName } from "@/features/auth/server/session";
 
 export async function POST() {
   const response = NextResponse.json({ ok: true });

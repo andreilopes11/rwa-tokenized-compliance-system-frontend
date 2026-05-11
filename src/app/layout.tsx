@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import { AppProviders } from "@/components/AppProviders";
+import { appConfig } from "@/shared/config/app";
+import { AppProviders } from "@/shared/providers/AppProviders";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "RWA Tokenized Compliance System",
-  description:
-    "Portugal and EU-first portfolio MVP for RWA onboarding, KYC, lifecycle requests, and permissioned token compliance."
+  title: appConfig.brandName,
+  description: appConfig.metadataDescription
 };
 
 export default function RootLayout({
@@ -14,7 +14,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt">
+    <html lang="en">
       <body>
         <AppProviders>{children}</AppProviders>
       </body>

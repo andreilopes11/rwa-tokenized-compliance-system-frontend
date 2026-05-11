@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { isValidEmail, isValidWalletAddress } from "@/lib/auth-validators";
+import { isValidEmail, isValidWalletAddress } from "@/features/auth/lib/validators";
 import {
   encodeSession,
   sessionCookieName,
   sessionCookieOptions,
   type DemoSession,
   type SessionRole
-} from "@/lib/server-auth";
+} from "@/features/auth/server/session";
 
 type LoginRequest = {
   provider?: "google" | "wallet" | "demo";

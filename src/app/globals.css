@@ -1123,15 +1123,6 @@ a:focus-visible {
   padding: 0.85rem;
 }
 
-.language-toggle.compact {
-  padding: 0.2rem;
-}
-
-.language-toggle.compact button {
-  min-height: 2.1rem;
-  padding: 0.35rem 0.65rem;
-}
-
 .login-shell {
   align-items: center;
   background: linear-gradient(180deg, #f6f7f4 0%, #ebf3ee 100%);
@@ -1235,31 +1226,6 @@ a:focus-visible {
 }
 
 .landing-nav-links a:hover {
-  color: #f9faf5;
-}
-
-.language-toggle {
-  display: flex;
-  gap: 0.5rem;
-  background: #0f766e;
-  border-radius: 6px;
-  padding: 0.3rem;
-}
-
-.language-toggle button {
-  background: transparent;
-  color: #cbd5ce;
-  border: none;
-  padding: 0.5rem 0.8rem;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 0.9rem;
-  transition: all 0.2s;
-}
-
-.language-toggle button.active {
-  background: #115e59;
   color: #f9faf5;
 }
 

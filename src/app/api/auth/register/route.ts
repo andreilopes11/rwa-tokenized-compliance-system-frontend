@@ -4,8 +4,8 @@ import {
   isValidEmail,
   isValidWalletAddress,
   meetsPasswordPolicy
-} from "@/lib/auth-validators";
-import type { SessionRole } from "@/lib/server-auth";
+} from "@/features/auth/lib/validators";
+import type { SessionRole } from "@/features/auth/server/session";
 
 type RegisterRequest = {
   email?: string;
