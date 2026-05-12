@@ -16,6 +16,14 @@ export const copy = {
     adminCta: "Open admin area",
     analyticsDisabled: "Analytics disabled until NEXT_PUBLIC_GA_MEASUREMENT_ID is configured.",
     analyticsEnabled: "Analytics enabled for the public product journey.",
+    architectureBody:
+      "Investor onboarding, issuer operations, backend automation, and token controls stay visible inside one product language, so the demo feels coherent from first access to ongoing monitoring.",
+    architectureItems: [
+      "Wallet-ready onboarding tied to compliance APIs",
+      "Admin decisions paired with audit and lifecycle evidence",
+      "Blockchain guardrails exposed with product-level clarity"
+    ],
+    architectureTitle: "Built to connect frontend experience, backend flows, and on-chain enforcement",
     ctaBody:
       "Sign in as an investor, review compliance flows, and inspect the full operating surface from the issuer point of view.",
     ctaPrimary: "Enter as investor",

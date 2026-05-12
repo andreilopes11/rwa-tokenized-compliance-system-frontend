@@ -7,6 +7,10 @@ const requestId = "9b7a17cd-52da-4dd5-a235-c6ffda1f6cb7";
 const subscriptionId = "44444444-4444-4444-8444-444444444444";
 
 vi.mock("@/shared/lib/web3", () => ({
+  activeChain: {
+    id: 31337,
+    name: "Anvil"
+  },
   explorerLink: () => ""
 }));
 

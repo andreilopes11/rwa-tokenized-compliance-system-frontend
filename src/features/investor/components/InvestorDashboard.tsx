@@ -56,6 +56,7 @@ import {
 import { activeChain, explorerLink } from "@/shared/lib/web3";
 import { Alert } from "@/shared/ui/Alert";
 import { Button } from "@/shared/ui/Button";
+import { DashboardHero } from "@/shared/ui/DashboardHero";
 
 const tokenAddress = process.env.NEXT_PUBLIC_TOKEN_ADDRESS ?? "";
 const registryAddress = process.env.NEXT_PUBLIC_IDENTITY_REGISTRY_ADDRESS ?? "";
@@ -97,6 +98,7 @@ export function InvestorDashboard() {
     name: position.symbol,
     value: position.value
   })) ?? [];
+  const unreadNotifications = notifications.filter((notification) => !notification.read).length;
 
   const activity = useMemo(
     () => [
@@ -117,6 +119,76 @@ export function InvestorDashboard() {
       }
     ],
     [request, status]
+  );
+  const heroPills = useMemo(
+    () => [
+      {
+        icon: <ShieldCheck size={14} />,
+        label: wrongNetwork ? `Switch from chain ${currentChainId}` : `${activeChain.name} network aligned`,
+        tone: wrongNetwork ? ("warning" as const) : ("success" as const)
+      },
+      {
+        icon: <Wallet size={14} />,
+        label: account.isConnected ? "Wallet connected" : "Manual wallet mode",
+        tone: account.isConnected ? ("success" as const) : ("neutral" as const)
+      },
+      {
+        icon: <FileCheck2 size={14} />,
+        label: `KYC ${statusLabel(activeStatus).toLowerCase()}`,
+        tone:
+          activeStatus === "APPROVED"
+            ? ("success" as const)
+            : activeStatus === "PENDING"
+              ? ("warning" as const)
+              : ("danger" as const)
+      },
+      {
+        icon: <Landmark size={14} />,
+        label: lifecycleReady ? "Lifecycle actions enabled" : "Lifecycle gated by compliance",
+        tone: lifecycleReady ? ("success" as const) : ("warning" as const)
+      }
+    ],
+    [account.isConnected, activeStatus, currentChainId, lifecycleReady, wrongNetwork]
+  );
+  const heroStats = useMemo(
+    () => [
+      {
+        icon: <Wallet size={16} />,
+        label: "Tracked wallet",
+        note: "Connected wallet or manual API lookup target.",
+        tone: account.isConnected ? ("success" as const) : ("neutral" as const),
+        value: walletAddress ? shortenAddress(walletAddress) : "Not set"
+      },
+      {
+        icon: <CheckCircle2 size={16} />,
+        label: "Eligibility state",
+        note: status?.onChainVerified
+          ? "Verified for transfer gating and lifecycle requests."
+          : "Awaiting approval or registry synchronization.",
+        tone:
+          activeStatus === "APPROVED"
+            ? ("success" as const)
+            : activeStatus === "PENDING"
+              ? ("warning" as const)
+              : ("danger" as const),
+        value: statusLabel(activeStatus)
+      },
+      {
+        icon: <Landmark size={16} />,
+        label: "Portfolio positions",
+        note: "Live positions returned from the investor API.",
+        tone: positions.length > 0 ? ("success" as const) : ("neutral" as const),
+        value: positions.length
+      },
+      {
+        icon: <Bell size={16} />,
+        label: "Unread notices",
+        note: "Operational nudges, lifecycle updates, and support prompts.",
+        tone: unreadNotifications > 0 ? ("warning" as const) : ("neutral" as const),
+        value: unreadNotifications
+      }
+    ],
+    [account.isConnected, activeStatus, positions.length, status?.onChainVerified, unreadNotifications, walletAddress]
   );
   const commonCopy = copy.common;
 
@@ -359,7 +431,7 @@ export function InvestorDashboard() {
     <main className="dashboard-shell">
       <header className="topbar">
         <div className="brand">
-          <h1>RWA Tokenized Compliance System</h1>
+          <h1>Investor / Portfolio Workspace</h1>
           <p>{activeChain.name} chain {activeChain.id} · off-chain eligibility · on-chain transfer guard</p>
         </div>
         <div className="wallet-actions">
@@ -407,6 +479,14 @@ export function InvestorDashboard() {
           </Button>
         </div>
       </header>
+
+      <DashboardHero
+        description="Monitor onboarding, refresh compliance evidence, and operate subscription or redemption flows with the same context used by backend eligibility and on-chain transfer controls."
+        eyebrow="Investor surface"
+        pills={heroPills}
+        stats={heroStats}
+        title="A single workspace for wallet access, compliance visibility, and lifecycle operations"
+      />
 
       <section className="content">
         <div className="panel-grid">

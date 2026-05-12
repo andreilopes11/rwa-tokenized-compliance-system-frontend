@@ -69,9 +69,10 @@ import {
   statusClass,
   statusLabel
 } from "@/shared/lib/formatters";
-import { explorerLink } from "@/shared/lib/web3";
+import { activeChain, explorerLink } from "@/shared/lib/web3";
 import { Alert } from "@/shared/ui/Alert";
 import { Button } from "@/shared/ui/Button";
+import { DashboardHero } from "@/shared/ui/DashboardHero";
 
 const ADMIN_TOKEN_STORAGE_KEY = "rwa-admin-token";
 const statusOptions: Array<KycStatus | ""> = ["", "PENDING", "APPROVED", "REJECTED", "REVOKED", "FAILED_ON_CHAIN"];
@@ -138,6 +139,12 @@ export function AdminDashboard() {
 
   const hasToken = adminToken.trim().length > 0;
   const selectedWallet = selectedRequest?.walletAddress ?? walletFilter;
+  const pendingLifecycleCount = subscriptions.length + redemptions.length;
+  const failedTransactionsCount =
+    operationsReport?.failedTransactions ??
+    blockchainTransactions.filter((transaction) => transaction.status === "FAILED").length;
+  const operationalHealth =
+    (oracleFeed?.status ?? "PENDING") === "ONLINE" && (regulatoryFeed?.status ?? "PENDING") === "GREEN";
   const auditFilters = useMemo(
     () => ({
       walletAddress: selectedWallet && isWalletAddress(selectedWallet) ? selectedWallet : undefined,
@@ -145,6 +152,64 @@ export function AdminDashboard() {
       limit
     }),
     [limit, selectedRequest, selectedWallet]
+  );
+  const heroPills = useMemo(
+    () => [
+      {
+        icon: <KeyRound size={14} />,
+        label: hasToken ? "Admin session armed" : "Admin session required",
+        tone: hasToken ? ("success" as const) : ("warning" as const)
+      },
+      {
+        icon: <Activity size={14} />,
+        label: `${activeChain.name} operating chain`,
+        tone: "neutral" as const
+      },
+      {
+        icon: <RadioTower size={14} />,
+        label: operationalHealth ? "External feeds healthy" : "Feeds awaiting confirmation",
+        tone: operationalHealth ? ("success" as const) : ("warning" as const)
+      },
+      {
+        icon: <ShieldOff size={14} />,
+        label: failedTransactionsCount > 0 ? "Failures require review" : "No failed transactions flagged",
+        tone: failedTransactionsCount > 0 ? ("danger" as const) : ("success" as const)
+      }
+    ],
+    [failedTransactionsCount, hasToken, operationalHealth]
+  );
+  const heroStats = useMemo(
+    () => [
+      {
+        icon: <CheckCircle2 size={16} />,
+        label: "Pending KYC",
+        note: "Requests filtered for operator review and issuer action.",
+        tone: requests.length > 0 ? ("warning" as const) : ("neutral" as const),
+        value: requests.length
+      },
+      {
+        icon: <FileText size={16} />,
+        label: "Lifecycle queue",
+        note: "Subscriptions and redemptions waiting on issuer decisions.",
+        tone: pendingLifecycleCount > 0 ? ("warning" as const) : ("neutral" as const),
+        value: pendingLifecycleCount
+      },
+      {
+        icon: <Factory size={16} />,
+        label: "Tracked assets",
+        note: "Offerings connected to compliance rules and token controls.",
+        tone: assetOfferings.length > 0 ? ("success" as const) : ("neutral" as const),
+        value: assetOfferings.length
+      },
+      {
+        icon: <Activity size={16} />,
+        label: "Failed transactions",
+        note: "On-chain operations that need investigation or retry handling.",
+        tone: failedTransactionsCount > 0 ? ("danger" as const) : ("success" as const),
+        value: failedTransactionsCount
+      }
+    ],
+    [assetOfferings.length, failedTransactionsCount, pendingLifecycleCount, requests.length]
   );
 
   useEffect(() => {
@@ -516,8 +581,8 @@ export function AdminDashboard() {
     <main className="dashboard-shell">
       <header className="topbar">
         <div className="brand">
-          <h1>Admin / Issuer Dashboard</h1>
-          <p>KYC queue · identity approvals · revocations · audit history</p>
+          <h1>Admin / Issuer Control Room</h1>
+          <p>KYC queue · identity approvals · lifecycle operations · audit evidence</p>
         </div>
         <nav className="nav-actions" aria-label="Dashboard navigation">
           <Link className="nav-link" href="/">
@@ -537,6 +602,14 @@ export function AdminDashboard() {
           </Button>
         </nav>
       </header>
+
+      <DashboardHero
+        description="Run the issuer surface with a clearer operational overview across identity approvals, subscription and redemption queues, compliance rules, feed health, and blockchain monitoring."
+        eyebrow="Issuer operations"
+        pills={heroPills}
+        stats={heroStats}
+        title="A unified control plane for compliance decisions, asset configuration, and on-chain safeguards"
+      />
 
       <section className="content admin-content">
         <div className="panel-grid">

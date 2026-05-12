@@ -65,7 +65,7 @@ Important variables:
 
 ```bash
 CONTRACTS_WORKSPACE=
-FOUNDRY_DEPLOY_SCRIPT=script/Deploy.s.sol:Deploy
+FOUNDRY_DEPLOY_SCRIPT=script/deploy/DeployCore.s.sol:DeployCore
 LOCAL_RPC_URL=http://127.0.0.1:8545
 LOCAL_CHAIN_ID=31337
 LOCAL_PRIVATE_KEY=0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
@@ -91,7 +91,8 @@ Notes:
 
 - `CONTRACTS_WORKSPACE` is optional when contract addresses are already known and set in `.env.local`.
 - Relative paths in `CONTRACTS_WORKSPACE` and `LOCAL_BACKEND_ENV_FILE` are resolved from the repository root.
-- `FOUNDRY_DEPLOY_SCRIPT` defaults to `script/Deploy.s.sol:Deploy`.
+- `FOUNDRY_DEPLOY_SCRIPT` defaults to `script/deploy/DeployCore.s.sol:DeployCore`.
+- In this combined workspace, the bootstrap script can also detect the sibling contracts repo at `../rwa-tokenized-compliance-system-blockchain`.
 - The bootstrap script writes a managed block into `.env.local` with the resolved local chain and contract values.
 - The bootstrap script also writes a backend-consumer env file, by default at `.local-runtime/backend-consumer.env`.
 

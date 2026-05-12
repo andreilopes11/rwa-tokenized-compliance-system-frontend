@@ -51,6 +51,7 @@ export function Button({
   ...props
 }: ButtonProps) {
   const content = loadingLabel && loading ? loadingLabel : children;
+  const icon = loading ? <LoaderCircle className="ui-spinner" size={18} /> : leadingIcon;
 
   return (
     <button
@@ -60,9 +61,11 @@ export function Button({
       disabled={disabled || loading}
       type={type}
     >
-      <span className="ui-button-icon" aria-hidden>
-        {loading ? <LoaderCircle className="ui-spinner" size={18} /> : leadingIcon}
-      </span>
+      {icon ? (
+        <span className="ui-button-icon" aria-hidden>
+          {icon}
+        </span>
+      ) : null}
       <span className="ui-button-label">{content}</span>
     </button>
   );

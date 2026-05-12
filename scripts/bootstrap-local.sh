@@ -64,6 +64,10 @@ require_node_version() {
   fi
 }
 
+next_cli_path() {
+  printf '%s\n' "$ROOT_DIR/node_modules/next/dist/bin/next"
+}
+
 ensure_frontend_dependencies() {
   if [ -x "$ROOT_DIR/node_modules/.bin/next" ] && [ -x "$ROOT_DIR/node_modules/.bin/tsc" ]; then
     log "Frontend dependencies already installed"
@@ -88,6 +92,7 @@ discover_contracts_workspace() {
     "$ROOT_DIR/blockchain/evm" \
     "$ROOT_DIR/contracts" \
     "$ROOT_DIR/foundry" \
+    "$parent_dir/rwa-tokenized-compliance-system-blockchain" \
     "$parent_dir/rwa-tokenized-compliance-system/blockchain/evm" \
     "$parent_dir/blockchain/evm"; do
     [ -n "$candidate" ] || continue
@@ -223,7 +228,7 @@ deploy_contracts() {
   local rpc_url="$2"
   local chain_id="$3"
   local private_key="$4"
-  local deploy_script="${FOUNDRY_DEPLOY_SCRIPT:-script/Deploy.s.sol:Deploy}"
+  local deploy_script="${FOUNDRY_DEPLOY_SCRIPT:-script/deploy/DeployCore.s.sol:DeployCore}"
   local deploy_script_file="${deploy_script%%:*}"
   local deployments_file="${FOUNDRY_DEPLOYMENTS_FILE:-$contracts_workspace/deployments/$chain_id.json}"
 
@@ -267,7 +272,7 @@ LOCAL_RPC_URL=$LOCAL_RPC_URL
 LOCAL_CHAIN_ID=$LOCAL_CHAIN_ID
 LOCAL_PRIVATE_KEY=$LOCAL_PRIVATE_KEY
 CONTRACTS_WORKSPACE=${CONTRACTS_WORKSPACE:-}
-FOUNDRY_DEPLOY_SCRIPT=${FOUNDRY_DEPLOY_SCRIPT:-script/Deploy.s.sol:Deploy}
+FOUNDRY_DEPLOY_SCRIPT=${FOUNDRY_DEPLOY_SCRIPT:-script/deploy/DeployCore.s.sol:DeployCore}
 LOCAL_FRONTEND_PORT=$LOCAL_FRONTEND_PORT
 LOCAL_BACKEND_ENV_FILE=$LOCAL_BACKEND_ENV_FILE
 NEXT_PUBLIC_API_BASE_URL=/api/backend
@@ -314,30 +319,44 @@ main() {
   export LOCAL_BACKEND_ENV_FILE="${LOCAL_BACKEND_ENV_FILE:-$RUNTIME_DIR/backend-consumer.env}"
   export LOCAL_BACKEND_ENV_FILE="$(to_absolute_path "$LOCAL_BACKEND_ENV_FILE")"
 
-  local contracts_workspace=""
-  if contracts_workspace="$(discover_contracts_workspace)"; then
-    export CONTRACTS_WORKSPACE="$contracts_workspace"
-    log "Contracts workspace detected at $CONTRACTS_WORKSPACE"
-  else
-    log "No Foundry workspace detected. Falling back to existing contract addresses from the environment."
-  fi
-
-  start_or_reuse_anvil "$LOCAL_RPC_URL" "$LOCAL_CHAIN_ID"
-
-  if [ -n "${CONTRACTS_WORKSPACE:-}" ]; then
-    deploy_contracts "$CONTRACTS_WORKSPACE" "$LOCAL_RPC_URL" "$LOCAL_CHAIN_ID" "$LOCAL_PRIVATE_KEY"
-  else
+  if [ "${SKIP_CHAIN_BOOTSTRAP:-false}" = "true" ]; then
     export IDENTITY_REGISTRY_ADDRESS="${IDENTITY_REGISTRY_ADDRESS:-${NEXT_PUBLIC_IDENTITY_REGISTRY_ADDRESS:-}}"
     export TOKEN_ADDRESS="${TOKEN_ADDRESS:-${NEXT_PUBLIC_TOKEN_ADDRESS:-}}"
     export NEXT_PUBLIC_IDENTITY_REGISTRY_ADDRESS="${NEXT_PUBLIC_IDENTITY_REGISTRY_ADDRESS:-$IDENTITY_REGISTRY_ADDRESS}"
     export NEXT_PUBLIC_TOKEN_ADDRESS="${NEXT_PUBLIC_TOKEN_ADDRESS:-$TOKEN_ADDRESS}"
 
-    is_real_address "$NEXT_PUBLIC_IDENTITY_REGISTRY_ADDRESS" || fail "No contracts workspace was found and NEXT_PUBLIC_IDENTITY_REGISTRY_ADDRESS is not set to a real address."
-    is_real_address "$NEXT_PUBLIC_TOKEN_ADDRESS" || fail "No contracts workspace was found and NEXT_PUBLIC_TOKEN_ADDRESS is not set to a real address."
+    is_real_address "$NEXT_PUBLIC_IDENTITY_REGISTRY_ADDRESS" || fail "SKIP_CHAIN_BOOTSTRAP=true requires NEXT_PUBLIC_IDENTITY_REGISTRY_ADDRESS to be set to a real address."
+    is_real_address "$NEXT_PUBLIC_TOKEN_ADDRESS" || fail "SKIP_CHAIN_BOOTSTRAP=true requires NEXT_PUBLIC_TOKEN_ADDRESS to be set to a real address."
 
     export IDENTITY_REGISTRY_ADDRESS="$NEXT_PUBLIC_IDENTITY_REGISTRY_ADDRESS"
     export TOKEN_ADDRESS="$NEXT_PUBLIC_TOKEN_ADDRESS"
-    log "Using existing contract addresses from environment"
+    log "Skipping chain bootstrap and using existing contract addresses from the environment"
+  else
+    local contracts_workspace=""
+    if contracts_workspace="$(discover_contracts_workspace)"; then
+      export CONTRACTS_WORKSPACE="$contracts_workspace"
+      log "Contracts workspace detected at $CONTRACTS_WORKSPACE"
+    else
+      log "No Foundry workspace detected. Falling back to existing contract addresses from the environment."
+    fi
+
+    start_or_reuse_anvil "$LOCAL_RPC_URL" "$LOCAL_CHAIN_ID"
+
+    if [ -n "${CONTRACTS_WORKSPACE:-}" ]; then
+      deploy_contracts "$CONTRACTS_WORKSPACE" "$LOCAL_RPC_URL" "$LOCAL_CHAIN_ID" "$LOCAL_PRIVATE_KEY"
+    else
+      export IDENTITY_REGISTRY_ADDRESS="${IDENTITY_REGISTRY_ADDRESS:-${NEXT_PUBLIC_IDENTITY_REGISTRY_ADDRESS:-}}"
+      export TOKEN_ADDRESS="${TOKEN_ADDRESS:-${NEXT_PUBLIC_TOKEN_ADDRESS:-}}"
+      export NEXT_PUBLIC_IDENTITY_REGISTRY_ADDRESS="${NEXT_PUBLIC_IDENTITY_REGISTRY_ADDRESS:-$IDENTITY_REGISTRY_ADDRESS}"
+      export NEXT_PUBLIC_TOKEN_ADDRESS="${NEXT_PUBLIC_TOKEN_ADDRESS:-$TOKEN_ADDRESS}"
+
+      is_real_address "$NEXT_PUBLIC_IDENTITY_REGISTRY_ADDRESS" || fail "No contracts workspace was found and NEXT_PUBLIC_IDENTITY_REGISTRY_ADDRESS is not set to a real address."
+      is_real_address "$NEXT_PUBLIC_TOKEN_ADDRESS" || fail "No contracts workspace was found and NEXT_PUBLIC_TOKEN_ADDRESS is not set to a real address."
+
+      export IDENTITY_REGISTRY_ADDRESS="$NEXT_PUBLIC_IDENTITY_REGISTRY_ADDRESS"
+      export TOKEN_ADDRESS="$NEXT_PUBLIC_TOKEN_ADDRESS"
+      log "Using existing contract addresses from environment"
+    fi
   fi
 
   write_managed_env_block "$ENV_FILE"
@@ -352,7 +371,10 @@ main() {
   log "Deploy log: $DEPLOY_LOG_FILE"
 
   cd "$ROOT_DIR"
-  npm run dev -- --hostname 0.0.0.0 --port "$LOCAL_FRONTEND_PORT"
+  local next_cli
+  next_cli="$(next_cli_path)"
+  [ -f "$next_cli" ] || fail "Next CLI not found at $next_cli. Reinstall frontend dependencies."
+  node "$next_cli" dev --hostname 0.0.0.0 --port "$LOCAL_FRONTEND_PORT"
 }
 
 main "$@"

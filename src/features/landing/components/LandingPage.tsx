@@ -161,6 +161,21 @@ export function LandingPage() {
         </div>
       </section>
 
+      <section className="landing-band" aria-labelledby="architecture-title">
+        <div className="features-container">
+          <h2 id="architecture-title">{landingCopy.architectureTitle}</h2>
+          <p>{landingCopy.architectureBody}</p>
+          <div className="feature-strip">
+            {landingCopy.architectureItems.map((item) => (
+              <span key={item}>
+                <ShieldCheck size={18} aria-hidden />
+                {item}
+              </span>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <section className="landing-security" aria-labelledby="security-title">
         <div className="security-container">
           <h2 id="security-title">{landingCopy.securityTitle}</h2>
