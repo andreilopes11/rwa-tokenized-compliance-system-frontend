@@ -13,101 +13,117 @@ export const copy = {
     signOut: "Sign out"
   },
   landing: {
-    adminCta: "Open admin area",
+    navProduct: "Product",
+    navJourney: "Journey",
+    navPlatform: "Platform",
+    navTrust: "Trust",
+    adminCta: "Admin access",
     analyticsDisabled: "Analytics disabled until NEXT_PUBLIC_GA_MEASUREMENT_ID is configured.",
     analyticsEnabled: "Analytics enabled for the public product journey.",
     architectureBody:
-      "Investor onboarding, issuer operations, backend automation, and token controls stay visible inside one product language, so the demo feels coherent from first access to ongoing monitoring.",
+      "One product language from investor onboarding to issuer operations — APIs, audit trails, and on-chain enforcement stay aligned so demos feel production-grade.",
     architectureItems: [
-      "Wallet-ready onboarding tied to compliance APIs",
-      "Admin decisions paired with audit and lifecycle evidence",
-      "Blockchain guardrails exposed with product-level clarity"
+      "Wallet-bound KYC with BFF session integrity",
+      "Admin queues with on-chain approval receipts",
+      "MVP and T-REX-ready blockchain gateways"
     ],
-    architectureTitle: "Built to connect frontend experience, backend flows, and on-chain enforcement",
+    architectureTitle: "Hybrid stack: experience, compliance API, and chain enforcement",
     ctaBody:
-      "Sign in as an investor, review compliance flows, and inspect the full operating surface from the issuer point of view.",
-    ctaPrimary: "Enter as investor",
-    ctaSecondary: "Enter as admin",
-    ctaTitle: "A product experience built for confident onboarding",
-    featureKicker: "Connected flows from first access to ongoing monitoring",
+      "Explore the investor path, approve a KYC in admin, and see how eligibility flows from document hash to registry — without leaving one coherent interface.",
+    ctaPrimary: "Start as investor",
+    ctaSecondary: "Open admin",
+    ctaTitle: "Ready to walk through a regulated tokenization flow?",
+    featureKicker: "Capabilities",
     features: [
       {
-        title: "Guided authentication",
-        description: "Email, MFA, and wallet access organized in a single flow with less friction."
+        title: "Identity & access",
+        description:
+          "Demo auth with MFA, optional wallet binding, and role-aware routing — investor and admin surfaces stay separated."
       },
       {
-        title: "KYC and eligibility",
-        description: "Onboarding with clear checks, traceable status, and auditable decisions."
+        title: "KYC & eligibility",
+        description:
+          "Document references hashed off-chain; status polling, reject reasons, and explorer links when approved on-chain."
       },
       {
-        title: "Operational context",
-        description: "Dashboards for portfolio, offerings, lifecycle, and action-taking in one place."
+        title: "Lifecycle operations",
+        description:
+          "Subscriptions, redemptions, fee quotes, and portfolio context in a single workspace — gated until verified."
       },
       {
-        title: "Regulatory control",
-        description: "Compliance rules, audit visibility, and monitoring ready for demos."
+        title: "Compliance controls",
+        description:
+          "Per-asset rules, audit events, pause/unpause, and blockchain transaction monitor for issuer demos."
       }
     ],
-    featuresTitle: "What is ready to use",
-    heroBadge: "Portugal / EU-first demo",
+    featuresIntro:
+      "Everything you need to demonstrate permissioned RWA workflows — from first login to on-chain transfer guardrails.",
+    featuresTitle: "Built for regulated asset demos",
+    heroBadge: "ERC-3643 · MiCA-aware · Testnet ready",
     heroSubtext:
-      "From first sign-in to asset monitoring, every step is designed so the user always understands context, next action, and risk.",
-    investorCta: "Enter as investor",
-    joinCta: "Create account",
+      "Designed for Portugal / EU pilots: clear states, explicit risk, and no raw PII on-chain — only document hashes and registry proofs.",
+    investorCta: "Investor demo",
+    joinCta: "Sign up",
+    loginCta: "Sign in",
     previewCards: [
       {
-        title: "Sign in and verify",
-        description: "Role, provider, MFA, and wallet in one coherent flow."
+        title: "Authenticate & bind wallet",
+        description: "Session, MFA, and optional X-Investor-Wallet header for KYC integrity."
       },
       {
-        title: "Assess eligibility",
-        description: "KYC, profile, rules, and audit views built for quick reading."
+        title: "Submit & track KYC",
+        description: "Reference-only onboarding with live status until approve or reject."
       },
       {
-        title: "Operate the lifecycle",
-        description: "Subscription, redemption, fees, and monitoring in a single workspace."
+        title: "Operate with guardrails",
+        description: "Mint, pause, subscribe, and redeem only when compliance rules allow."
       }
     ],
-    previewLabel: "Product preview",
-    productTour: "View product flow",
+    previewLabel: "Live flow preview",
+    productTour: "Explore product",
     securityItems: [
       {
-        title: "Clear state messaging",
-        description: "Error, success, pending, and empty states share the same logic."
+        title: "Off-chain PII, on-chain proofs",
+        description: "DocumentHashingService keeps sensitive data off the ledger; only hashes and registry state sync."
       },
       {
-        title: "Action with context",
-        description: "Buttons, filters, and cards are designed to reduce operational doubt."
+        title: "Predictable system states",
+        description: "Pending, approved, rejected, and chain-failure states use consistent visual language."
       },
       {
-        title: "Reusable foundation",
-        description: "Shared components keep the product consistent as it grows."
+        title: "Operational resilience",
+        description: "BFF retry on API outages, rate limits, and admin token patterns for controlled demos."
       }
     ],
-    securityTitle: "UX shaped for regulated product work",
+    securityIntro: "Patterns aligned with security-token and compliance SaaS leaders — clarity first, enforcement on-chain.",
+    securityTitle: "Trust by design",
     stats: [
-      { value: "3", label: "main surfaces" },
-      { value: "1", label: "continuous flow" },
-      { value: "24/7", label: "operational visibility" }
+      { value: "3", label: "integrated repos" },
+      { value: "2", label: "chain modes" },
+      { value: "0", label: "PII on-chain" }
     ],
     steps: [
       {
-        title: "1. Create or access an account",
-        description: "Pick the right role and use the best method for the task at hand."
+        title: "Create account & sign in",
+        description: "Register with auto-login, pick investor or admin role, complete MFA in seconds."
       },
       {
-        title: "2. Complete compliance",
-        description: "Submit the required data and track status without losing the thread."
+        title: "Complete compliance review",
+        description: "Submit a document reference; admin approves; registry reflects eligibility."
       },
       {
-        title: "3. Operate the asset",
-        description: "Request quotes, subscriptions, or redemptions with immediate state feedback."
+        title: "Run the asset lifecycle",
+        description: "Subscribe, redeem, and monitor positions with fees and audit evidence in view."
       }
     ],
-    stepsTitle: "How the journey connects",
+    stepsIntro: "Three connected acts — no dead ends between onboarding and on-chain enforcement.",
+    stepsTitle: "End-to-end journey",
     subtitle:
-      "Onboarding, KYC, subscription, redemption, and on-chain enforcement presented as a clearer, guided, demo-ready product experience.",
-    title: "Better interfaces for a compliance flow that feels like a product, not a prototype"
+      "Permissioned real-world asset tokenization with off-chain KYC and on-chain transfer rules — presented as a polished, demo-ready product.",
+    title: "Compliance infrastructure",
+    titleAccent: "for tokenized real-world assets",
+    trustLabels: ["MiCA-oriented demo", "ERC-3643 / T-REX path", "Sepolia & Anvil", "Audit events", "Wallet binding"],
+    trustTitle: "Aligned with EU security-token expectations"
   },
   login: {
     admin: "Admin",
