@@ -14,10 +14,10 @@ import {
   Wallet,
   XCircle
 } from "lucide-react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FormEvent, useEffect, useMemo, useState } from "react";
-import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { useAccount, useChainId, useConnect, useDisconnect, useSwitchChain } from "wagmi";
 import { fetchAssetOfferings } from "@/features/assets/api/client";
 import {
@@ -27,6 +27,7 @@ import {
   fetchInvestorAuditEvents,
   fetchInvestorPositions,
   fetchInvestorStatus,
+  fetchKycRequest,
   fetchNotifications,
   markNotificationRead,
   quoteFees,
@@ -34,6 +35,8 @@ import {
   fetchTaxSummary,
   fetchTutorials
 } from "@/features/investor/api/client";
+import { useInvestorChainReads } from "@/features/investor/hooks/useInvestorChainReads";
+import { isApiError } from "@/shared/api/errors";
 import type {
   AssetOfferingResponse,
   AuditEventResponse,
@@ -60,8 +63,22 @@ import { DashboardHero } from "@/shared/ui/DashboardHero";
 
 const tokenAddress = process.env.NEXT_PUBLIC_TOKEN_ADDRESS ?? "";
 const registryAddress = process.env.NEXT_PUBLIC_IDENTITY_REGISTRY_ADDRESS ?? "";
+const KYC_POLL_MS = 4000;
+const TERMINAL_KYC_STATUSES = new Set(["APPROVED", "REJECTED", "FAILED_ON_CHAIN", "REVOKED"]);
 
-export function InvestorDashboard() {
+const PortfolioChart = dynamic(
+  () => import("./PortfolioChart").then((module) => module.PortfolioChart),
+  {
+    ssr: false,
+    loading: () => <div className="empty-state">Loading chart…</div>
+  }
+);
+
+type InvestorDashboardProps = {
+  sessionWalletAddress?: string;
+};
+
+export function InvestorDashboard({ sessionWalletAddress }: InvestorDashboardProps) {
   const router = useRouter();
   const account = useAccount();
   const currentChainId = useChainId();
@@ -84,21 +101,33 @@ export function InvestorDashboard() {
   const [subscriptionAmounts, setSubscriptionAmounts] = useState<Record<string, string>>({});
   const [redemptionAmounts, setRedemptionAmounts] = useState<Record<string, string>>({});
   const [error, setError] = useState("");
+  const [gatewayError, setGatewayError] = useState("");
   const [assetError, setAssetError] = useState("");
   const [notice, setNotice] = useState("");
   const [loading, setLoading] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
+  const [pollingKyc, setPollingKyc] = useState(false);
 
+  const chainReads = useInvestorChainReads(walletAddress);
   const activeStatus = status?.status ?? request?.status ?? "PENDING";
+  const registryVerified =
+    chainReads.registryVerifiedOnChain ?? status?.onChainVerified ?? false;
+  const rejectMessage =
+    activeStatus === "REJECTED" || activeStatus === "FAILED_ON_CHAIN"
+      ? status?.message ?? request?.message ?? "KYC request was not approved."
+      : "";
+  const latestTxHash = status?.transactionHash ?? request?.transactionHash ?? null;
+  const latestTxExplorer = explorerLink("tx", latestTxHash);
   const canSubmit = isWalletAddress(walletAddress) && documentReference.trim().length > 2 && !loading;
   const canRefresh = isWalletAddress(walletAddress) && !loading;
-  const lifecycleReady = Boolean(status?.onChainVerified && status.status === "APPROVED" && isWalletAddress(walletAddress));
+  const lifecycleReady = Boolean(registryVerified && status?.status === "APPROVED" && isWalletAddress(walletAddress));
   const wrongNetwork = account.isConnected && currentChainId !== activeChain.id;
-  const chartData = financialSummary?.positions.map((position) => ({
-    name: position.symbol,
-    value: position.value
-  })) ?? [];
-  const unreadNotifications = notifications.filter((notification) => !notification.read).length;
+  const chartData =
+    financialSummary?.positions?.map((position) => ({
+      name: position.symbol,
+      value: position.value
+    })) ?? [];
+  const unreadNotifications = (notifications ?? []).filter((notification) => !notification.read).length;
 
   const activity = useMemo(
     () => [
@@ -162,7 +191,7 @@ export function InvestorDashboard() {
       {
         icon: <CheckCircle2 size={16} />,
         label: "Eligibility state",
-        note: status?.onChainVerified
+        note: registryVerified
           ? "Verified for transfer gating and lifecycle requests."
           : "Awaiting approval or registry synchronization.",
         tone:
@@ -188,19 +217,70 @@ export function InvestorDashboard() {
         value: unreadNotifications
       }
     ],
-    [account.isConnected, activeStatus, positions.length, status?.onChainVerified, unreadNotifications, walletAddress]
+    [account.isConnected, activeStatus, positions.length, registryVerified, unreadNotifications, walletAddress]
   );
   const commonCopy = copy.common;
 
+  const reportRequestError = useCallback((err: unknown, fallback: string) => {
+    if (isApiError(err) && err.retryable) {
+      setGatewayError(err.message);
+      setError("");
+      return;
+    }
+    setGatewayError("");
+    setError(err instanceof Error ? err.message : fallback);
+  }, []);
+
   useEffect(() => {
-    if (account.address) {
+    if (sessionWalletAddress) {
+      setWalletAddress(sessionWalletAddress);
+    } else if (account.address) {
       setWalletAddress(account.address);
     }
-  }, [account.address]);
+  }, [account.address, sessionWalletAddress]);
 
   useEffect(() => {
     void refreshAssets();
   }, []);
+
+  useEffect(() => {
+    if (!request?.requestId || !isWalletAddress(walletAddress)) {
+      setPollingKyc(false);
+      return;
+    }
+    if (TERMINAL_KYC_STATUSES.has(activeStatus)) {
+      setPollingKyc(false);
+      return;
+    }
+
+    setPollingKyc(true);
+    const intervalId = window.setInterval(() => {
+      void (async () => {
+        try {
+          const [kyc, statusResponse] = await Promise.all([
+            fetchKycRequest(request.requestId),
+            fetchInvestorStatus(walletAddress)
+          ]);
+          setRequest(kyc);
+          setStatus(statusResponse);
+          if (TERMINAL_KYC_STATUSES.has(statusResponse.status)) {
+            setNotice(
+              statusResponse.status === "APPROVED"
+                ? "KYC approved. On-chain authorization is reflected below."
+                : "KYC review completed."
+            );
+          }
+        } catch {
+          // Polling errors are non-fatal; manual refresh remains available.
+        }
+      })();
+    }, KYC_POLL_MS);
+
+    return () => {
+      window.clearInterval(intervalId);
+      setPollingKyc(false);
+    };
+  }, [activeStatus, request?.requestId, walletAddress]);
 
   async function refreshAssets() {
     setAssetError("");
@@ -259,6 +339,7 @@ export function InvestorDashboard() {
     }
     setLoading(true);
     setError("");
+    setGatewayError("");
     try {
       const [statusResponse, positionsResponse, eventsResponse] = await Promise.all([
         fetchInvestorStatus(address),
@@ -280,7 +361,7 @@ export function InvestorDashboard() {
       setTutorials(tutorialResponse);
       setNotice("Investor status refreshed from the compliance API.");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Status refresh failed.");
+      reportRequestError(err, "Status refresh failed.");
     } finally {
       setLoading(false);
     }
@@ -292,18 +373,26 @@ export function InvestorDashboard() {
       setError("Wallet address and document reference are required.");
       return;
     }
+    if (
+      sessionWalletAddress &&
+      walletAddress.toLowerCase() !== sessionWalletAddress.toLowerCase()
+    ) {
+      setError("KYC wallet must match your session wallet.");
+      return;
+    }
 
     setLoading(true);
     setError("");
+    setGatewayError("");
     setNotice("");
     try {
       const created = await submitKycRequest(walletAddress, documentReference.trim());
       setRequest(created);
       setStatus(await fetchInvestorStatus(walletAddress));
       setPositions(await fetchInvestorPositions(walletAddress));
-      setNotice("KYC request submitted. Only the document hash was sent forward.");
+      setNotice("KYC request submitted. Status will update automatically while pending review.");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "KYC submission failed.");
+      reportRequestError(err, "KYC submission failed.");
     } finally {
       setLoading(false);
     }
@@ -500,8 +589,12 @@ export function InvestorDashboard() {
                   className="mono"
                   onChange={(event) => setWalletAddress(event.target.value)}
                   placeholder="0x..."
+                  readOnly={Boolean(sessionWalletAddress)}
                   value={walletAddress}
                 />
+                {sessionWalletAddress ? (
+                  <p className="helper-text">Wallet is bound to your session and cannot be changed here.</p>
+                ) : null}
               </div>
               <div className="field">
                 <label htmlFor="document">Document reference</label>
@@ -524,11 +617,41 @@ export function InvestorDashboard() {
               </div>
             </form>
             {error && <Alert tone="error">{error}</Alert>}
+            {gatewayError ? (
+              <Alert tone="error" title="Backend unavailable">
+                {gatewayError}
+                <div className="actions">
+                  <button
+                    className="secondary-button"
+                    disabled={!canRefresh || loading}
+                    onClick={() => {
+                      setGatewayError("");
+                      void refreshStatus();
+                    }}
+                    type="button"
+                  >
+                    <RefreshCw size={16} aria-hidden />
+                    Retry
+                  </button>
+                </div>
+              </Alert>
+            ) : null}
             {notice && <Alert tone="info">{notice}</Alert>}
+            {pollingKyc ? (
+              <Alert tone="info">Polling KYC status every few seconds until a final decision is recorded.</Alert>
+            ) : null}
           </section>
 
           <section className="panel" aria-labelledby="status-title">
             <h2 id="status-title">Compliance status</h2>
+            {rejectMessage ? <Alert tone="error">{rejectMessage}</Alert> : null}
+            {latestTxExplorer ? (
+              <Alert tone="success" title="On-chain authorization">
+                <a className="external-link" href={latestTxExplorer} rel="noreferrer" target="_blank">
+                  View transaction on block explorer
+                </a>
+              </Alert>
+            ) : null}
             <div className="metric-grid">
               <div className="metric">
                 <span>Wallet</span>
@@ -542,10 +665,39 @@ export function InvestorDashboard() {
                 </strong>
               </div>
               <div className="metric">
-                <span>Registry verified</span>
+                <span>Registry verified (API)</span>
                 <strong className={`status ${status?.onChainVerified ? "approved" : "pending"}`}>
                   <ShieldCheck size={16} aria-hidden />
                   {status?.onChainVerified ? "YES" : "NO"}
+                </strong>
+              </div>
+              <div className="metric">
+                <span>Registry verified (chain)</span>
+                <strong
+                  className={`status ${
+                    chainReads.registryVerifiedOnChain === true
+                      ? "approved"
+                      : chainReads.registryVerifiedOnChain === false
+                        ? "pending"
+                        : "pending"
+                  }`}
+                >
+                  <ShieldCheck size={16} aria-hidden />
+                  {chainReads.verifiedLoading
+                    ? "…"
+                    : chainReads.registryVerifiedOnChain === undefined
+                      ? "N/A"
+                      : chainReads.registryVerifiedOnChain
+                        ? "YES"
+                        : "NO"}
+                </strong>
+              </div>
+              <div className="metric">
+                <span>Token balance (chain)</span>
+                <strong className="mono">
+                  {chainReads.balanceLoading
+                    ? "…"
+                    : chainReads.tokenBalanceFormatted ?? "N/A"}
                 </strong>
               </div>
               <div className="metric">
@@ -588,14 +740,7 @@ export function InvestorDashboard() {
                   No position values to chart yet.
                 </div>
               ) : (
-                <ResponsiveContainer height={220} width="100%">
-                  <BarChart data={chartData}>
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip formatter={(value) => formatCurrency(Number(value), "EUR", "en-GB")} />
-                    <Bar dataKey="value" fill="#0f766e" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
+                <PortfolioChart data={chartData} />
               )}
             </div>
             {taxSummary && (

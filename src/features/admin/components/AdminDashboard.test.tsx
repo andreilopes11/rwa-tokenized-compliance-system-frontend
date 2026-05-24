@@ -17,7 +17,7 @@ vi.mock("@/shared/lib/web3", () => ({
 describe("AdminDashboard", () => {
   afterEach(() => {
     window.sessionStorage.clear();
-    vi.restoreAllMocks();
+    vi.clearAllMocks();
     vi.unstubAllGlobals();
   });
 
@@ -153,7 +153,46 @@ async function mockFetch(input: RequestInfo | URL) {
     ]);
   }
 
-  return jsonResponse({});
+  if (url.includes("/api/admin/blockchain-transactions")) {
+    return jsonResponse([]);
+  }
+
+  if (url.includes("/api/admin/reports/operations")) {
+    return jsonResponse({
+      activeAssets: 1,
+      pendingSubscriptions: 1,
+      pendingRedemptions: 1,
+      monitoredTransactions: 0,
+      failedTransactions: 0,
+      autoPauseMode: "SIMULATED_ADMIN_REVIEW",
+      summary: "Demo operations report.",
+      generatedAt: "2026-05-03T00:00:00Z"
+    });
+  }
+
+  if (url.includes("/api/integrations/oracle-feed")) {
+    return jsonResponse({
+      feedId: "MOCK",
+      status: "ONLINE",
+      baseCurrency: "EUR",
+      fxRate: 1,
+      topics: [],
+      summary: "Mock oracle",
+      asOf: "2026-05-03T00:00:00Z"
+    });
+  }
+
+  if (url.includes("/api/integrations/regulatory-feed")) {
+    return jsonResponse({
+      feedId: "MOCK",
+      status: "GREEN",
+      summary: "Mock regulatory feed",
+      checklist: [],
+      asOf: "2026-05-03T00:00:00Z"
+    });
+  }
+
+  return jsonResponse([]);
 }
 
 function kycRequest(status: string, transactionHash: string | null) {

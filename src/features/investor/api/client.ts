@@ -26,6 +26,10 @@ export async function submitKycRequest(
   });
 }
 
+export async function fetchKycRequest(requestId: string): Promise<KycRequestResponse> {
+  return jsonFetch<KycRequestResponse>(`/api/kyc/requests/${encodeURIComponent(requestId)}`);
+}
+
 export async function fetchInvestorStatus(walletAddress: string): Promise<InvestorStatusResponse> {
   return jsonFetch<InvestorStatusResponse>(
     `/api/investors/${encodeURIComponent(walletAddress)}/status`

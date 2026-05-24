@@ -2,7 +2,7 @@
 
 import { Eye, EyeOff, KeyRound, ShieldCheck, Sparkles, UserPlus } from "lucide-react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import {
   buildPasswordChecks,
@@ -28,9 +28,11 @@ type TouchedState = {
 
 type RegisterSuccess = {
   nextLogin: string;
+  redirectTo: string;
 };
 
 export function RegisterPage() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const requestedRole = searchParams.get("role") === "admin" ? "admin" : "investor";
   const [role, setRole] = useState<RegisterRole>(requestedRole);
@@ -115,10 +117,17 @@ export function RegisterPage() {
         return;
       }
 
+      if (payload?.autoLogin && payload?.redirectTo) {
+        router.push(payload.redirectTo);
+        router.refresh();
+        return;
+      }
+
       setSuccess({
         nextLogin:
           payload?.nextLogin ??
-          `/login?registered=1&email=${encodeURIComponent(email.trim())}&role=${role}`
+          `/login?registered=1&email=${encodeURIComponent(email.trim())}&role=${role}`,
+        redirectTo: payload?.redirectTo ?? `/login?role=${role}`
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : registerCopy.submitError);
@@ -166,7 +175,7 @@ export function RegisterPage() {
               {registerCopy.successBody}
             </Alert>
             <div className="auth-actions">
-              <Link className={buttonClassName({ block: true })} href={success.nextLogin}>
+              <Link className={buttonClassName({ block: true })} href={success.redirectTo}>
                 {registerCopy.successAction}
               </Link>
               <Link

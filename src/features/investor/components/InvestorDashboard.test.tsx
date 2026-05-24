@@ -30,6 +30,36 @@ vi.mock("wagmi", () => ({
   useSwitchChain: () => ({
     switchChainAsync: wagmiMock.switchChainAsync,
     isPending: false
+  }),
+  useReadContract: () => ({
+    data: undefined,
+    isFetching: false
+  })
+}));
+
+vi.mock("@/features/investor/hooks/useInvestorChainReads", () => ({
+  useInvestorChainReads: () => ({
+    chainReadsEnabled: false,
+    tokenBalanceFormatted: null,
+    registryVerifiedOnChain: undefined,
+    balanceLoading: false,
+    verifiedLoading: false
+  })
+}));
+
+vi.mock("next/dynamic", () => ({
+  default: () => {
+    function MockChart() {
+      return <div data-testid="portfolio-chart">chart</div>;
+    }
+    return MockChart;
+  }
+}));
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({
+    push: vi.fn(),
+    refresh: vi.fn()
   })
 }));
 
@@ -50,6 +80,9 @@ describe("InvestorDashboard", () => {
     wagmiMock.connectAsync.mockResolvedValue({ accounts: [wallet] });
     wagmiMock.disconnect.mockReset();
     wagmiMock.switchChainAsync.mockResolvedValue(undefined);
+    if ("ethereum" in window) {
+      delete (window as Window & { ethereum?: unknown }).ethereum;
+    }
   });
 
   afterEach(() => {
@@ -57,8 +90,23 @@ describe("InvestorDashboard", () => {
       configurable: true,
       value: undefined
     });
-    vi.restoreAllMocks();
+    vi.clearAllMocks();
     vi.unstubAllGlobals();
+  });
+
+  it("blocks KYC when session wallet differs from submitted wallet", async () => {
+    const sessionWallet = "0x2222222222222222222222222222222222222222";
+    render(<InvestorDashboard sessionWalletAddress={sessionWallet} />);
+
+    fireEvent.change(screen.getByLabelText(/document reference/i), {
+      target: { value: "passport://case-123" }
+    });
+    fireEvent.change(screen.getByLabelText(/wallet address/i), {
+      target: { value: wallet }
+    });
+    fireEvent.click(screen.getByRole("button", { name: /submit kyc/i }));
+
+    expect(await screen.findByText(/must match your session wallet/i)).toBeInTheDocument();
   });
 
   it("shows a wallet-unavailable error when no injected provider exists", async () => {
@@ -95,7 +143,7 @@ describe("InvestorDashboard", () => {
     await waitFor(() => {
       expect(screen.getAllByText("PENDING").length).toBeGreaterThan(0);
     });
-    expect(screen.getByText(/only the document hash/i)).toBeInTheDocument();
+    expect(screen.getByText(/status will update automatically/i)).toBeInTheDocument();
     expect(screen.getByText("Lisbon Real Estate Income Fund")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /revoke/i })).not.toBeInTheDocument();
   });
@@ -129,7 +177,9 @@ describe("InvestorDashboard", () => {
         })
       );
     });
-    expect(await screen.findByText(/subscription request pending/i)).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText(/investor status refreshed/i)).toBeInTheDocument();
+    });
 
     fireEvent.change(screen.getByLabelText(/redemption amount/i), {
       target: { value: "5" }
@@ -145,7 +195,9 @@ describe("InvestorDashboard", () => {
         })
       );
     });
-    expect(await screen.findByText(/redemption request pending/i)).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getAllByText(/investor status refreshed/i).length).toBeGreaterThan(0);
+    });
   });
 });
 
@@ -186,6 +238,30 @@ async function mockFetch(input: RequestInfo | URL) {
 
   if (url.includes("/api/investors/") && url.includes("/positions")) {
     return jsonResponse([]);
+  }
+
+  if (url.includes("/financial-summary")) {
+    return jsonResponse(defaultFinancialSummary());
+  }
+
+  if (url.includes("/tax-summary")) {
+    return jsonResponse(defaultTaxSummary());
+  }
+
+  if (url.includes("/notifications")) {
+    return jsonResponse([]);
+  }
+
+  if (url.includes("/tutorials")) {
+    return jsonResponse([]);
+  }
+
+  if (url.includes("/audit-events")) {
+    return jsonResponse([]);
+  }
+
+  if (url.includes("/api/fees/quote")) {
+    return jsonResponse(defaultFeeQuote());
   }
 
   return jsonResponse({
@@ -269,6 +345,30 @@ async function mockFetchApproved(input: RequestInfo | URL) {
     ]);
   }
 
+  if (url.includes("/financial-summary")) {
+    return jsonResponse(defaultFinancialSummary());
+  }
+
+  if (url.includes("/tax-summary")) {
+    return jsonResponse(defaultTaxSummary());
+  }
+
+  if (url.includes("/notifications")) {
+    return jsonResponse([]);
+  }
+
+  if (url.includes("/tutorials")) {
+    return jsonResponse([]);
+  }
+
+  if (url.includes("/audit-events")) {
+    return jsonResponse([]);
+  }
+
+  if (url.includes("/api/fees/quote")) {
+    return jsonResponse(defaultFeeQuote());
+  }
+
   return jsonResponse({
     walletAddress: wallet,
     status: "APPROVED",
@@ -285,4 +385,49 @@ function jsonResponse(payload: unknown) {
     ok: true,
     json: async () => payload
   } as Response;
+}
+
+function defaultFinancialSummary() {
+  return {
+    walletAddress: wallet,
+    baseCurrency: "EUR",
+    secondaryCurrency: "USD",
+    totalValue: 0,
+    totalValueSecondary: 0,
+    fxRate: 1.08,
+    positions: [],
+    disclaimer: "Demo only.",
+    asOf: "2026-05-03T00:00:00Z"
+  };
+}
+
+function defaultTaxSummary() {
+  return {
+    walletAddress: wallet,
+    jurisdiction: "PT/EU",
+    currency: "EUR",
+    portfolioValue: 0,
+    estimatedWithholding: 0,
+    taxableEventsCount: 0,
+    summary: "Demo tax summary.",
+    disclaimer: "Not tax advice.",
+    asOf: "2026-05-03T00:00:00Z"
+  };
+}
+
+function defaultFeeQuote() {
+  return {
+    quoteId: "fee-quote-1",
+    walletAddress: wallet,
+    assetId: "33333333-3333-4333-8333-333333333333",
+    lifecycleType: "SUBSCRIPTION",
+    amount: 25,
+    currency: "EUR",
+    platformFee: 1,
+    networkFeeEstimate: 0.5,
+    regulatoryFee: 0.25,
+    totalFees: 1.75,
+    totalAmount: 26.75,
+    disclaimer: "Demo fee quote."
+  };
 }

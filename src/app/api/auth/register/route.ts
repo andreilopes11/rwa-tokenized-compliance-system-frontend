@@ -5,7 +5,13 @@ import {
   isValidWalletAddress,
   meetsPasswordPolicy
 } from "@/features/auth/lib/validators";
-import type { SessionRole } from "@/features/auth/server/session";
+import {
+  encodeSession,
+  sessionCookieName,
+  sessionCookieOptions,
+  type DemoSession,
+  type SessionRole
+} from "@/features/auth/server/session";
 
 type RegisterRequest = {
   email?: string;
@@ -36,18 +42,31 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ message: "Enter a valid EVM wallet address." }, { status: 400 });
   }
 
-  const nextLogin = `/login?registered=1&email=${encodeURIComponent(email)}&role=${role}`;
+  const session: DemoSession = {
+    subject: email,
+    provider: "demo",
+    role,
+    walletAddress: walletAddress || undefined,
+    mfaVerified: true,
+    createdAt: new Date().toISOString()
+  };
 
-  return NextResponse.json(
+  const redirectTo = role === "admin" ? "/admin" : "/dashboard";
+  const response = NextResponse.json(
     {
-      message: "Demo-ready account created.",
-      nextLogin,
+      message: "Demo account created. You are signed in.",
+      autoLogin: true,
+      redirectTo,
+      nextLogin: `/login?registered=1&email=${encodeURIComponent(email)}&role=${role}`,
       user: {
         email,
         role,
         walletAddress: walletAddress || null
-      }
+      },
+      session
     },
     { status: 201 }
   );
+  response.cookies.set(sessionCookieName(), encodeSession(session), sessionCookieOptions());
+  return response;
 }

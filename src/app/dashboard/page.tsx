@@ -2,6 +2,6 @@ import { InvestorDashboard } from "@/features/investor/components/InvestorDashbo
 import { requireSession } from "@/features/auth/server/session";
 
 export default async function DashboardPage() {
-  await requireSession("investor");
-  return <InvestorDashboard />;
+  const session = await requireSession("investor");
+  return <InvestorDashboard sessionWalletAddress={session.walletAddress} />;
 }

@@ -14,8 +14,8 @@
     "local:bootstrap": "bash ./scripts/bootstrap-local.sh",
     "local:stop": "bash ./scripts/stop-local.sh",
     "typecheck": "tsc --noEmit",
-    "test": "mkdir -p .vitest-temp && TMPDIR=$PWD/.vitest-temp vitest run",
-    "test:watch": "mkdir -p .vitest-temp && TMPDIR=$PWD/.vitest-temp vitest"
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@tanstack/react-query": "5.100.9",
