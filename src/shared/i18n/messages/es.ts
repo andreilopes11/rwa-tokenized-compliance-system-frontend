@@ -147,6 +147,21 @@ export const es = {
     analyticsEnabled: "Analítica respetuosa de la privacidad habilitada para información del producto.",
     architectureBody:
       "Un único grafo de cumplimiento desde la incorporación del inversor hasta las operaciones del emisor — las API, las pistas de auditoría y la aplicación en cadena permanecen alineadas para programas de valores tokenizados preparados para MiCA.",
+    architectureKicker: "Arquitectura",
+    architecturePillars: [
+      {
+        title: "Frontend",
+        description: "BFF Next.js, Wagmi, KYC vinculado a sesión, paneles de inversor y emisor"
+      },
+      {
+        title: "Backend",
+        description: "API de cumplimiento Spring Boot, hash de documentos, gateways Web3j (heredado + T-REX)"
+      },
+      {
+        title: "Blockchain",
+        description: "Token permissionado y registro de identidad — reglas de transferencia en cadena"
+      }
+    ],
     architectureItems: [
       "KYC vinculado a billetera con integridad de sesión BFF",
       "Colas del emisor con comprobantes de aprobación en cadena",
@@ -427,5 +442,26 @@ export const es = {
     walletHelp: "Vincule opcionalmente una dirección EVM para inicio de sesión por billetera y vinculación KYC.",
     walletInvalid: "Introduzca una dirección EVM válida o deje el campo vacío.",
     walletPlaceholder: "0x..."
+  },
+  workspace: {
+    admin: {
+      heroDescription:
+        "Gestione la superficie del emisor con visión operativa en aprobaciones de identidad, colas de suscripción y rescate, reglas de cumplimiento, feeds y monitoreo en cadena.",
+      heroEyebrow: "Operaciones del emisor",
+      heroTitle:
+        "Un panel unificado para decisiones de cumplimiento, configuración de activos y salvaguardas en cadena",
+      topbarSubtitle:
+        "Cola KYC · aprobaciones de identidad · operaciones del ciclo de vida · evidencia de auditoría",
+      topbarTitle: "Admin / Sala de control del emisor"
+    },
+    investor: {
+      heroDescription:
+        "Conecte una billetera, complete KYC y gestione suscripciones, rescates y posiciones en un workspace regulado.",
+      heroEyebrow: "Workspace del inversor",
+      heroTitle: "Portafolio, elegibilidad y acciones del ciclo de vida en un solo lugar",
+      topbarSubtitle:
+        "Red {chainName} {chainId} · elegibilidad off-chain · protección de transferencia en cadena",
+      topbarTitle: "Inversor / Workspace de portafolio"
+    }
   }
 } as const;

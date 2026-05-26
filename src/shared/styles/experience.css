@@ -535,15 +535,6 @@ html[data-theme="dark"] .experience-shell .password-meter-track {
   background: rgba(255, 255, 255, 0.12);
 }
 
-.experience-shell .connect-button {
-  background: linear-gradient(135deg, var(--xp-accent) 0%, var(--xp-accent-dim) 100%);
-  color: #041210;
-}
-
-html:not([data-theme="dark"]) .experience-shell .connect-button {
-  color: #ffffff;
-}
-
 .experience-shell .auth-panel-top h2 {
   font-family: var(--xp-font-display);
 }
@@ -655,14 +646,12 @@ html:not([data-theme="dark"]) .experience-shell .ui-button-ghost:hover {
 }
 
 .experience-shell .ui-button-primary,
-.experience-shell .primary-button,
-.experience-shell .connect-button {
+.experience-shell .primary-button {
   color: #ffffff;
 }
 
 html[data-theme="dark"] .experience-shell .ui-button-primary,
-html[data-theme="dark"] .experience-shell .primary-button,
-html[data-theme="dark"] .experience-shell .connect-button {
+html[data-theme="dark"] .experience-shell .primary-button {
   color: #041210;
 }
 
@@ -968,18 +957,35 @@ html[data-theme="dark"] .experience-shell .ui-button-secondary:hover {
   }
 }
 
-/* Wallet controls on dashboard topbar (light + dark) */
+/* Wallet + language controls — high contrast in light and dark */
 
-.experience-shell .topbar .connect-button {
-  background: linear-gradient(135deg, #14b8a6 0%, #0f766e 100%);
-  border-color: rgba(255, 255, 255, 0.28);
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.22);
-  color: #f8fffe;
+.experience-shell .connect-button {
+  background: linear-gradient(135deg, #0f766e 0%, #0b5f59 100%);
+  border: 1px solid rgba(15, 118, 110, 0.45);
+  color: #ffffff;
 }
 
-.experience-shell .topbar .connect-button:hover {
+.experience-shell .connect-button:hover {
+  background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%);
+  border-color: rgba(45, 212, 191, 0.55);
+  color: #ffffff;
+}
+
+html[data-theme="dark"] .experience-shell .connect-button {
+  background: linear-gradient(135deg, #14b8a6 0%, #0f766e 100%);
+  border-color: rgba(94, 234, 212, 0.4);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.28);
+  color: #ffffff;
+}
+
+html[data-theme="dark"] .experience-shell .connect-button:hover {
   background: linear-gradient(135deg, #2dd4bf 0%, #14b8a6 100%);
-  border-color: rgba(255, 255, 255, 0.45);
+  border-color: rgba(94, 234, 212, 0.55);
+  color: #ffffff;
+}
+
+.experience-shell .topbar .connect-button,
+.experience-shell .topbar .connect-button:hover {
   color: #ffffff;
 }
 
@@ -995,29 +1001,16 @@ html[data-theme="dark"] .experience-shell .ui-button-secondary:hover {
   color: #99f6e4;
 }
 
-html[data-theme="light"] .experience-shell .topbar .connect-button {
-  background: linear-gradient(135deg, #0f766e 0%, #115e59 100%);
-  border-color: rgba(15, 118, 110, 0.35);
-  box-shadow: 0 10px 22px rgba(15, 118, 110, 0.25);
-  color: #ffffff;
-}
-
 html[data-theme="light"] .experience-shell .topbar .wallet-pill {
   background: #ecfdf5;
   border-color: rgba(15, 118, 110, 0.28);
   color: #0f3d38;
 }
 
-html[data-theme="dark"] .experience-shell .topbar .connect-button {
-  background: linear-gradient(135deg, #2dd4bf 0%, #0f766e 100%);
-  border-color: rgba(94, 234, 212, 0.45);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
-  color: #042f2e;
-}
-
-html[data-theme="dark"] .experience-shell .topbar .connect-button:hover {
-  background: linear-gradient(135deg, #5eead4 0%, #14b8a6 100%);
-  color: #022c27;
+html[data-theme="light"] .experience-shell .topbar .wallet-pill:hover {
+  background: #d1fae5;
+  border-color: rgba(15, 118, 110, 0.45);
+  color: #064e3b;
 }
 
 html[data-theme="dark"] .experience-shell .topbar .wallet-pill {
@@ -1030,4 +1023,65 @@ html[data-theme="dark"] .experience-shell .topbar .wallet-pill:hover {
   background: #171d2a;
   border-color: rgba(62, 243, 220, 0.4);
   color: #99f6e4;
+}
+
+.experience-shell .topbar .language-switcher {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.22);
+  color: #d1fae5;
+}
+
+.experience-shell .topbar .language-switcher select {
+  color: #f8fffe;
+}
+
+.experience-shell .topbar .language-switcher svg {
+  color: #99f6e4;
+}
+
+html[data-theme="light"] .experience-shell .topbar .language-switcher {
+  background: #ecfdf5;
+  border-color: rgba(15, 118, 110, 0.28);
+  color: #0f3d38;
+}
+
+html[data-theme="light"] .experience-shell .topbar .language-switcher select {
+  color: #042f2e;
+}
+
+html[data-theme="light"] .experience-shell .topbar .language-switcher svg {
+  color: #0f766e;
+}
+
+html[data-theme="dark"] .experience-shell .topbar .language-switcher {
+  background: #121722;
+  border-color: rgba(255, 255, 255, 0.18);
+  color: #e2e8f0;
+}
+
+html[data-theme="dark"] .experience-shell .topbar .language-switcher select {
+  color: #f4f7fb;
+}
+
+html[data-theme="dark"] .experience-shell .topbar .language-switcher svg {
+  color: #99f6e4;
+}
+
+.global-app-header .language-switcher,
+.landing-nav .language-switcher,
+.auth-global-header .language-switcher {
+  background: var(--xp-surface);
+  border-color: var(--xp-border);
+}
+
+.global-app-header .language-switcher select,
+.landing-nav .language-switcher select,
+.auth-global-header .language-switcher select {
+  color: var(--xp-text);
+}
+
+.global-app-header .language-switcher svg,
+.landing-nav .language-switcher svg,
+.auth-global-header .language-switcher svg {
+  color: var(--xp-accent);
 }

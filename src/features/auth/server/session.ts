@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { getServerLocale } from "@/shared/i18n/server";
 
 export type SessionRole = "investor" | "admin";
 
@@ -248,6 +249,8 @@ export async function backendAuthRequest<T>(
   init: RequestInit & { accessToken?: string } = {}
 ): Promise<{ ok: true; data: T } | { ok: false; status: number; message: string }> {
   const headers = new Headers(init.headers);
+  const locale = await getServerLocale();
+  headers.set("Accept-Language", locale);
   if (init.accessToken) {
     headers.set("Authorization", `Bearer ${init.accessToken}`);
   }
@@ -263,7 +266,7 @@ export async function backendAuthRequest<T>(
       cache: "no-store"
     });
   } catch {
-    return { ok: false, status: 502, message: "Compliance API is unavailable. Start the backend on port 8080 and retry." };
+    return { ok: false, status: 502, message: "errors.apiUnavailable" };
   }
 
   const payload = await response.json().catch(() => null);
@@ -271,7 +274,7 @@ export async function backendAuthRequest<T>(
     return {
       ok: false,
       status: response.status,
-      message: extractErrorMessage(payload, "Authentication request failed.")
+      message: extractErrorMessage(payload, "errors.authenticationFailed")
     };
   }
 

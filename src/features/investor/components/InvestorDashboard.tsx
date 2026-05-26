@@ -50,7 +50,8 @@ import type {
   TutorialResponse
 } from "@/shared/api/types";
 import { formatMessage } from "@/shared/i18n/format";
-import { useMessages } from "@/shared/i18n/LocaleProvider";
+import { useLocale, useMessages } from "@/shared/i18n/LocaleProvider";
+import { resolveClientError } from "@/shared/i18n/resolveClientError";
 import {
   isWalletAddress,
   shortenAddress,
@@ -88,6 +89,7 @@ export function InvestorDashboard({ sessionWalletAddress }: InvestorDashboardPro
   const { disconnect } = useDisconnect();
   const { switchChainAsync, isPending: switchingNetwork } = useSwitchChain();
   const m = useMessages();
+  const { t } = useLocale();
 
   const [walletAddress, setWalletAddress] = useState("");
   const [documentReference, setDocumentReference] = useState("");
@@ -222,15 +224,19 @@ export function InvestorDashboard({ sessionWalletAddress }: InvestorDashboardPro
     ],
     [account.isConnected, activeStatus, positions.length, registryVerified, unreadNotifications, walletAddress]
   );
-  const reportRequestError = useCallback((err: unknown, fallback: string) => {
-    if (isApiError(err) && err.retryable) {
-      setGatewayError(err.message);
-      setError("");
-      return;
-    }
-    setGatewayError("");
-    setError(err instanceof Error ? err.message : fallback);
-  }, []);
+  const reportRequestError = useCallback(
+    (err: unknown, fallback: string) => {
+      if (isApiError(err) && err.retryable) {
+        setGatewayError(resolveClientError(err.message, t));
+        setError("");
+        return;
+      }
+      setGatewayError("");
+      const message = err instanceof Error ? err.message : fallback;
+      setError(resolveClientError(message, t));
+    },
+    [t]
+  );
 
   useEffect(() => {
     if (sessionWalletAddress) {
@@ -521,8 +527,11 @@ export function InvestorDashboard({ sessionWalletAddress }: InvestorDashboardPro
   return (
     <main className="experience-shell dashboard-shell">
       <SiteTopBar
-        subtitle={`${activeChain.name} chain ${activeChain.id} · off-chain eligibility · on-chain transfer guard`}
-        title="Investor / Portfolio Workspace"
+        subtitle={formatMessage(m.workspace.investor.topbarSubtitle, {
+          chainId: activeChain.id,
+          chainName: activeChain.name
+        })}
+        title={m.workspace.investor.topbarTitle}
         actions={
           <div className="wallet-actions">
             {wrongNetwork && (
@@ -566,11 +575,11 @@ export function InvestorDashboard({ sessionWalletAddress }: InvestorDashboardPro
       />
 
       <DashboardHero
-        description="Monitor onboarding, refresh compliance evidence, and operate subscription or redemption flows with the same context used by backend eligibility and on-chain transfer controls."
-        eyebrow="Investor surface"
+        description={m.workspace.investor.heroDescription}
+        eyebrow={m.workspace.investor.heroEyebrow}
         pills={heroPills}
         stats={heroStats}
-        title="A single workspace for wallet access, compliance visibility, and lifecycle operations"
+        title={m.workspace.investor.heroTitle}
       />
 
       <section className="content">

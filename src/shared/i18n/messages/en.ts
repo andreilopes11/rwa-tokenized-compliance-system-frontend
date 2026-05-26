@@ -147,6 +147,21 @@ export const en = {
     analyticsEnabled: "Privacy-conscious analytics enabled for product insights.",
     architectureBody:
       "One compliance graph from investor onboarding to issuer operations — APIs, audit trails, and on-chain enforcement stay aligned for MiCA-ready security-token programs.",
+    architectureKicker: "Architecture",
+    architecturePillars: [
+      {
+        title: "Frontend",
+        description: "Next.js BFF, Wagmi, session-bound KYC, investor and admin dashboards"
+      },
+      {
+        title: "Backend",
+        description: "Spring Boot compliance API, document hashing, Web3j gateways (legacy + T-REX)"
+      },
+      {
+        title: "Blockchain",
+        description: "Permissioned token and identity registry — transfer rules enforced on-chain"
+      }
+    ],
     architectureItems: [
       "Wallet-bound KYC with BFF session integrity",
       "Issuer queues with on-chain approval receipts",
@@ -427,5 +442,25 @@ export const en = {
     walletHelp: "Optionally link an EVM address for wallet-based sign-in and KYC binding.",
     walletInvalid: "Enter a valid EVM address or leave the field empty.",
     walletPlaceholder: "0x..."
+  },
+  workspace: {
+    admin: {
+      heroDescription:
+        "Run the issuer surface with a clearer operational overview across identity approvals, subscription and redemption queues, compliance rules, feed health, and blockchain monitoring.",
+      heroEyebrow: "Issuer operations",
+      heroTitle:
+        "A unified control plane for compliance decisions, asset configuration, and on-chain safeguards",
+      topbarSubtitle:
+        "KYC queue · identity approvals · lifecycle operations · audit evidence",
+      topbarTitle: "Admin / Issuer Control Room"
+    },
+    investor: {
+      heroDescription:
+        "Connect a wallet, complete KYC, and manage subscriptions, redemptions, and portfolio positions in one regulated workspace.",
+      heroEyebrow: "Investor workspace",
+      heroTitle: "Portfolio, eligibility, and lifecycle actions in one place",
+      topbarSubtitle: "{chainName} chain {chainId} · off-chain eligibility · on-chain transfer guard",
+      topbarTitle: "Investor / Portfolio Workspace"
+    }
   }
 } as const;

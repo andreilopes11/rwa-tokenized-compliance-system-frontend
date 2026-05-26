@@ -12,7 +12,8 @@ import {
   passwordStrengthScore
 } from "@/features/auth/lib/validators";
 import { useAuthRoleParam } from "@/features/auth/lib/useAuthRoleParam";
-import { useMessages } from "@/shared/i18n/LocaleProvider";
+import { useLocale, useMessages } from "@/shared/i18n/LocaleProvider";
+import { resolveClientError } from "@/shared/i18n/resolveClientError";
 import { Alert } from "@/shared/ui/Alert";
 import { AuthShell } from "@/shared/ui/AuthShell";
 import { Button, buttonClassName } from "@/shared/ui/Button";
@@ -51,6 +52,7 @@ export function RegisterPage() {
   const [loading, setLoading] = useState(false);
 
   const m = useMessages();
+  const { t } = useLocale();
   const registerCopy = m.register;
   const common = m.common;
   const passwordChecks = useMemo(() => buildPasswordChecks(password), [password]);
@@ -110,7 +112,12 @@ export function RegisterPage() {
       const payload = await response.json().catch(() => null);
 
       if (!response.ok) {
-        setError(payload?.message ?? registerCopy.submitError);
+        setError(
+          resolveClientError(
+            (payload as { message?: string } | null)?.message ?? registerCopy.submitError,
+            t
+          )
+        );
         return;
       }
 
@@ -127,7 +134,9 @@ export function RegisterPage() {
         redirectTo: payload?.redirectTo ?? `/login?role=${role}`
       });
     } catch (err) {
-      setError(err instanceof Error ? err.message : registerCopy.submitError);
+      setError(
+        resolveClientError(err instanceof Error ? err.message : registerCopy.submitError, t)
+      );
     } finally {
       setLoading(false);
     }

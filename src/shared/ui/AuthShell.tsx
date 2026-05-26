@@ -4,7 +4,6 @@ import type { ReactNode } from "react";
 import { appConfig } from "@/shared/config/app";
 import { ExperienceFooter } from "./ExperienceFooter";
 import { GlobalAppHeader } from "./GlobalAppHeader";
-import { ThemeToggle } from "./ThemeToggle";
 
 type AuthHighlight = {
   description: string;
@@ -70,11 +69,8 @@ export function AuthShell({
 
           <section className="auth-panel">
             <div className="auth-panel-top">
-              <div>
-                <span className="auth-panel-eyebrow">{eyebrow}</span>
-                <h2>{title}</h2>
-              </div>
-              <ThemeToggle />
+              <span className="auth-panel-eyebrow">{eyebrow}</span>
+              <h2>{title}</h2>
             </div>
             {children}
           </section>

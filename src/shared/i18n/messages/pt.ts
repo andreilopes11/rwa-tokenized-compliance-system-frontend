@@ -147,6 +147,21 @@ export const pt = {
     analyticsEnabled: "Analytics consciente da privacidade habilitado para insights do produto.",
     architectureBody:
       "Um único grafo de conformidade da integração do investidor às operações do emissor — APIs, trilhas de auditoria e aplicação on-chain permanecem alinhadas para programas de valores tokenizados preparados para MiCA.",
+    architectureKicker: "Arquitetura",
+    architecturePillars: [
+      {
+        title: "Frontend",
+        description: "BFF Next.js, Wagmi, KYC vinculado à sessão, dashboards de investidor e emissor"
+      },
+      {
+        title: "Backend",
+        description: "API de conformidade Spring Boot, hash de documentos, gateways Web3j (legado + T-REX)"
+      },
+      {
+        title: "Blockchain",
+        description: "Token permissionado e registro de identidade — regras de transferência on-chain"
+      }
+    ],
     architectureItems: [
       "KYC vinculado à carteira com integridade de sessão BFF",
       "Filas do emissor com comprovantes de aprovação on-chain",
@@ -427,5 +442,26 @@ export const pt = {
     walletHelp: "Vincule opcionalmente um endereço EVM para entrada por carteira e vinculação KYC.",
     walletInvalid: "Informe um endereço EVM válido ou deixe o campo vazio.",
     walletPlaceholder: "0x..."
+  },
+  workspace: {
+    admin: {
+      heroDescription:
+        "Opere a superfície do emissor com visão operacional em aprovações de identidade, filas de subscrição e resgate, regras de conformidade, feeds e monitoramento on-chain.",
+      heroEyebrow: "Operações do emissor",
+      heroTitle:
+        "Um painel unificado para decisões de conformidade, configuração de ativos e salvaguardas on-chain",
+      topbarSubtitle:
+        "Fila KYC · aprovações de identidade · operações de ciclo de vida · evidências de auditoria",
+      topbarTitle: "Admin / Sala de controle do emissor"
+    },
+    investor: {
+      heroDescription:
+        "Conecte uma carteira, conclua o KYC e gerencie subscrições, resgates e posições em um workspace regulado.",
+      heroEyebrow: "Workspace do investidor",
+      heroTitle: "Portfólio, elegibilidade e ações de ciclo de vida em um só lugar",
+      topbarSubtitle:
+        "Rede {chainName} {chainId} · elegibilidade off-chain · proteção de transferência on-chain",
+      topbarTitle: "Investidor / Workspace de portfólio"
+    }
   }
 } as const;

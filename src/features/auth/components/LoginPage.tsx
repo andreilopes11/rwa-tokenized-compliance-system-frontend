@@ -11,7 +11,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, useState } from "react";
 import { isValidEmail } from "@/features/auth/lib/validators";
 import { useAuthRoleParam } from "@/features/auth/lib/useAuthRoleParam";
-import { useMessages } from "@/shared/i18n/LocaleProvider";
+import { useLocale, useMessages } from "@/shared/i18n/LocaleProvider";
+import { resolveClientError } from "@/shared/i18n/resolveClientError";
 import { Alert } from "@/shared/ui/Alert";
 import { AuthShell } from "@/shared/ui/AuthShell";
 import { Button, buttonClassName } from "@/shared/ui/Button";
@@ -42,6 +43,7 @@ export function LoginPage() {
   const [loading, setLoading] = useState(false);
 
   const m = useMessages();
+  const { t } = useLocale();
   const loginCopy = m.login;
   const common = m.common;
 
@@ -80,12 +82,19 @@ export function LoginPage() {
 
       if (!response.ok) {
         const payload = await response.json().catch(() => null);
-        throw new Error(payload?.message ?? loginCopy.genericError);
+        throw new Error(
+          resolveClientError(
+            (payload as { message?: string } | null)?.message ?? loginCopy.genericError,
+            t
+          )
+        );
       }
 
       router.push(next);
     } catch (err) {
-      setError(err instanceof Error ? err.message : loginCopy.genericError);
+      setError(
+        resolveClientError(err instanceof Error ? err.message : loginCopy.genericError, t)
+      );
     } finally {
       setLoading(false);
     }

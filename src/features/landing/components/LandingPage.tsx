@@ -271,24 +271,18 @@ export function LandingPage() {
       </section>
 
       <section className="landing-platform" aria-labelledby="platform-title" id="platform">
-        <header className="section-head">
-          <span className="section-kicker">Architecture</span>
+        <header className="section-head landing-platform-head">
+          <span className="section-kicker">{landingCopy.architectureKicker}</span>
           <h2 id="platform-title">{landingCopy.architectureTitle}</h2>
           <p>{landingCopy.architectureBody}</p>
         </header>
         <div className="platform-pillars">
-          <div className="platform-pillar">
-            <strong>Frontend</strong>
-            <span>Next.js BFF, Wagmi, session-bound KYC, investor & admin dashboards</span>
-          </div>
-          <div className="platform-pillar">
-            <strong>Backend</strong>
-            <span>Spring Boot compliance API, document hashing, Web3j gateways (legacy + T-REX)</span>
-          </div>
-          <div className="platform-pillar">
-            <strong>Blockchain</strong>
-            <span>Permissioned token + identity registry — transfer rules enforced on-chain</span>
-          </div>
+          {landingCopy.architecturePillars.map((pillar) => (
+            <div className="platform-pillar" key={pillar.title}>
+              <strong>{pillar.title}</strong>
+              <span>{pillar.description}</span>
+            </div>
+          ))}
         </div>
         <div className="feature-strip">
           {landingCopy.architectureItems.map((item) => (

@@ -72,6 +72,7 @@ import { activeChain, explorerLink } from "@/shared/lib/web3";
 import { Alert } from "@/shared/ui/Alert";
 import { Button } from "@/shared/ui/Button";
 import { DashboardHero } from "@/shared/ui/DashboardHero";
+import { useMessages } from "@/shared/i18n/LocaleProvider";
 import { SiteTopBar } from "@/shared/ui/SiteTopBar";
 import { WorkspaceNav } from "@/shared/ui/WorkspaceNav";
 const statusOptions: Array<KycStatus | ""> = ["", "PENDING", "APPROVED", "REJECTED", "REVOKED", "FAILED_ON_CHAIN"];
@@ -95,6 +96,7 @@ const defaultRulesForm: AssetComplianceRulesUpdateRequest = {
 
 export function AdminDashboard() {
   const router = useRouter();
+  const m = useMessages();
   const [statusFilter, setStatusFilter] = useState<KycStatus | "">("PENDING");
   const [walletFilter, setWalletFilter] = useState("");
   const [limit, setLimit] = useState(25);
@@ -512,7 +514,7 @@ export function AdminDashboard() {
       router.push("/login?role=admin");
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to sign out.");
+      setError(err instanceof Error ? err.message : m.errors.signOutFailed);
     } finally {
       setSigningOut(false);
     }
@@ -521,17 +523,17 @@ export function AdminDashboard() {
   return (
     <main className="experience-shell dashboard-shell">
       <SiteTopBar
-        subtitle="KYC queue · identity approvals · lifecycle operations · audit evidence"
-        title="Admin / Issuer Control Room"
+        subtitle={m.workspace.admin.topbarSubtitle}
+        title={m.workspace.admin.topbarTitle}
         actions={<WorkspaceNav onSignOut={signOut} signingOut={signingOut} />}
       />
 
       <DashboardHero
-        description="Run the issuer surface with a clearer operational overview across identity approvals, subscription and redemption queues, compliance rules, feed health, and blockchain monitoring."
-        eyebrow="Issuer operations"
+        description={m.workspace.admin.heroDescription}
+        eyebrow={m.workspace.admin.heroEyebrow}
         pills={heroPills}
         stats={heroStats}
-        title="A unified control plane for compliance decisions, asset configuration, and on-chain safeguards"
+        title={m.workspace.admin.heroTitle}
       />
 
       <section className="content admin-content">
