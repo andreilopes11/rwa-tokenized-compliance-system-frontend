@@ -76,7 +76,6 @@ import { Button } from "@/shared/ui/Button";
 import { DashboardHero } from "@/shared/ui/DashboardHero";
 import { SiteTopBar } from "@/shared/ui/SiteTopBar";
 
-const ADMIN_TOKEN_STORAGE_KEY = "rwa-admin-token";
 const commonCopy = copy.common;
 const statusOptions: Array<KycStatus | ""> = ["", "PENDING", "APPROVED", "REJECTED", "REVOKED", "FAILED_ON_CHAIN"];
 const investorTypeOptions: InvestorType[] = ["RETAIL", "ACCREDITED", "QUALIFIED", "INSTITUTIONAL"];
@@ -99,7 +98,6 @@ const defaultRulesForm: AssetComplianceRulesUpdateRequest = {
 
 export function AdminDashboard() {
   const router = useRouter();
-  const [adminToken, setAdminToken] = useState("");
   const [statusFilter, setStatusFilter] = useState<KycStatus | "">("PENDING");
   const [walletFilter, setWalletFilter] = useState("");
   const [limit, setLimit] = useState(25);
@@ -142,7 +140,6 @@ export function AdminDashboard() {
   const [loading, setLoading] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
 
-  const hasToken = adminToken.trim().length > 0;
   const selectedWallet = selectedRequest?.walletAddress ?? walletFilter;
   const pendingLifecycleCount = subscriptions.length + redemptions.length;
   const failedTransactionsCount =
@@ -162,8 +159,8 @@ export function AdminDashboard() {
     () => [
       {
         icon: <KeyRound size={14} />,
-        label: hasToken ? "Admin session armed" : "Admin session required",
-        tone: hasToken ? ("success" as const) : ("warning" as const)
+        label: "Admin session active",
+        tone: "success" as const
       },
       {
         icon: <Activity size={14} />,
@@ -181,7 +178,7 @@ export function AdminDashboard() {
         tone: failedTransactionsCount > 0 ? ("danger" as const) : ("success" as const)
       }
     ],
-    [failedTransactionsCount, hasToken, operationalHealth]
+    [failedTransactionsCount, operationalHealth]
   );
   const heroStats = useMemo(
     () => [
@@ -218,11 +215,7 @@ export function AdminDashboard() {
   );
 
   useEffect(() => {
-    const storedToken = window.sessionStorage.getItem(ADMIN_TOKEN_STORAGE_KEY);
-    if (storedToken) {
-      setAdminToken(storedToken);
-      void refreshAdminData(storedToken);
-    }
+    void refreshAdminData();
   }, []);
 
   useEffect(() => {
@@ -231,37 +224,7 @@ export function AdminDashboard() {
     }
   }, [assetOfferings, rulesAssetId]);
 
-  function saveToken() {
-    setError("");
-    setNotice("");
-    if (!hasToken) {
-      setError("Enter an admin token before loading the admin dashboard.");
-      return;
-    }
-    window.sessionStorage.setItem(ADMIN_TOKEN_STORAGE_KEY, adminToken);
-    setNotice("Admin token saved in this browser session.");
-    void refreshAdminData(adminToken);
-  }
-
-  function clearToken() {
-    window.sessionStorage.removeItem(ADMIN_TOKEN_STORAGE_KEY);
-    setAdminToken("");
-    setRequests([]);
-    setAuditEvents([]);
-    setBlockchainTransactions([]);
-    setOperationsReport(null);
-    setOracleFeed(null);
-    setRegulatoryFeed(null);
-    setPauseStatuses({});
-    setSelectedRequest(null);
-    setNotice("Admin token cleared from this browser session.");
-  }
-
-  async function refreshAdminData(token = adminToken) {
-    if (!token.trim()) {
-      setError("Enter an admin token before loading admin data.");
-      return;
-    }
+  async function refreshAdminData() {
     if (walletFilter && !isWalletAddress(walletFilter)) {
       setError("Wallet filter must be a valid EVM address.");
       return;
@@ -291,13 +254,13 @@ export function AdminDashboard() {
         oracle,
         regulatory
       ] = await Promise.all([
-        listAdminKycRequests(token, filters),
-        listAdminAuditEvents(token, auditFilters),
-        listAdminSubscriptions(token, lifecycleFilters),
-        listAdminRedemptions(token, lifecycleFilters),
+        listAdminKycRequests(filters),
+        listAdminAuditEvents(auditFilters),
+        listAdminSubscriptions(lifecycleFilters),
+        listAdminRedemptions(lifecycleFilters),
         fetchAssetOfferings({ limit: 20 }),
-        listAdminBlockchainTransactions(token, { walletAddress: walletFilter || undefined, limit }),
-        fetchAdminOperationsReport(token),
+        listAdminBlockchainTransactions({ walletAddress: walletFilter || undefined, limit }),
+        fetchAdminOperationsReport(),
         fetchOracleFeed(),
         fetchRegulatoryFeed()
       ]);
@@ -310,7 +273,7 @@ export function AdminDashboard() {
       setOperationsReport(report);
       setOracleFeed(oracle);
       setRegulatoryFeed(regulatory);
-      await refreshPauseStatuses(token, offerings);
+      await refreshPauseStatuses(offerings);
       setNotice("Admin data refreshed.");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Admin data refresh failed.");
@@ -321,68 +284,63 @@ export function AdminDashboard() {
 
   async function approve(request: KycRequestResponse) {
     await runAdminAction(
-      () => approveAdminKycRequest(adminToken, request.requestId),
+      () => approveAdminKycRequest(request.requestId),
       `Approval submitted for ${shortenAddress(request.walletAddress)}.`
     );
   }
 
   async function reject(request: KycRequestResponse) {
     await runAdminAction(
-      () => rejectAdminKycRequest(adminToken, request.requestId, rejectionReason),
+      () => rejectAdminKycRequest(request.requestId, rejectionReason),
       `Request rejected for ${shortenAddress(request.walletAddress)}.`
     );
   }
 
   async function revoke(request: KycRequestResponse) {
     await runAdminAction(
-      () => revokeAdminIdentity(adminToken, request.walletAddress),
+      () => revokeAdminIdentity(request.walletAddress),
       `Revocation submitted for ${shortenAddress(request.walletAddress)}.`
     );
   }
 
   async function approveSubscription(request: SubscriptionResponse) {
     await runAdminAction(
-      () => approveAdminSubscription(adminToken, request.subscriptionId, subscriptionReason),
+      () => approveAdminSubscription(request.subscriptionId, subscriptionReason),
       `Subscription approved for ${shortenAddress(request.walletAddress)}.`
     );
   }
 
   async function rejectSubscription(request: SubscriptionResponse) {
     await runAdminAction(
-      () => rejectAdminSubscription(adminToken, request.subscriptionId, subscriptionReason),
+      () => rejectAdminSubscription(request.subscriptionId, subscriptionReason),
       `Subscription rejected for ${shortenAddress(request.walletAddress)}.`
     );
   }
 
   async function approveRedemption(request: RedemptionResponse) {
     await runAdminAction(
-      () => approveAdminRedemption(adminToken, request.redemptionId, redemptionReason),
+      () => approveAdminRedemption(request.redemptionId, redemptionReason),
       `Redemption approved for ${shortenAddress(request.walletAddress)}.`
     );
   }
 
   async function rejectRedemption(request: RedemptionResponse) {
     await runAdminAction(
-      () => rejectAdminRedemption(adminToken, request.redemptionId, redemptionReason),
+      () => rejectAdminRedemption(request.redemptionId, redemptionReason),
       `Redemption rejected for ${shortenAddress(request.walletAddress)}.`
     );
   }
 
   async function createAsset(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!hasToken) {
-      setError("Enter an admin token before creating asset offerings.");
-      return;
-    }
-
     setLoading(true);
     setError("");
     setNotice("");
     try {
-      const created = await createAdminAssetOffering(adminToken, assetForm);
+      const created = await createAdminAssetOffering(assetForm);
       const offerings = await fetchAssetOfferings({ limit: 20 });
       setAssetOfferings(offerings);
-      await refreshPauseStatuses(adminToken, offerings);
+      await refreshPauseStatuses(offerings);
       setNotice(`Asset offering created: ${created.symbol}.`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Asset creation failed.");
@@ -392,10 +350,6 @@ export function AdminDashboard() {
   }
 
   async function loadProfile() {
-    if (!hasToken) {
-      setError("Enter an admin token before loading compliance profiles.");
-      return;
-    }
     if (!isWalletAddress(profileWallet)) {
       setError("Profile wallet must be a valid EVM address.");
       return;
@@ -405,7 +359,7 @@ export function AdminDashboard() {
     setError("");
     setNotice("");
     try {
-      const loaded = await fetchAdminInvestorComplianceProfile(adminToken, profileWallet);
+      const loaded = await fetchAdminInvestorComplianceProfile(profileWallet);
       setProfile(loaded);
       setProfileForm({
         investorType: loaded.investorType,
@@ -424,10 +378,6 @@ export function AdminDashboard() {
 
   async function saveProfile(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!hasToken) {
-      setError("Enter an admin token before saving compliance profiles.");
-      return;
-    }
     if (!isWalletAddress(profileWallet)) {
       setError("Profile wallet must be a valid EVM address.");
       return;
@@ -437,7 +387,7 @@ export function AdminDashboard() {
     setError("");
     setNotice("");
     try {
-      const saved = await updateAdminInvestorComplianceProfile(adminToken, profileWallet, profileForm);
+      const saved = await updateAdminInvestorComplianceProfile(profileWallet, profileForm);
       setProfile(saved);
       setNotice(`Compliance profile saved for ${shortenAddress(saved.walletAddress)}.`);
     } catch (err) {
@@ -448,10 +398,6 @@ export function AdminDashboard() {
   }
 
   async function loadRules() {
-    if (!hasToken) {
-      setError("Enter an admin token before loading compliance rules.");
-      return;
-    }
     if (!rulesAssetId) {
       setError("Select an asset before loading compliance rules.");
       return;
@@ -461,7 +407,7 @@ export function AdminDashboard() {
     setError("");
     setNotice("");
     try {
-      const loaded = await fetchAdminAssetComplianceRules(adminToken, rulesAssetId);
+      const loaded = await fetchAdminAssetComplianceRules(rulesAssetId);
       setRules(loaded);
       setRulesForm({
         allowedInvestorTypes: loaded.allowedInvestorTypes,
@@ -481,10 +427,6 @@ export function AdminDashboard() {
 
   async function saveRules(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!hasToken) {
-      setError("Enter an admin token before saving compliance rules.");
-      return;
-    }
     if (!rulesAssetId) {
       setError("Select an asset before saving compliance rules.");
       return;
@@ -498,7 +440,7 @@ export function AdminDashboard() {
     setError("");
     setNotice("");
     try {
-      const saved = await updateAdminAssetComplianceRules(adminToken, rulesAssetId, rulesForm);
+      const saved = await updateAdminAssetComplianceRules(rulesAssetId, rulesForm);
       setRules(saved);
       setNotice(`Compliance rules saved for ${assetLabel(saved.assetId, assetOfferings)}.`);
     } catch (err) {
@@ -508,15 +450,15 @@ export function AdminDashboard() {
     }
   }
 
-  async function refreshPauseStatuses(token = adminToken, offerings = assetOfferings) {
-    if (!token.trim() || offerings.length === 0) {
+  async function refreshPauseStatuses(offerings = assetOfferings) {
+    if (offerings.length === 0) {
       setPauseStatuses({});
       return;
     }
     const entries = await Promise.all(
       offerings.map(async (asset) => {
         try {
-          const status = await fetchAdminAssetPauseStatus(token, asset.assetId);
+          const status = await fetchAdminAssetPauseStatus(asset.assetId);
           return [asset.assetId, status] as const;
         } catch {
           return null;
@@ -531,14 +473,14 @@ export function AdminDashboard() {
 
   async function pauseAsset(asset: AssetOfferingResponse) {
     await runAdminAction(
-      () => pauseAdminAssetToken(adminToken, asset.assetId),
+      () => pauseAdminAssetToken(asset.assetId),
       `Emergency pause submitted for ${asset.symbol}.`
     );
   }
 
   async function unpauseAsset(asset: AssetOfferingResponse) {
     await runAdminAction(
-      () => unpauseAdminAssetToken(adminToken, asset.assetId),
+      () => unpauseAdminAssetToken(asset.assetId),
       `Emergency pause lifted for ${asset.symbol}.`
     );
   }
@@ -551,16 +493,12 @@ export function AdminDashboard() {
   }
 
   async function runAdminAction(action: () => Promise<unknown>, successMessage: string) {
-    if (!hasToken) {
-      setError("Enter an admin token before running admin actions.");
-      return;
-    }
     setLoading(true);
     setError("");
     setNotice("");
     try {
       await action();
-      await refreshAdminData(adminToken);
+      await refreshAdminData();
       setNotice(successMessage);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Admin action failed.");
@@ -619,26 +557,7 @@ export function AdminDashboard() {
       <section className="content admin-content">
         <div className="panel-grid">
           <section className="panel" aria-labelledby="admin-access-title">
-            <h2 id="admin-access-title">Admin access</h2>
-            <div className="admin-toolbar">
-              <div className="field compact-field">
-                <label htmlFor="admin-token">Admin token</label>
-                <input
-                  id="admin-token"
-                  onChange={(event) => setAdminToken(event.target.value)}
-                  placeholder="local-admin-token"
-                  type="password"
-                  value={adminToken}
-                />
-              </div>
-              <button className="primary-button" disabled={loading} onClick={saveToken} type="button">
-                <KeyRound size={18} aria-hidden />
-                Save token
-              </button>
-              <button className="secondary-button" disabled={loading} onClick={clearToken} type="button">
-                Clear
-              </button>
-            </div>
+            <h2 id="admin-access-title">Operator session</h2>
             {error && <Alert tone="error">{error}</Alert>}
             {notice && <Alert tone="info">{notice}</Alert>}
           </section>
@@ -646,7 +565,7 @@ export function AdminDashboard() {
           <section className="panel" aria-labelledby="kyc-queue-title">
             <div className="section-header">
               <h2 id="kyc-queue-title">KYC queue</h2>
-              <button className="secondary-button" disabled={loading || !hasToken} onClick={() => refreshAdminData()} type="button">
+              <button className="secondary-button" disabled={loading} onClick={() => refreshAdminData()} type="button">
                 <RefreshCw size={18} aria-hidden />
                 Refresh
               </button>
@@ -1068,7 +987,7 @@ export function AdminDashboard() {
                 />
               </div>
               <div className="actions">
-                <button className="primary-button" disabled={loading || !hasToken} type="submit">
+                <button className="primary-button" disabled={loading} type="submit">
                   <Factory size={18} aria-hidden />
                   Create asset
                 </button>
@@ -1103,7 +1022,7 @@ export function AdminDashboard() {
                     <div className="row-actions">
                       <button
                         className="danger-button"
-                        disabled={loading || !hasToken || pauseStatuses[asset.assetId]?.paused === true}
+                        disabled={loading || pauseStatuses[asset.assetId]?.paused === true}
                         onClick={() => pauseAsset(asset)}
                         type="button"
                       >
@@ -1112,7 +1031,7 @@ export function AdminDashboard() {
                       </button>
                       <button
                         className="secondary-button"
-                        disabled={loading || !hasToken || pauseStatuses[asset.assetId]?.paused !== true}
+                        disabled={loading || pauseStatuses[asset.assetId]?.paused !== true}
                         onClick={() => unpauseAsset(asset)}
                         type="button"
                       >
@@ -1203,11 +1122,11 @@ export function AdminDashboard() {
                 </label>
               </div>
               <div className="actions">
-                <button className="secondary-button" disabled={loading || !hasToken} onClick={loadProfile} type="button">
+                <button className="secondary-button" disabled={loading} onClick={loadProfile} type="button">
                   <RefreshCw size={18} aria-hidden />
                   Load profile
                 </button>
-                <button className="primary-button" disabled={loading || !hasToken} type="submit">
+                <button className="primary-button" disabled={loading} type="submit">
                   <CheckCircle2 size={18} aria-hidden />
                   Save profile
                 </button>
@@ -1310,11 +1229,11 @@ export function AdminDashboard() {
                 </label>
               </div>
               <div className="actions">
-                <button className="secondary-button" disabled={loading || !hasToken || !rulesAssetId} onClick={loadRules} type="button">
+                <button className="secondary-button" disabled={loading || !rulesAssetId} onClick={loadRules} type="button">
                   <RefreshCw size={18} aria-hidden />
                   Load rules
                 </button>
-                <button className="primary-button" disabled={loading || !hasToken || !rulesAssetId} type="submit">
+                <button className="primary-button" disabled={loading || !rulesAssetId} type="submit">
                   <CheckCircle2 size={18} aria-hidden />
                   Save rules
                 </button>
@@ -1335,7 +1254,7 @@ export function AdminDashboard() {
             {auditEvents.length === 0 ? (
               <li>
                 <strong>No audit events</strong>
-                <span className="muted">Save a token and refresh to load operator evidence.</span>
+                <span className="muted">Refresh the dashboard to load operator evidence.</span>
               </li>
             ) : (
               auditEvents.map((event) => (

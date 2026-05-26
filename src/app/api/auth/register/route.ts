@@ -1,23 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
+  applyAuthCookies,
+  backendAuthRequest,
+  type BackendAuthSession
+} from "@/features/auth/server/session";
+import {
   buildPasswordChecks,
   isValidEmail,
   isValidWalletAddress,
   meetsPasswordPolicy
 } from "@/features/auth/lib/validators";
-import {
-  encodeSession,
-  sessionCookieName,
-  sessionCookieOptions,
-  type ComplianceSession,
-  type SessionRole
-} from "@/features/auth/server/session";
 
 type RegisterRequest = {
   email?: string;
   password?: string;
-  role?: SessionRole;
+  role?: "investor" | "admin";
   walletAddress?: string;
+  inviteCode?: string;
 };
 
 export async function POST(request: NextRequest) {
@@ -26,6 +25,7 @@ export async function POST(request: NextRequest) {
   const password = payload.password ?? "";
   const role = payload.role === "admin" ? "admin" : "investor";
   const walletAddress = payload.walletAddress?.trim() ?? "";
+  const inviteCode = payload.inviteCode?.trim() ?? "";
 
   if (!isValidEmail(email)) {
     return NextResponse.json({ message: "Enter a valid email address." }, { status: 400 });
@@ -42,14 +42,28 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ message: "Enter a valid EVM wallet address." }, { status: 400 });
   }
 
-  const session: ComplianceSession = {
-    subject: email,
-    provider: "email",
-    role,
-    walletAddress: walletAddress || undefined,
-    mfaVerified: true,
-    createdAt: new Date().toISOString()
-  };
+  const path =
+    role === "admin"
+      ? "/api/auth/admin/register"
+      : "/api/auth/investor/register";
+
+  const body =
+    role === "admin"
+      ? { email, password, inviteCode }
+      : { email, password, walletAddress: walletAddress || undefined };
+
+  if (role === "admin" && !inviteCode) {
+    return NextResponse.json({ message: "Admin invite code is required." }, { status: 400 });
+  }
+
+  const result = await backendAuthRequest<BackendAuthSession>(path, {
+    method: "POST",
+    body: JSON.stringify(body)
+  });
+
+  if (!result.ok) {
+    return NextResponse.json({ message: result.message }, { status: result.status });
+  }
 
   const redirectTo = role === "admin" ? "/admin" : "/dashboard";
   const response = NextResponse.json(
@@ -57,16 +71,14 @@ export async function POST(request: NextRequest) {
       message: "Account created. You are signed in.",
       autoLogin: true,
       redirectTo,
-      nextLogin: `/login?registered=1&email=${encodeURIComponent(email)}&role=${role}`,
       user: {
-        email,
+        email: result.data.user.email,
         role,
-        walletAddress: walletAddress || null
-      },
-      session
+        walletAddress: result.data.user.walletAddress ?? null
+      }
     },
     { status: 201 }
   );
-  response.cookies.set(sessionCookieName(), encodeSession(session), sessionCookieOptions());
+  applyAuthCookies(response, result.data);
   return response;
 }

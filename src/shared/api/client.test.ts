@@ -34,33 +34,34 @@ describe("wallet and status helpers", () => {
     expect(statusClass(undefined)).toBe("pending");
   });
 
-  it("sends admin token headers for protected requests", async () => {
+  it("sends authenticated session requests for protected admin APIs", async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => []
     });
     vi.stubGlobal("fetch", fetchMock);
 
-    await listAdminKycRequests("local-admin-token", { status: "PENDING", limit: 10 });
+    await listAdminKycRequests({ status: "PENDING", limit: 10 });
 
     expect(fetchMock).toHaveBeenCalledWith(
       expect.stringContaining("/api/admin/kyc/requests?status=PENDING&limit=10"),
       expect.objectContaining({
+        credentials: "same-origin",
         headers: expect.objectContaining({
-          "X-Admin-Token": "local-admin-token"
+          "Content-Type": "application/json"
         })
       })
     );
   });
 
-  it("sends admin token headers for asset creation", async () => {
+  it("sends authenticated session requests for asset creation", async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => ({})
     });
     vi.stubGlobal("fetch", fetchMock);
 
-    await createAdminAssetOffering("local-admin-token", {
+    await createAdminAssetOffering({
       name: "Tokenized Treasury Fund",
       symbol: "TTF",
       assetType: "TREASURY_FUND",
@@ -75,8 +76,9 @@ describe("wallet and status helpers", () => {
       expect.stringContaining("/api/admin/assets"),
       expect.objectContaining({
         method: "POST",
+        credentials: "same-origin",
         headers: expect.objectContaining({
-          "X-Admin-Token": "local-admin-token"
+          "Content-Type": "application/json"
         })
       })
     );
@@ -106,16 +108,15 @@ describe("wallet and status helpers", () => {
     );
   });
 
-  it("sends admin token headers for lifecycle queues and approvals", async () => {
+  it("sends authenticated session requests for lifecycle queues and approvals", async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => []
     });
     vi.stubGlobal("fetch", fetchMock);
 
-    await listAdminSubscriptions("local-admin-token", { status: "PENDING", limit: 10 });
+    await listAdminSubscriptions({ status: "PENDING", limit: 10 });
     await approveAdminSubscription(
-      "local-admin-token",
       "44444444-4444-4444-8444-444444444444",
       "Issuer allocation approved."
     );
@@ -123,78 +124,56 @@ describe("wallet and status helpers", () => {
     expect(fetchMock).toHaveBeenCalledWith(
       expect.stringContaining("/api/admin/subscriptions?status=PENDING&limit=10"),
       expect.objectContaining({
-        headers: expect.objectContaining({
-          "X-Admin-Token": "local-admin-token"
-        })
+        credentials: "same-origin"
       })
     );
     expect(fetchMock).toHaveBeenCalledWith(
       expect.stringContaining("/api/admin/subscriptions/44444444-4444-4444-8444-444444444444/approve"),
       expect.objectContaining({
         method: "POST",
-        headers: expect.objectContaining({
-          "X-Admin-Token": "local-admin-token"
-        })
+        credentials: "same-origin"
       })
     );
   });
 
-  it("sends admin token headers for compliance profiles and rules", async () => {
+  it("sends authenticated session requests for compliance profiles and rules", async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => ({})
     });
     vi.stubGlobal("fetch", fetchMock);
 
-    await fetchAdminInvestorComplianceProfile(
-      "local-admin-token",
-      "0x1111111111111111111111111111111111111111"
-    );
-    await updateAdminInvestorComplianceProfile(
-      "local-admin-token",
-      "0x1111111111111111111111111111111111111111",
-      {
-        investorType: "ACCREDITED",
-        jurisdiction: "US",
-        accredited: true,
-        qualifiedInvestor: false,
-        revoked: false
-      }
-    );
-    await fetchAdminAssetComplianceRules(
-      "local-admin-token",
-      "33333333-3333-4333-8333-333333333333"
-    );
-    await updateAdminAssetComplianceRules(
-      "local-admin-token",
-      "33333333-3333-4333-8333-333333333333",
-      {
-        allowedInvestorTypes: ["ACCREDITED"],
-        allowedJurisdictions: ["US"],
-        requiresAccreditation: true,
-        requiresQualifiedInvestor: false,
-        lockupDays: 90,
-        maxPositionAmount: 250
-      }
-    );
+    await fetchAdminInvestorComplianceProfile("0x1111111111111111111111111111111111111111");
+    await updateAdminInvestorComplianceProfile("0x1111111111111111111111111111111111111111", {
+      investorType: "ACCREDITED",
+      jurisdiction: "US",
+      accredited: true,
+      qualifiedInvestor: false,
+      revoked: false
+    });
+    await fetchAdminAssetComplianceRules("33333333-3333-4333-8333-333333333333");
+    await updateAdminAssetComplianceRules("33333333-3333-4333-8333-333333333333", {
+      allowedInvestorTypes: ["ACCREDITED"],
+      allowedJurisdictions: ["US"],
+      requiresAccreditation: true,
+      requiresQualifiedInvestor: false,
+      lockupDays: 90,
+      maxPositionAmount: 250
+    });
 
     expect(fetchMock).toHaveBeenCalledWith(
       expect.stringContaining(
         "/api/admin/investors/0x1111111111111111111111111111111111111111/compliance-profile"
       ),
       expect.objectContaining({
-        headers: expect.objectContaining({
-          "X-Admin-Token": "local-admin-token"
-        })
+        credentials: "same-origin"
       })
     );
     expect(fetchMock).toHaveBeenCalledWith(
       expect.stringContaining("/api/admin/assets/33333333-3333-4333-8333-333333333333/compliance-rules"),
       expect.objectContaining({
         method: "POST",
-        headers: expect.objectContaining({
-          "X-Admin-Token": "local-admin-token"
-        })
+        credentials: "same-origin"
       })
     );
   });

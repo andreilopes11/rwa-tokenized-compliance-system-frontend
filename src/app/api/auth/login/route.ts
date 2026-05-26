@@ -1,51 +1,49 @@
 import { NextRequest, NextResponse } from "next/server";
-import { isValidEmail, isValidWalletAddress } from "@/features/auth/lib/validators";
 import {
-  encodeSession,
-  sessionCookieName,
-  sessionCookieOptions,
-  type ComplianceSession,
-  type SessionRole
+  applyAuthCookies,
+  backendAuthRequest,
+  extractErrorMessage,
+  type BackendAuthSession
 } from "@/features/auth/server/session";
 
 type LoginRequest = {
-  provider?: "google" | "wallet" | "email";
-  role?: SessionRole;
-  subject?: string;
-  walletAddress?: string;
+  email?: string;
+  password?: string;
+  role?: "investor" | "admin";
   mfaCode?: string;
 };
 
 export async function POST(request: NextRequest) {
   const payload = (await request.json()) as LoginRequest;
-  const expectedCode = process.env.AUTH_MFA_CODE ?? "123456";
-  const provider = payload.provider ?? "email";
-  const role = payload.role === "admin" ? "admin" : "investor";
-  const subject = (payload.subject || payload.walletAddress || "investor@company.com").trim();
-  const walletAddress = payload.walletAddress?.trim();
+  const email = payload.email?.trim().toLowerCase() ?? "";
+  const password = payload.password ?? "";
+  const role = payload.role === "admin" ? "ADMIN" : "INVESTOR";
+  const mfaCode = payload.mfaCode?.trim() ?? "";
 
-  if (payload.mfaCode?.trim() !== expectedCode) {
-    return NextResponse.json({ message: "Invalid MFA code." }, { status: 401 });
+  if (!email || !password) {
+    return NextResponse.json({ message: "Email and password are required." }, { status: 400 });
   }
 
-  if (provider === "wallet" && !isValidWalletAddress(subject)) {
-    return NextResponse.json({ message: "Wallet sign-in requires a valid EVM address." }, { status: 400 });
+  if (!/^\d{6}$/.test(mfaCode)) {
+    return NextResponse.json({ message: "Enter a valid 6-digit MFA code." }, { status: 400 });
   }
 
-  if (provider !== "wallet" && !isValidEmail(subject)) {
-    return NextResponse.json({ message: "Email sign-in requires a valid email address." }, { status: 400 });
+  const result = await backendAuthRequest<BackendAuthSession>("/api/auth/login", {
+    method: "POST",
+    body: JSON.stringify({ email, password, role, mfaCode })
+  });
+
+  if (!result.ok) {
+    return NextResponse.json({ message: result.message }, { status: result.status });
   }
 
-  const session: ComplianceSession = {
-    subject,
-    provider,
-    role,
-    walletAddress: provider === "wallet" ? subject : walletAddress,
-    mfaVerified: true,
-    createdAt: new Date().toISOString()
-  };
-
-  const response = NextResponse.json({ session });
-  response.cookies.set(sessionCookieName(), encodeSession(session), sessionCookieOptions());
+  const response = NextResponse.json({
+    user: {
+      email: result.data.user.email,
+      role: result.data.user.role === "ADMIN" ? "admin" : "investor",
+      walletAddress: result.data.user.walletAddress
+    }
+  });
+  applyAuthCookies(response, result.data);
   return response;
 }

@@ -4,23 +4,17 @@ import {
   BriefcaseBusiness,
   KeyRound,
   ShieldCheck,
-  Sparkles,
-  Wallet
+  Sparkles
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { FormEvent, useEffect, useState } from "react";
-import { useAccount, useConnect } from "wagmi";
-import { isValidEmail, isValidWalletAddress } from "@/features/auth/lib/validators";
+import { FormEvent, useState } from "react";
+import { isValidEmail } from "@/features/auth/lib/validators";
+import { useAuthRoleParam } from "@/features/auth/lib/useAuthRoleParam";
 import { copy } from "@/shared/lib/copy";
-import { shortenAddress } from "@/shared/lib/formatters";
-import { activeChain } from "@/shared/lib/web3";
 import { Alert } from "@/shared/ui/Alert";
 import { AuthShell } from "@/shared/ui/AuthShell";
 import { Button, buttonClassName } from "@/shared/ui/Button";
-
-type LoginProvider = "email" | "google" | "wallet";
-type LoginRole = "investor" | "admin";
 
 type TouchedState = {
   mfa: boolean;
@@ -30,21 +24,15 @@ type TouchedState = {
 export function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const requestedRole = searchParams.get("role") === "admin" ? "admin" : "investor";
-  const next = searchParams.get("next") ?? (requestedRole === "admin" ? "/admin" : "/dashboard");
+  const { role, setRole } = useAuthRoleParam(searchParams.get("role") === "admin" ? "admin" : "investor");
+  const next = searchParams.get("next") ?? (role === "admin" ? "/admin" : "/dashboard");
   const registered = searchParams.get("registered") === "1";
   const prefilledEmail = searchParams.get("email")?.trim() ?? "";
-  const defaultEmail = prefilledEmail || "investor@company.com";
+  const defaultEmail = prefilledEmail || (role === "admin" ? "admin@compliance.local" : "investor@company.com");
 
-  const [role, setRole] = useState<LoginRole>(requestedRole);
-  const [provider, setProvider] = useState<LoginProvider>("email");
-  const [subject, setSubject] = useState(defaultEmail);
+  const [email, setEmail] = useState(defaultEmail);
+  const [password, setPassword] = useState("");
   const [mfaCode, setMfaCode] = useState("123456");
-  const [availableProviders, setAvailableProviders] = useState({
-    email: true,
-    google: false,
-    wallet: true
-  });
   const [touched, setTouched] = useState<TouchedState>({
     mfa: false,
     subject: false
@@ -53,111 +41,25 @@ export function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const account = useAccount();
-  const { connectors, connectAsync, isPending } = useConnect();
   const loginCopy = copy.login;
   const common = copy.common;
 
-  useEffect(() => {
-    setRole(requestedRole);
-  }, [requestedRole]);
-
-  useEffect(() => {
-    if (account.address && provider === "wallet") {
-      setSubject(account.address);
-    }
-  }, [account.address, provider]);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadProviders() {
-      try {
-        const response = await fetch("/api/auth/session", { cache: "no-store" });
-        if (!response.ok) {
-          return;
-        }
-        const payload = await response.json();
-        if (!cancelled && payload.providers) {
-          setAvailableProviders({
-            email: Boolean(payload.providers.email),
-            google: Boolean(payload.providers.google),
-            wallet: Boolean(payload.providers.wallet)
-          });
-          if (!payload.providers.google && provider === "google") {
-            setProvider("email");
-          }
-        }
-      } catch {
-        // Keep local defaults if provider discovery is unavailable.
-      }
-    }
-
-    void loadProviders();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [provider]);
-
-  const normalizedSubject = subject.trim();
+  const normalizedEmail = email.trim();
   const normalizedMfa = mfaCode.trim();
-  const subjectError =
-    provider === "wallet"
-      ? !isValidWalletAddress(normalizedSubject)
-        ? loginCopy.invalidWallet
-        : ""
-      : !isValidEmail(normalizedSubject)
-        ? loginCopy.invalidEmail
-        : "";
+  const emailError = !isValidEmail(normalizedEmail) ? loginCopy.invalidEmail : "";
+  const passwordError = password.length < 8 ? "Enter your account password." : "";
   const mfaError = /^\d{6}$/.test(normalizedMfa) ? "" : loginCopy.invalidMfa;
-  const showSubjectError = (touched.subject || submitAttempted) && Boolean(subjectError);
+  const showEmailError = (touched.subject || submitAttempted) && Boolean(emailError);
+  const showPasswordError = submitAttempted && Boolean(passwordError);
   const showMfaError = (touched.mfa || submitAttempted) && Boolean(mfaError);
-  const canSubmit = !loading && !subjectError && !mfaError;
-
-  function updateProvider(nextProvider: LoginProvider) {
-    setProvider(nextProvider);
-    setError("");
-    setSubmitAttempted(false);
-    setTouched({ mfa: false, subject: false });
-
-    if (nextProvider === "wallet") {
-      setSubject(account.address ?? "");
-      return;
-    }
-
-    setSubject((current) => {
-      if (current && !current.startsWith("0x")) {
-        return current;
-      }
-      return defaultEmail;
-    });
-  }
-
-  async function connectWallet() {
-    setError("");
-    const connector = connectors[0];
-    if (!connector) {
-      setError(loginCopy.walletUnavailable);
-      return;
-    }
-
-    try {
-      const result = await connectAsync({ connector, chainId: activeChain.id });
-      const walletAddress = result.accounts[0] ?? "";
-      setProvider("wallet");
-      setSubject(walletAddress);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : loginCopy.walletUnavailable);
-    }
-  }
+  const canSubmit = !loading && !emailError && !passwordError && !mfaError;
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSubmitAttempted(true);
     setError("");
 
-    if (subjectError || mfaError) {
+    if (emailError || passwordError || mfaError) {
       return;
     }
 
@@ -166,10 +68,9 @@ export function LoginPage() {
     try {
       const response = await fetch("/api/auth/login", {
         body: JSON.stringify({
-          provider,
+          email: normalizedEmail,
+          password,
           role,
-          subject: normalizedSubject,
-          walletAddress: provider === "wallet" ? normalizedSubject : undefined,
           mfaCode: normalizedMfa
         }),
         headers: { "Content-Type": "application/json" },
@@ -189,26 +90,6 @@ export function LoginPage() {
     }
   }
 
-  const providerOptions = [
-    {
-      id: "email" as const,
-      description: loginCopy.providerEmailDescription,
-      label: loginCopy.providerEmailTitle,
-      visible: availableProviders.email
-    },
-    {
-      id: "google" as const,
-      description: loginCopy.providerGoogleDescription,
-      label: loginCopy.providerGoogleTitle,
-      visible: availableProviders.google
-    },
-    {
-      id: "wallet" as const,
-      description: loginCopy.providerWalletDescription,
-      label: loginCopy.providerWalletTitle,
-      visible: availableProviders.wallet
-    }
-  ].filter((option) => option.visible);
 
   return (
     <AuthShell
@@ -266,79 +147,44 @@ export function LoginPage() {
           </div>
 
           <div className="field">
-            <div className="field-header">
-              <label>{loginCopy.provider}</label>
-              <span className="helper-text">{loginCopy.providerHelp}</span>
-            </div>
-            <div className="option-card-grid">
-              {providerOptions.map((option) => (
-                <button
-                  className={`option-card ${provider === option.id ? "selected" : ""}`}
-                  key={option.id}
-                  onClick={() => updateProvider(option.id)}
-                  type="button"
-                >
-                  <span className="option-card-icon" aria-hidden>
-                    {option.id === "wallet" ? (
-                      <Wallet size={18} />
-                    ) : option.id === "google" ? (
-                      <ShieldCheck size={18} />
-                    ) : (
-                      <Sparkles size={18} />
-                    )}
-                  </span>
-                  <span className="option-card-copy">
-                    <strong>{option.label}</strong>
-                    <small>{option.description}</small>
-                  </span>
-                </button>
-              ))}
-            </div>
+            <label htmlFor="login-email">{loginCopy.subjectEmailLabel}</label>
+            <input
+              aria-describedby={showEmailError ? "login-email-error" : "login-email-help"}
+              aria-invalid={showEmailError}
+              autoComplete="email"
+              id="login-email"
+              inputMode="email"
+              onBlur={() => setTouched((current) => ({ ...current, subject: true }))}
+              onChange={(event) => setEmail(event.target.value)}
+              placeholder={loginCopy.subjectEmailPlaceholder}
+              type="email"
+              value={email}
+            />
+            <p className="helper-text" id="login-email-help">
+              {loginCopy.subjectEmailHelp}
+            </p>
+            {showEmailError ? (
+              <p className="field-error" id="login-email-error">
+                {emailError}
+              </p>
+            ) : null}
           </div>
 
           <div className="field">
-            <label htmlFor="login-subject">
-              {provider === "wallet" ? loginCopy.subjectWalletLabel : loginCopy.subjectEmailLabel}
-            </label>
-            <div className="field-input-row">
-              <input
-                aria-describedby={showSubjectError ? "login-subject-error" : "login-subject-help"}
-                aria-invalid={showSubjectError}
-                className={provider === "wallet" ? "mono" : undefined}
-                id="login-subject"
-                inputMode={provider === "wallet" ? "text" : "email"}
-                onBlur={() => setTouched((current) => ({ ...current, subject: true }))}
-                onChange={(event) => setSubject(event.target.value)}
-                placeholder={
-                  provider === "wallet"
-                    ? loginCopy.subjectWalletPlaceholder
-                    : loginCopy.subjectEmailPlaceholder
-                }
-                type={provider === "wallet" ? "text" : "email"}
-                value={subject}
-              />
-              {provider === "wallet" ? (
-                <Button
-                  className="field-inline-action"
-                  leadingIcon={<Wallet size={16} />}
-                  loading={isPending}
-                  loadingLabel={loginCopy.connectingWallet}
-                  onClick={connectWallet}
-                  size="sm"
-                  type="button"
-                  variant="secondary"
-                >
-                  {loginCopy.connectWallet}
-                </Button>
-              ) : null}
-            </div>
-            <p className="helper-text" id="login-subject-help">
-              {provider === "wallet" ? loginCopy.subjectWalletHelp : loginCopy.subjectEmailHelp}
-              {provider === "wallet" && account.address ? ` ${shortenAddress(account.address)}` : ""}
-            </p>
-            {showSubjectError ? (
-              <p className="field-error" id="login-subject-error">
-                {subjectError}
+            <label htmlFor="login-password">Password</label>
+            <input
+              aria-describedby={showPasswordError ? "login-password-error" : undefined}
+              aria-invalid={showPasswordError}
+              autoComplete="current-password"
+              id="login-password"
+              onChange={(event) => setPassword(event.target.value)}
+              placeholder="••••••••"
+              type="password"
+              value={password}
+            />
+            {showPasswordError ? (
+              <p className="field-error" id="login-password-error">
+                {passwordError}
               </p>
             ) : null}
           </div>

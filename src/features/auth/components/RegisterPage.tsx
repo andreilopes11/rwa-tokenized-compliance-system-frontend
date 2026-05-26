@@ -2,8 +2,8 @@
 
 import { Eye, EyeOff, KeyRound, ShieldCheck, Sparkles, UserPlus } from "lucide-react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { FormEvent, useMemo, useState } from "react";
 import {
   buildPasswordChecks,
   isValidEmail,
@@ -11,12 +11,11 @@ import {
   meetsPasswordPolicy,
   passwordStrengthScore
 } from "@/features/auth/lib/validators";
+import { useAuthRoleParam } from "@/features/auth/lib/useAuthRoleParam";
 import { copy } from "@/shared/lib/copy";
 import { Alert } from "@/shared/ui/Alert";
 import { AuthShell } from "@/shared/ui/AuthShell";
 import { Button, buttonClassName } from "@/shared/ui/Button";
-
-type RegisterRole = "investor" | "admin";
 
 type TouchedState = {
   confirmPassword: boolean;
@@ -32,13 +31,12 @@ type RegisterSuccess = {
 
 export function RegisterPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const requestedRole = searchParams.get("role") === "admin" ? "admin" : "investor";
-  const [role, setRole] = useState<RegisterRole>(requestedRole);
+  const { role, setRole } = useAuthRoleParam("investor");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [walletAddress, setWalletAddress] = useState("");
+  const [inviteCode, setInviteCode] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [touched, setTouched] = useState<TouchedState>({
@@ -51,10 +49,6 @@ export function RegisterPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState<RegisterSuccess | null>(null);
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    setRole(requestedRole);
-  }, [requestedRole]);
 
   const registerCopy = copy.register;
   const common = copy.common;
@@ -74,7 +68,8 @@ export function RegisterPage() {
     confirmPassword: password !== confirmPassword ? registerCopy.passwordMismatch : "",
     email: !isValidEmail(email) ? registerCopy.invalidEmail : "",
     password: !passwordPolicyMet ? registerCopy.passwordHelp : "",
-    walletAddress: walletAddress && !isValidWalletAddress(walletAddress) ? registerCopy.walletInvalid : ""
+    walletAddress: walletAddress && !isValidWalletAddress(walletAddress) ? registerCopy.walletInvalid : "",
+    inviteCode: role === "admin" && !inviteCode.trim() ? "Admin invite code is required." : ""
   };
 
   const showFieldError = (field: keyof TouchedState) =>
@@ -83,7 +78,8 @@ export function RegisterPage() {
     !fieldErrors.email &&
     !fieldErrors.password &&
     !fieldErrors.confirmPassword &&
-    !fieldErrors.walletAddress;
+    !fieldErrors.walletAddress &&
+    !fieldErrors.inviteCode;
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -105,7 +101,8 @@ export function RegisterPage() {
           role,
           email: email.trim(),
           password,
-          walletAddress: walletAddress.trim() || undefined
+          walletAddress: walletAddress.trim() || undefined,
+          inviteCode: role === "admin" ? inviteCode.trim() : undefined
         })
       });
 
@@ -303,6 +300,20 @@ export function RegisterPage() {
                 </p>
               ) : null}
             </div>
+
+            {role === "admin" ? (
+              <div className="field">
+                <label htmlFor="register-invite">Admin invite code</label>
+                <input
+                  id="register-invite"
+                  onChange={(event) => setInviteCode(event.target.value)}
+                  placeholder="Provided by compliance operations"
+                  type="password"
+                  value={inviteCode}
+                />
+                <p className="helper-text">Local invite code: <code>local-admin-invite</code></p>
+              </div>
+            ) : null}
 
             <div className="field">
               <label htmlFor="register-wallet">{registerCopy.walletAddress}</label>

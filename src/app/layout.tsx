@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { appConfig } from "@/shared/config/app";
 import { AppProviders } from "@/shared/providers/AppProviders";
-import "@/shared/styles/experience.css";
 import "./globals.css";
+import "@/shared/styles/experience.css";
 
 export const metadata: Metadata = {
   title: appConfig.brandName,

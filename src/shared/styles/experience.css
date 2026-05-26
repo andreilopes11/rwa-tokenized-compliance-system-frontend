@@ -298,8 +298,49 @@ html[data-theme="dark"] .experience-shell .table-wrap {
 .experience-shell .field select,
 .experience-shell .field textarea {
   background: color-mix(in srgb, var(--xp-bg-elevated) 96%, transparent);
-  border-color: var(--xp-border);
+  border: 1px solid var(--xp-border);
+  border-radius: 14px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55);
   color: var(--xp-text);
+  min-height: 2.85rem;
+  padding: 0.8rem 0.9rem;
+}
+
+.experience-shell .field input::placeholder,
+.experience-shell .field textarea::placeholder {
+  color: var(--xp-text-soft);
+}
+
+.experience-shell .field input:focus,
+.experience-shell .field select:focus,
+.experience-shell .field textarea:focus {
+  border-color: var(--xp-border-strong);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--xp-accent) 18%, transparent);
+  outline: none;
+}
+
+html[data-theme="dark"] .experience-shell .field input,
+html[data-theme="dark"] .experience-shell .field select,
+html[data-theme="dark"] .experience-shell .field textarea {
+  background: #121722;
+  border-color: rgba(255, 255, 255, 0.16);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  color: #f4f7fb;
+}
+
+html[data-theme="dark"] .experience-shell .field input::placeholder,
+html[data-theme="dark"] .experience-shell .field textarea::placeholder {
+  color: rgba(244, 247, 251, 0.42);
+}
+
+html[data-theme="dark"] .experience-shell .field label {
+  color: #f4f7fb;
+}
+
+html[data-theme="dark"] .experience-shell .icon-toggle {
+  background: #121722;
+  border-color: rgba(255, 255, 255, 0.14);
+  color: #f4f7fb;
 }
 
 .experience-shell .data-table th {
@@ -402,8 +443,28 @@ html[data-theme="dark"] .experience-shell .auth-overview {
   border-color: var(--xp-border);
 }
 
+.experience-shell .segmented-control button {
+  color: var(--xp-text-muted);
+}
+
 .experience-shell .segmented-control button.selected {
   background: var(--xp-bg-elevated);
+  border: 1px solid var(--xp-border);
+  color: var(--xp-accent);
+}
+
+html[data-theme="dark"] .experience-shell .segmented-control {
+  background: #0f141f;
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+html[data-theme="dark"] .experience-shell .segmented-control button {
+  color: rgba(244, 247, 251, 0.72);
+}
+
+html[data-theme="dark"] .experience-shell .segmented-control button.selected {
+  background: #171d2a;
+  border-color: rgba(62, 243, 220, 0.35);
   color: var(--xp-accent);
 }
 
@@ -419,6 +480,30 @@ html[data-theme="dark"] .experience-shell .auth-overview {
 
 html:not([data-theme="dark"]) .experience-shell .primary-button {
   color: #ffffff;
+}
+
+html[data-theme="dark"] .experience-shell .secondary-button,
+html[data-theme="dark"] .experience-shell .ui-button-ghost {
+  background: #121722;
+  border-color: rgba(255, 255, 255, 0.16);
+  color: #f4f7fb;
+}
+
+html[data-theme="dark"] .experience-shell .secondary-button:hover,
+html[data-theme="dark"] .experience-shell .ui-button-ghost:hover {
+  background: #171d2a;
+  border-color: rgba(62, 243, 220, 0.35);
+  color: var(--xp-accent);
+}
+
+html[data-theme="dark"] .experience-shell .requirement-list {
+  background: #121722;
+  border-color: rgba(255, 255, 255, 0.12);
+  color: rgba(244, 247, 251, 0.82);
+}
+
+html[data-theme="dark"] .experience-shell .password-meter-track {
+  background: rgba(255, 255, 255, 0.12);
 }
 
 .experience-shell .connect-button {
@@ -495,4 +580,251 @@ html:not([data-theme="dark"]) .experience-shell .connect-button {
   max-width: 1360px;
   padding: 0 clamp(1rem, 4vw, 2rem);
   width: 100%;
+}
+
+/* Contrast fixes — experience.css loads after globals.css and wins on tied rules */
+
+.experience-shell .topbar .nav-link,
+.experience-shell .topbar .ui-button-ghost {
+  background: color-mix(in srgb, var(--xp-bg-elevated) 88%, var(--xp-surface));
+  border: 1px solid var(--xp-border);
+  box-shadow: none;
+  color: var(--xp-text);
+}
+
+.experience-shell .topbar .nav-link:hover,
+.experience-shell .topbar .ui-button-ghost:hover {
+  background: var(--xp-surface-hover);
+  border-color: var(--xp-border-strong);
+  color: var(--xp-accent);
+}
+
+.experience-shell .ui-button-secondary,
+.experience-shell .secondary-button {
+  background: color-mix(in srgb, var(--xp-bg-elevated) 90%, var(--xp-surface));
+  border: 1px solid var(--xp-border);
+  color: var(--xp-text);
+}
+
+.experience-shell .ui-button-secondary:hover,
+.experience-shell .secondary-button:hover {
+  background: var(--xp-surface-hover);
+  border-color: var(--xp-border-strong);
+  color: var(--xp-accent);
+}
+
+html:not([data-theme="dark"]) .experience-shell .ui-button-ghost {
+  background: color-mix(in srgb, var(--xp-bg-elevated) 92%, var(--xp-surface));
+  border: 1px solid var(--xp-border);
+  color: var(--xp-text);
+}
+
+html:not([data-theme="dark"]) .experience-shell .ui-button-ghost:hover {
+  background: var(--xp-surface-hover);
+  border-color: var(--xp-border-strong);
+  color: var(--xp-accent-dim);
+}
+
+.experience-shell .ui-button-primary,
+.experience-shell .primary-button,
+.experience-shell .connect-button {
+  color: #ffffff;
+}
+
+html[data-theme="dark"] .experience-shell .ui-button-primary,
+html[data-theme="dark"] .experience-shell .primary-button,
+html[data-theme="dark"] .experience-shell .connect-button {
+  color: #041210;
+}
+
+.experience-shell .field label,
+.experience-shell .panel h2,
+.experience-shell .panel h3,
+.experience-shell .section-header h2,
+.experience-shell .section-header h3,
+.experience-shell .offering-card h3 {
+  color: var(--xp-text);
+}
+
+.experience-shell .empty-state {
+  background: color-mix(in srgb, var(--xp-surface) 70%, var(--xp-bg-elevated));
+  border: 1px dashed color-mix(in srgb, var(--xp-border-strong) 75%, var(--xp-border));
+  border-radius: 16px;
+  color: var(--xp-text-muted);
+}
+
+.experience-shell .offering-card,
+.experience-shell .feed-card,
+.experience-shell .fee-quote,
+.experience-shell .selected-record,
+.experience-shell .secondary-panel,
+.experience-shell .chart-wrap,
+.experience-shell .requirement-list {
+  background: color-mix(in srgb, var(--xp-bg-elevated) 94%, var(--xp-surface));
+  border: 1px solid var(--xp-border);
+  color: var(--xp-text);
+}
+
+.experience-shell .definition-grid dt {
+  color: var(--xp-text-soft);
+}
+
+.experience-shell .definition-grid dd {
+  color: var(--xp-text);
+}
+
+.experience-shell .data-table td {
+  color: var(--xp-text);
+}
+
+.experience-shell .data-table thead th {
+  background: color-mix(in srgb, var(--xp-surface) 85%, var(--xp-bg-elevated));
+  color: var(--xp-text-muted);
+}
+
+.experience-shell .data-table tbody tr:hover {
+  background: var(--xp-surface-hover);
+}
+
+.experience-shell .activity-list li {
+  border-bottom-color: var(--xp-border);
+  color: var(--xp-text);
+}
+
+.experience-shell .link-button,
+.experience-shell a.external-link {
+  color: var(--xp-accent-dim);
+}
+
+.experience-shell .ui-alert {
+  color: var(--xp-text);
+}
+
+.experience-shell .ui-alert-error {
+  background: color-mix(in srgb, #fef2f2 88%, var(--xp-bg-elevated));
+  border-color: rgba(220, 38, 38, 0.22);
+  color: #991b1b;
+}
+
+.experience-shell .ui-alert-success {
+  background: color-mix(in srgb, #ecfdf5 88%, var(--xp-bg-elevated));
+  border-color: rgba(22, 163, 74, 0.22);
+  color: #166534;
+}
+
+.experience-shell .ui-alert-info {
+  background: color-mix(in srgb, #eff6ff 88%, var(--xp-bg-elevated));
+  border-color: rgba(37, 99, 235, 0.2);
+  color: #1e40af;
+}
+
+.experience-shell .ui-alert-warning {
+  background: color-mix(in srgb, #fffbeb 88%, var(--xp-bg-elevated));
+  border-color: rgba(217, 119, 6, 0.22);
+  color: #92400e;
+}
+
+.experience-shell .status.approved {
+  background: color-mix(in srgb, var(--xp-accent) 12%, #ecfdf5);
+  border: 1px solid color-mix(in srgb, var(--xp-accent) 30%, transparent);
+  color: #047857;
+}
+
+.experience-shell .status.pending {
+  background: color-mix(in srgb, #f59e0b 12%, #fffbeb);
+  border: 1px solid rgba(217, 119, 6, 0.24);
+  color: #b45309;
+}
+
+.experience-shell .status.rejected,
+.experience-shell .status.failed,
+.experience-shell .status.revoked {
+  background: color-mix(in srgb, #ef4444 10%, #fef2f2);
+  border: 1px solid rgba(220, 38, 38, 0.22);
+  color: #b91c1c;
+}
+
+html[data-theme="dark"] .experience-shell .empty-state {
+  background: #121722;
+  border-color: rgba(255, 255, 255, 0.16);
+  color: rgba(244, 247, 251, 0.74);
+}
+
+html[data-theme="dark"] .experience-shell .offering-card,
+html[data-theme="dark"] .experience-shell .feed-card,
+html[data-theme="dark"] .experience-shell .fee-quote,
+html[data-theme="dark"] .experience-shell .selected-record,
+html[data-theme="dark"] .experience-shell .secondary-panel,
+html[data-theme="dark"] .experience-shell .chart-wrap,
+html[data-theme="dark"] .experience-shell .requirement-list {
+  background: #121722;
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #f4f7fb;
+}
+
+html[data-theme="dark"] .experience-shell .link-button,
+html[data-theme="dark"] .experience-shell a.external-link {
+  color: var(--xp-accent);
+}
+
+html[data-theme="dark"] .experience-shell .ui-alert-error {
+  background: rgba(69, 10, 10, 0.55);
+  border-color: rgba(248, 113, 113, 0.35);
+  color: #fecaca;
+}
+
+html[data-theme="dark"] .experience-shell .ui-alert-success {
+  background: rgba(6, 78, 59, 0.45);
+  border-color: rgba(74, 222, 128, 0.3);
+  color: #bbf7d0;
+}
+
+html[data-theme="dark"] .experience-shell .ui-alert-info {
+  background: rgba(30, 58, 138, 0.42);
+  border-color: rgba(96, 165, 250, 0.32);
+  color: #bfdbfe;
+}
+
+html[data-theme="dark"] .experience-shell .ui-alert-warning {
+  background: rgba(120, 53, 15, 0.42);
+  border-color: rgba(251, 191, 36, 0.32);
+  color: #fde68a;
+}
+
+html[data-theme="dark"] .experience-shell .status.approved {
+  background: rgba(6, 95, 70, 0.42);
+  border-color: rgba(52, 211, 153, 0.35);
+  color: #6ee7b7;
+}
+
+html[data-theme="dark"] .experience-shell .status.pending {
+  background: rgba(120, 53, 15, 0.42);
+  border-color: rgba(251, 191, 36, 0.32);
+  color: #fcd34d;
+}
+
+html[data-theme="dark"] .experience-shell .status.rejected,
+html[data-theme="dark"] .experience-shell .status.failed,
+html[data-theme="dark"] .experience-shell .status.revoked {
+  background: rgba(127, 29, 29, 0.42);
+  border-color: rgba(248, 113, 113, 0.32);
+  color: #fca5a5;
+}
+
+html[data-theme="dark"] .experience-shell .topbar .nav-link,
+html[data-theme="dark"] .experience-shell .topbar .ui-button-ghost,
+html[data-theme="dark"] .experience-shell .secondary-button,
+html[data-theme="dark"] .experience-shell .ui-button-secondary {
+  background: #121722;
+  border-color: rgba(255, 255, 255, 0.16);
+  color: #f4f7fb;
+}
+
+html[data-theme="dark"] .experience-shell .topbar .nav-link:hover,
+html[data-theme="dark"] .experience-shell .topbar .ui-button-ghost:hover,
+html[data-theme="dark"] .experience-shell .secondary-button:hover,
+html[data-theme="dark"] .experience-shell .ui-button-secondary:hover {
+  background: #171d2a;
+  border-color: rgba(62, 243, 220, 0.35);
+  color: var(--xp-accent);
 }

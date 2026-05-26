@@ -33,15 +33,20 @@ export async function jsonFetch<T>(path: string, init?: RequestInit): Promise<T>
   return payload as T;
 }
 
-export function adminRequest(adminToken: string, init: RequestInit = {}): RequestInit {
+export function authorizedRequest(init: RequestInit = {}): RequestInit {
   return {
+    credentials: "same-origin",
     ...init,
     headers: {
       "Content-Type": "application/json",
-      "X-Admin-Token": adminToken,
       ...init.headers
     }
   };
+}
+
+/** @deprecated Use authorizedRequest — admin auth is now session/JWT based. */
+export function adminRequest(_adminToken: string, init: RequestInit = {}): RequestInit {
+  return authorizedRequest(init);
 }
 
 export function queryString(filters: Record<string, string | number | undefined>): string {

@@ -16,57 +16,47 @@ vi.mock("@/shared/lib/web3", () => ({
 
 describe("AdminDashboard", () => {
   afterEach(() => {
-    window.sessionStorage.clear();
     vi.clearAllMocks();
     vi.unstubAllGlobals();
   });
 
   it(
-    "loads KYC queue and approves a pending request with the admin token",
+    "loads KYC queue and approves a pending request with the authenticated admin session",
     async () => {
-    const fetchMock = vi.fn(mockFetch);
-    vi.stubGlobal("fetch", fetchMock);
+      const fetchMock = vi.fn(mockFetch);
+      vi.stubGlobal("fetch", fetchMock);
 
-    render(<AdminDashboard />);
+      render(<AdminDashboard />);
 
-    fireEvent.change(screen.getByLabelText(/admin token/i), {
-      target: { value: "local-admin-token" }
-    });
-    fireEvent.click(screen.getByRole("button", { name: /save token/i }));
+      expect((await screen.findAllByText("0x1111...1111")).length).toBeGreaterThan(0);
+      expect(screen.getByText("REQUEST_CREATED")).toBeInTheDocument();
+      expect(screen.getByText("Lisbon Real Estate Income Fund")).toBeInTheDocument();
 
-    expect((await screen.findAllByText("0x1111...1111")).length).toBeGreaterThan(0);
-    expect(screen.getByText("REQUEST_CREATED")).toBeInTheDocument();
-    expect(screen.getByText("Lisbon Real Estate Income Fund")).toBeInTheDocument();
+      fireEvent.click(screen.getAllByRole("button", { name: /approve/i })[0]);
 
-    fireEvent.click(screen.getAllByRole("button", { name: /approve/i })[0]);
-
-    await waitFor(() => {
-      expect(fetchMock).toHaveBeenCalledWith(
-        expect.stringContaining(`/api/admin/kyc/requests/${requestId}/approve`),
-        expect.objectContaining({
-          method: "POST",
-          headers: expect.objectContaining({
-            "X-Admin-Token": "local-admin-token"
+      await waitFor(() => {
+        expect(fetchMock).toHaveBeenCalledWith(
+          expect.stringContaining(`/api/admin/kyc/requests/${requestId}/approve`),
+          expect.objectContaining({
+            method: "POST",
+            credentials: "same-origin"
           })
-        })
-      );
-    });
-    expect(await screen.findByText(/approval submitted/i)).toBeInTheDocument();
+        );
+      });
+      expect(await screen.findByText(/approval submitted/i)).toBeInTheDocument();
 
-    fireEvent.click(screen.getAllByRole("button", { name: /approve/i })[1]);
+      fireEvent.click(screen.getAllByRole("button", { name: /approve/i })[1]);
 
-    await waitFor(() => {
-      expect(fetchMock).toHaveBeenCalledWith(
-        expect.stringContaining(`/api/admin/subscriptions/${subscriptionId}/approve`),
-        expect.objectContaining({
-          method: "POST",
-          headers: expect.objectContaining({
-            "X-Admin-Token": "local-admin-token"
+      await waitFor(() => {
+        expect(fetchMock).toHaveBeenCalledWith(
+          expect.stringContaining(`/api/admin/subscriptions/${subscriptionId}/approve`),
+          expect.objectContaining({
+            method: "POST",
+            credentials: "same-origin"
           })
-        })
-      );
-    });
-  },
+        );
+      });
+    },
     15000
   );
 });
@@ -149,7 +139,7 @@ async function mockFetch(input: RequestInfo | URL) {
         supplyCap: 1000000,
         navPrice: 100,
         issuerName: "RWA Compliance Issuer",
-        issuerMetadata: "Simulated portfolio asset backed by tokenized real estate shares.",
+        issuerMetadata: "Regulated portfolio asset backed by tokenized real estate shares.",
         tokenAddress: null,
         createdAt: "2026-05-03T00:00:00Z",
         updatedAt: "2026-05-03T00:00:00Z"

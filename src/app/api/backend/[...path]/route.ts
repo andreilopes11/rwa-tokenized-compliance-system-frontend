@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { readSession } from "@/features/auth/server/session";
+import {
+  clearAuthCookies,
+  ensureSession,
+  getAuthorizedBackendHeaders
+} from "@/features/auth/server/session";
 
 type RouteContext = {
   params: Promise<{ path: string[] }> | { path: string[] };
@@ -22,9 +26,11 @@ export async function POST(request: NextRequest, context: RouteContext) {
 }
 
 async function proxy(request: NextRequest, context: RouteContext) {
-  const session = await readSession();
+  const session = await ensureSession();
   if (!session) {
-    return NextResponse.json({ messages: ["Authentication required."] }, { status: 401 });
+    const response = NextResponse.json({ messages: ["Authentication required."] }, { status: 401 });
+    clearAuthCookies(response);
+    return response;
   }
 
   const params = await context.params;
@@ -38,18 +44,19 @@ async function proxy(request: NextRequest, context: RouteContext) {
   const target = new URL(`${backendBaseUrl.replace(/\/$/, "")}/${path}`);
   target.search = request.nextUrl.search;
 
-  const headers = new Headers();
+  let authHeaders: HeadersInit;
+  try {
+    authHeaders = await getAuthorizedBackendHeaders(session);
+  } catch {
+    const response = NextResponse.json({ messages: ["Session expired. Sign in again."] }, { status: 401 });
+    clearAuthCookies(response);
+    return response;
+  }
+
+  const headers = new Headers(authHeaders);
   const contentType = request.headers.get("content-type");
   if (contentType) {
     headers.set("content-type", contentType);
-  }
-  if (isAdminRoute) {
-    const adminToken = process.env.ADMIN_API_TOKEN ?? request.headers.get("X-Admin-Token");
-    if (adminToken) {
-      headers.set("X-Admin-Token", adminToken);
-    }
-  } else if (session.walletAddress) {
-    headers.set("X-Investor-Wallet", session.walletAddress);
   }
 
   let response: Response;
@@ -62,6 +69,20 @@ async function proxy(request: NextRequest, context: RouteContext) {
     });
   } catch {
     return NextResponse.json(GATEWAY_UNAVAILABLE_BODY, { status: 502 });
+  }
+
+  if (response.status === 401 || response.status === 403) {
+    const body = await response.text();
+    const proxyResponse = new NextResponse(body, {
+      headers: {
+        "content-type": response.headers.get("content-type") ?? "application/json"
+      },
+      status: response.status
+    });
+    if (response.status === 401) {
+      clearAuthCookies(proxyResponse);
+    }
+    return proxyResponse;
   }
 
   if (response.status >= 502) {
