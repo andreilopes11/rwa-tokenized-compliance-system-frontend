@@ -2,7 +2,8 @@ import { ArrowLeft, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { appConfig } from "@/shared/config/app";
-import { ExperienceFooter, type ExperienceFooterLink } from "./ExperienceFooter";
+import { ExperienceFooter } from "./ExperienceFooter";
+import { ThemeToggle } from "./ThemeToggle";
 
 type AuthHighlight = {
   description: string;
@@ -14,9 +15,7 @@ type AuthShellProps = {
   backLabel: string;
   children: ReactNode;
   eyebrow: string;
-  footerLinks: ExperienceFooterLink[];
-  footerStatus: string;
-  footerSummary: string;
+  footerStatus?: string;
   highlights: AuthHighlight[];
   highlightsTitle: string;
   subtitle: string;
@@ -27,16 +26,14 @@ export function AuthShell({
   backLabel,
   children,
   eyebrow,
-  footerLinks,
   footerStatus,
-  footerSummary,
   highlights,
   highlightsTitle,
   subtitle,
   title
 }: AuthShellProps) {
   return (
-    <main className="auth-shell">
+    <main className="experience-shell auth-shell">
       <div className="auth-shell-inner">
         <section className="auth-card">
           <aside className="auth-overview">
@@ -75,12 +72,13 @@ export function AuthShell({
                 <span className="auth-panel-eyebrow">{eyebrow}</span>
                 <h2>{title}</h2>
               </div>
+              <ThemeToggle />
             </div>
             {children}
           </section>
         </section>
 
-        <ExperienceFooter links={footerLinks} status={footerStatus} summary={footerSummary} />
+        <ExperienceFooter status={footerStatus} />
       </div>
     </main>
   );

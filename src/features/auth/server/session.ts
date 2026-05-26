@@ -3,19 +3,19 @@ import { redirect } from "next/navigation";
 
 export type SessionRole = "investor" | "admin";
 
-export type DemoSession = {
+export type ComplianceSession = {
   subject: string;
-  provider: "google" | "wallet" | "demo";
+  provider: "google" | "wallet" | "email";
   role: SessionRole;
   walletAddress?: string;
   mfaVerified: boolean;
   createdAt: string;
 };
 
-const COOKIE_NAME = "rwa_demo_session";
+const COOKIE_NAME = "rwa_compliance_session";
 const MAX_AGE_SECONDS = 60 * 60 * 8;
 
-export async function readSession(): Promise<DemoSession | null> {
+export async function readSession(): Promise<ComplianceSession | null> {
   const cookieStore = await cookies();
   const encoded = cookieStore.get(COOKIE_NAME)?.value;
   if (!encoded) {
@@ -23,14 +23,14 @@ export async function readSession(): Promise<DemoSession | null> {
   }
   try {
     const json = Buffer.from(encoded, "base64url").toString("utf8");
-    const session = JSON.parse(json) as DemoSession;
+    const session = JSON.parse(json) as ComplianceSession;
     return session.mfaVerified ? session : null;
   } catch {
     return null;
   }
 }
 
-export async function requireSession(role?: SessionRole): Promise<DemoSession> {
+export async function requireSession(role?: SessionRole): Promise<ComplianceSession> {
   const session = await readSession();
   if (!session) {
     redirect("/login");
@@ -41,7 +41,7 @@ export async function requireSession(role?: SessionRole): Promise<DemoSession> {
   return session;
 }
 
-export function encodeSession(session: DemoSession): string {
+export function encodeSession(session: ComplianceSession): string {
   return Buffer.from(JSON.stringify(session), "utf8").toString("base64url");
 }
 

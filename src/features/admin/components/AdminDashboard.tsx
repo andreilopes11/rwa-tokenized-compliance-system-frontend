@@ -69,12 +69,15 @@ import {
   statusClass,
   statusLabel
 } from "@/shared/lib/formatters";
+import { copy } from "@/shared/lib/copy";
 import { activeChain, explorerLink } from "@/shared/lib/web3";
 import { Alert } from "@/shared/ui/Alert";
 import { Button } from "@/shared/ui/Button";
 import { DashboardHero } from "@/shared/ui/DashboardHero";
+import { SiteTopBar } from "@/shared/ui/SiteTopBar";
 
 const ADMIN_TOKEN_STORAGE_KEY = "rwa-admin-token";
+const commonCopy = copy.common;
 const statusOptions: Array<KycStatus | ""> = ["", "PENDING", "APPROVED", "REJECTED", "REVOKED", "FAILED_ON_CHAIN"];
 const investorTypeOptions: InvestorType[] = ["RETAIL", "ACCREDITED", "QUALIFIED", "INSTITUTIONAL"];
 const configuredTokenAddress = process.env.NEXT_PUBLIC_TOKEN_ADDRESS ?? "";
@@ -125,13 +128,15 @@ export function AdminDashboard() {
     status: "DRAFT",
     supplyCap: 500000,
     navPrice: 100,
-    issuerName: "Demo RWA Issuer",
-    issuerMetadata: "Simulated treasury fund share class for portfolio demos.",
+    issuerName: "RWA Compliance Issuer",
+    issuerMetadata: "Regulated real estate income fund — EU/PT jurisdiction.",
     tokenAddress: configuredTokenAddress
   });
   const [selectedRequest, setSelectedRequest] = useState<KycRequestResponse | null>(null);
   const [subscriptionReason, setSubscriptionReason] = useState("Issuer allocation approved.");
-  const [redemptionReason, setRedemptionReason] = useState("Redemption approved with simulated off-chain settlement.");
+  const [redemptionReason, setRedemptionReason] = useState(
+    "Redemption approved with off-chain settlement per issuer policy."
+  );
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -578,30 +583,30 @@ export function AdminDashboard() {
   }
 
   return (
-    <main className="dashboard-shell">
-      <header className="topbar">
-        <div className="brand">
-          <h1>Admin / Issuer Control Room</h1>
-          <p>KYC queue · identity approvals · lifecycle operations · audit evidence</p>
-        </div>
-        <nav className="nav-actions" aria-label="Dashboard navigation">
-          <Link className="nav-link" href="/">
-            Landing
-          </Link>
-          <Link className="nav-link" href="/dashboard">
-            Investor dashboard
-          </Link>
-          <Button
-            leadingIcon={<XCircle size={16} />}
-            loading={signingOut}
-            onClick={signOut}
-            size="sm"
-            variant="ghost"
-          >
-            Sign out
-          </Button>
-        </nav>
-      </header>
+    <main className="experience-shell dashboard-shell">
+      <SiteTopBar
+        subtitle="KYC queue · identity approvals · lifecycle operations · audit evidence"
+        title="Admin / Issuer Control Room"
+        actions={
+          <nav className="nav-actions" aria-label="Dashboard navigation">
+            <Link className="nav-link" href="/">
+              {commonCopy.landing}
+            </Link>
+            <Link className="nav-link" href="/dashboard">
+              {commonCopy.investorDashboard}
+            </Link>
+            <Button
+              leadingIcon={<XCircle size={16} />}
+              loading={signingOut}
+              onClick={signOut}
+              size="sm"
+              variant="ghost"
+            >
+              {commonCopy.signOut}
+            </Button>
+          </nav>
+        }
+      />
 
       <DashboardHero
         description="Run the issuer surface with a clearer operational overview across identity approvals, subscription and redemption queues, compliance rules, feed health, and blockchain monitoring."
@@ -893,10 +898,10 @@ export function AdminDashboard() {
               </div>
             </div>
             <div className="secondary-panel">
-              <strong>{operationsReport?.autoPauseMode ?? "SIMULATED_ADMIN_REVIEW"}</strong>
+              <strong>{operationsReport?.autoPauseMode ?? "COMPLIANCE_ADMIN_REVIEW"}</strong>
               <p className="muted">
                 {operationsReport?.summary ??
-                  "Auto-pause simulation remains visible to admins while crisis controls stay manual."}
+                  "Auto-pause controls remain issuer-operated; crisis thresholds are configurable per asset."}
               </p>
               <span className="muted">Failed tx {operationsReport?.failedTransactions ?? 0}</span>
             </div>

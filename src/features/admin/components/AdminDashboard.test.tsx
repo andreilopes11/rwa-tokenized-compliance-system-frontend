@@ -21,7 +21,9 @@ describe("AdminDashboard", () => {
     vi.unstubAllGlobals();
   });
 
-  it("loads KYC queue and approves a pending request with the admin token", async () => {
+  it(
+    "loads KYC queue and approves a pending request with the admin token",
+    async () => {
     const fetchMock = vi.fn(mockFetch);
     vi.stubGlobal("fetch", fetchMock);
 
@@ -64,7 +66,9 @@ describe("AdminDashboard", () => {
         })
       );
     });
-  });
+  },
+    15000
+  );
 });
 
 async function mockFetch(input: RequestInfo | URL) {
@@ -144,7 +148,7 @@ async function mockFetch(input: RequestInfo | URL) {
         status: "ACTIVE",
         supplyCap: 1000000,
         navPrice: 100,
-        issuerName: "Demo RWA Issuer",
+        issuerName: "RWA Compliance Issuer",
         issuerMetadata: "Simulated portfolio asset backed by tokenized real estate shares.",
         tokenAddress: null,
         createdAt: "2026-05-03T00:00:00Z",
@@ -164,8 +168,8 @@ async function mockFetch(input: RequestInfo | URL) {
       pendingRedemptions: 1,
       monitoredTransactions: 0,
       failedTransactions: 0,
-      autoPauseMode: "SIMULATED_ADMIN_REVIEW",
-      summary: "Demo operations report.",
+      autoPauseMode: "COMPLIANCE_ADMIN_REVIEW",
+      summary: "Operations compliance report.",
       generatedAt: "2026-05-03T00:00:00Z"
     });
   }

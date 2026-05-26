@@ -12,7 +12,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
 import { useAccount, useConnect } from "wagmi";
 import { isValidEmail, isValidWalletAddress } from "@/features/auth/lib/validators";
-import { appConfig } from "@/shared/config/app";
 import { copy } from "@/shared/lib/copy";
 import { shortenAddress } from "@/shared/lib/formatters";
 import { activeChain } from "@/shared/lib/web3";
@@ -20,7 +19,7 @@ import { Alert } from "@/shared/ui/Alert";
 import { AuthShell } from "@/shared/ui/AuthShell";
 import { Button, buttonClassName } from "@/shared/ui/Button";
 
-type LoginProvider = "demo" | "google" | "wallet";
+type LoginProvider = "email" | "google" | "wallet";
 type LoginRole = "investor" | "admin";
 
 type TouchedState = {
@@ -35,14 +34,14 @@ export function LoginPage() {
   const next = searchParams.get("next") ?? (requestedRole === "admin" ? "/admin" : "/dashboard");
   const registered = searchParams.get("registered") === "1";
   const prefilledEmail = searchParams.get("email")?.trim() ?? "";
-  const defaultEmail = prefilledEmail || "demo-investor@portfolio.local";
+  const defaultEmail = prefilledEmail || "investor@company.com";
 
   const [role, setRole] = useState<LoginRole>(requestedRole);
-  const [provider, setProvider] = useState<LoginProvider>("demo");
+  const [provider, setProvider] = useState<LoginProvider>("email");
   const [subject, setSubject] = useState(defaultEmail);
   const [mfaCode, setMfaCode] = useState("123456");
   const [availableProviders, setAvailableProviders] = useState({
-    demo: true,
+    email: true,
     google: false,
     wallet: true
   });
@@ -81,12 +80,12 @@ export function LoginPage() {
         const payload = await response.json();
         if (!cancelled && payload.providers) {
           setAvailableProviders({
-            demo: Boolean(payload.providers.demo),
+            email: Boolean(payload.providers.email),
             google: Boolean(payload.providers.google),
             wallet: Boolean(payload.providers.wallet)
           });
           if (!payload.providers.google && provider === "google") {
-            setProvider("demo");
+            setProvider("email");
           }
         }
       } catch {
@@ -192,10 +191,10 @@ export function LoginPage() {
 
   const providerOptions = [
     {
-      id: "demo" as const,
-      description: loginCopy.providerDemoDescription,
-      label: loginCopy.providerDemoTitle,
-      visible: availableProviders.demo
+      id: "email" as const,
+      description: loginCopy.providerEmailDescription,
+      label: loginCopy.providerEmailTitle,
+      visible: availableProviders.email
     },
     {
       id: "google" as const,
@@ -215,17 +214,7 @@ export function LoginPage() {
     <AuthShell
       backLabel={common.backHome}
       eyebrow={loginCopy.provider}
-      footerLinks={[
-        { href: "/", label: common.landing },
-        { href: `/register?role=${role}`, label: loginCopy.registerLink },
-        {
-          external: true,
-          href: appConfig.repositoryUrl,
-          label: common.github
-        }
-      ]}
       footerStatus={common.footerStatusAuth}
-      footerSummary={common.footerSummary}
       highlights={loginCopy.highlights.map((item, index) => ({
         ...item,
         icon:

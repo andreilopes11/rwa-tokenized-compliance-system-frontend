@@ -11,7 +11,6 @@ import {
   meetsPasswordPolicy,
   passwordStrengthScore
 } from "@/features/auth/lib/validators";
-import { appConfig } from "@/shared/config/app";
 import { copy } from "@/shared/lib/copy";
 import { Alert } from "@/shared/ui/Alert";
 import { AuthShell } from "@/shared/ui/AuthShell";
@@ -140,17 +139,7 @@ export function RegisterPage() {
     <AuthShell
       backLabel={common.backHome}
       eyebrow={registerCopy.role}
-      footerLinks={[
-        { href: "/", label: common.landing },
-        { href: `/login?role=${role}`, label: registerCopy.loginLink },
-        {
-          external: true,
-          href: appConfig.repositoryUrl,
-          label: common.github
-        }
-      ]}
       footerStatus={common.footerStatusAuth}
-      footerSummary={common.footerSummary}
       highlights={registerCopy.highlights.map((item, index) => ({
         ...item,
         icon:

@@ -227,7 +227,7 @@ async function mockFetch(input: RequestInfo | URL) {
         status: "ACTIVE",
         supplyCap: 1000000,
         navPrice: 100,
-        issuerName: "Demo RWA Issuer",
+        issuerName: "RWA Compliance Issuer",
         issuerMetadata: "Simulated portfolio asset backed by tokenized real estate shares.",
         tokenAddress: null,
         createdAt: "2026-05-03T00:00:00Z",
@@ -336,7 +336,7 @@ async function mockFetchApproved(input: RequestInfo | URL) {
         status: "ACTIVE",
         supplyCap: 1000000,
         navPrice: 100,
-        issuerName: "Demo RWA Issuer",
+        issuerName: "RWA Compliance Issuer",
         issuerMetadata: "Simulated portfolio asset backed by tokenized real estate shares.",
         tokenAddress: null,
         createdAt: "2026-05-03T00:00:00Z",
@@ -396,7 +396,7 @@ function defaultFinancialSummary() {
     totalValueSecondary: 0,
     fxRate: 1.08,
     positions: [],
-    disclaimer: "Demo only.",
+    disclaimer: "Indicative only. Not tax, legal, or investment advice.",
     asOf: "2026-05-03T00:00:00Z"
   };
 }
@@ -409,7 +409,7 @@ function defaultTaxSummary() {
     portfolioValue: 0,
     estimatedWithholding: 0,
     taxableEventsCount: 0,
-    summary: "Demo tax summary.",
+    summary: "Indicative EU tax summary.",
     disclaimer: "Not tax advice.",
     asOf: "2026-05-03T00:00:00Z"
   };
@@ -428,6 +428,6 @@ function defaultFeeQuote() {
     regulatoryFee: 0.25,
     totalFees: 1.75,
     totalAmount: 26.75,
-    disclaimer: "Demo fee quote."
+    disclaimer: "Fee quote subject to issuer policy and applicable regulations."
   };
 }

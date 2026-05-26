@@ -1,6 +1,6 @@
 export const appConfig = {
   brandName: "RWA Compliance",
   metadataDescription:
-    "Frontend MVP for regulated onboarding, KYC journeys, investor operations, and admin compliance workflows.",
+    "Regulated tokenized asset compliance platform — EU MiCA-oriented onboarding, KYC/AML, investor operations, and issuer controls with on-chain enforcement.",
   repositoryUrl: "https://github.com/andreilopes11/rwa-tokenized-compliance-system"
 } as const;

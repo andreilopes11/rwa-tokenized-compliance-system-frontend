@@ -4,12 +4,12 @@ import {
   encodeSession,
   sessionCookieName,
   sessionCookieOptions,
-  type DemoSession,
+  type ComplianceSession,
   type SessionRole
 } from "@/features/auth/server/session";
 
 type LoginRequest = {
-  provider?: "google" | "wallet" | "demo";
+  provider?: "google" | "wallet" | "email";
   role?: SessionRole;
   subject?: string;
   walletAddress?: string;
@@ -19,9 +19,9 @@ type LoginRequest = {
 export async function POST(request: NextRequest) {
   const payload = (await request.json()) as LoginRequest;
   const expectedCode = process.env.AUTH_MFA_CODE ?? "123456";
-  const provider = payload.provider ?? "demo";
+  const provider = payload.provider ?? "email";
   const role = payload.role === "admin" ? "admin" : "investor";
-  const subject = (payload.subject || payload.walletAddress || "demo-investor@portfolio.local").trim();
+  const subject = (payload.subject || payload.walletAddress || "investor@company.com").trim();
   const walletAddress = payload.walletAddress?.trim();
 
   if (payload.mfaCode?.trim() !== expectedCode) {
@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ message: "Email sign-in requires a valid email address." }, { status: 400 });
   }
 
-  const session: DemoSession = {
+  const session: ComplianceSession = {
     subject,
     provider,
     role,

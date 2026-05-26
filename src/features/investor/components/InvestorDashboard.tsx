@@ -60,6 +60,7 @@ import { activeChain, explorerLink } from "@/shared/lib/web3";
 import { Alert } from "@/shared/ui/Alert";
 import { Button } from "@/shared/ui/Button";
 import { DashboardHero } from "@/shared/ui/DashboardHero";
+import { SiteTopBar } from "@/shared/ui/SiteTopBar";
 
 const tokenAddress = process.env.NEXT_PUBLIC_TOKEN_ADDRESS ?? "";
 const registryAddress = process.env.NEXT_PUBLIC_IDENTITY_REGISTRY_ADDRESS ?? "";
@@ -295,7 +296,7 @@ export function InvestorDashboard({ sessionWalletAddress }: InvestorDashboardPro
     setError("");
     setNotice("");
     if (typeof window !== "undefined" && !("ethereum" in window)) {
-      setError("No injected wallet was found. Install or enable a browser wallet for the demo.");
+      setError("No injected wallet was found. Install or enable a browser wallet to continue.");
       return;
     }
     const connector = connectors[0];
@@ -517,57 +518,57 @@ export function InvestorDashboard({ sessionWalletAddress }: InvestorDashboardPro
   const StatusIcon = activeStatus === "APPROVED" ? CheckCircle2 : activeStatus === "PENDING" ? AlertTriangle : XCircle;
 
   return (
-    <main className="dashboard-shell">
-      <header className="topbar">
-        <div className="brand">
-          <h1>Investor / Portfolio Workspace</h1>
-          <p>{activeChain.name} chain {activeChain.id} · off-chain eligibility · on-chain transfer guard</p>
-        </div>
-        <div className="wallet-actions">
-          <Link className="nav-link" href="/">
-            {commonCopy.landing}
-          </Link>
-          <Link className="nav-link" href="/admin">
-            {commonCopy.adminDashboard}
-          </Link>
-          {wrongNetwork && (
-            <button
-              className="secondary-button"
-              disabled={switchingNetwork}
-              onClick={switchNetwork}
-              type="button"
+    <main className="experience-shell dashboard-shell">
+      <SiteTopBar
+        subtitle={`${activeChain.name} chain ${activeChain.id} · off-chain eligibility · on-chain transfer guard`}
+        title="Investor / Portfolio Workspace"
+        actions={
+          <div className="wallet-actions">
+            <Link className="nav-link" href="/">
+              {commonCopy.landing}
+            </Link>
+            <Link className="nav-link" href="/admin">
+              {commonCopy.adminDashboard}
+            </Link>
+            {wrongNetwork && (
+              <button
+                className="secondary-button"
+                disabled={switchingNetwork}
+                onClick={switchNetwork}
+                type="button"
+              >
+                <RefreshCw size={18} aria-hidden />
+                Switch to {activeChain.name}
+              </button>
+            )}
+            {account.isConnected ? (
+              <button className="wallet-pill" onClick={disconnectWallet} type="button">
+                <Wallet size={18} aria-hidden />
+                {shortenAddress(account.address)}
+              </button>
+            ) : (
+              <button
+                className="connect-button"
+                disabled={walletConnecting}
+                onClick={connectWallet}
+                type="button"
+              >
+                <Wallet size={18} aria-hidden />
+                Connect wallet
+              </button>
+            )}
+            <Button
+              leadingIcon={<XCircle size={16} />}
+              loading={signingOut}
+              onClick={signOut}
+              size="sm"
+              variant="ghost"
             >
-              <RefreshCw size={18} aria-hidden />
-              Switch to {activeChain.name}
-            </button>
-          )}
-          {account.isConnected ? (
-            <button className="wallet-pill" onClick={disconnectWallet} type="button">
-              <Wallet size={18} aria-hidden />
-              {shortenAddress(account.address)}
-            </button>
-          ) : (
-            <button
-              className="connect-button"
-              disabled={walletConnecting}
-              onClick={connectWallet}
-              type="button"
-            >
-              <Wallet size={18} aria-hidden />
-              Connect wallet
-            </button>
-          )}
-          <Button
-            leadingIcon={<XCircle size={16} />}
-            loading={signingOut}
-            onClick={signOut}
-            size="sm"
-            variant="ghost"
-          >
-            {commonCopy.signOut}
-          </Button>
-        </div>
-      </header>
+              {commonCopy.signOut}
+            </Button>
+          </div>
+        }
+      />
 
       <DashboardHero
         description="Monitor onboarding, refresh compliance evidence, and operate subscription or redemption flows with the same context used by backend eligibility and on-chain transfer controls."

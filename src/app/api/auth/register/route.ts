@@ -9,7 +9,7 @@ import {
   encodeSession,
   sessionCookieName,
   sessionCookieOptions,
-  type DemoSession,
+  type ComplianceSession,
   type SessionRole
 } from "@/features/auth/server/session";
 
@@ -42,9 +42,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ message: "Enter a valid EVM wallet address." }, { status: 400 });
   }
 
-  const session: DemoSession = {
+  const session: ComplianceSession = {
     subject: email,
-    provider: "demo",
+    provider: "email",
     role,
     walletAddress: walletAddress || undefined,
     mfaVerified: true,
@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
   const redirectTo = role === "admin" ? "/admin" : "/dashboard";
   const response = NextResponse.json(
     {
-      message: "Demo account created. You are signed in.",
+      message: "Account created. You are signed in.",
       autoLogin: true,
       redirectTo,
       nextLogin: `/login?registered=1&email=${encodeURIComponent(email)}&role=${role}`,

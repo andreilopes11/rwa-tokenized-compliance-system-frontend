@@ -68,7 +68,7 @@ describe("wallet and status helpers", () => {
       status: "DRAFT",
       supplyCap: 500000,
       navPrice: 100,
-      issuerName: "Demo RWA Issuer"
+      issuerName: "RWA Compliance Issuer"
     });
 
     expect(fetchMock).toHaveBeenCalledWith(

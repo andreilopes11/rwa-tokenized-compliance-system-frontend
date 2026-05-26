@@ -3,24 +3,28 @@
 import {
   ArrowRight,
   BarChart3,
+  BriefcaseBusiness,
   CheckCircle2,
   Layers3,
   Lock,
   LockKeyhole,
-  Route,
+  MinusCircle,
+  PlusCircle,
   ShieldCheck,
   Sparkles,
+  UserRound,
   WalletCards,
   Zap
 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import "../landing.css";
-import { appConfig } from "@/shared/config/app";
 import { copy } from "@/shared/lib/copy";
 import { ExperienceFooter } from "@/shared/ui/ExperienceFooter";
+import { ThemeToggle } from "@/shared/ui/ThemeToggle";
 
 const featureIcons = [LockKeyhole, ShieldCheck, BarChart3, CheckCircle2] as const;
+const useCaseIcons = [BriefcaseBusiness, UserRound, ShieldCheck] as const;
 const securityIcons = [Lock, Zap, Layers3] as const;
 
 export function LandingPage() {
@@ -35,11 +39,13 @@ export function LandingPage() {
       register: "/register",
       login: "/login",
       product: "#product",
-      journey: "#journey",
+      useCases: "#use-cases",
+      howTo: "#how-to",
+      tradeoffs: "#tradeoffs",
+      capabilities: "#capabilities",
       platform: "#platform",
       trust: "#trust",
-      cta: "#cta",
-      github: appConfig.repositoryUrl
+      cta: "#cta"
     }),
     []
   );
@@ -65,19 +71,21 @@ export function LandingPage() {
   }, [analyticsLoaded, measurementId]);
 
   return (
-    <main className="landing-shell">
+    <main className="experience-shell landing-shell">
       <header className="landing-nav">
         <Link className="landing-brand" href="/">
           <ShieldCheck size={22} aria-hidden />
           {copy.common.brand}
         </Link>
         <nav className="landing-nav-center" aria-label="Primary">
+          <Link href={cta.useCases}>{landingCopy.navUseCases}</Link>
           <Link href={cta.product}>{landingCopy.navProduct}</Link>
-          <Link href={cta.journey}>{landingCopy.navJourney}</Link>
+          <Link href={cta.howTo}>{landingCopy.navHowTo}</Link>
           <Link href={cta.platform}>{landingCopy.navPlatform}</Link>
           <Link href={cta.trust}>{landingCopy.navTrust}</Link>
         </nav>
         <div className="landing-nav-actions">
+          <ThemeToggle className="landing-theme-toggle" />
           <Link className="landing-nav-ghost" href={cta.login}>
             {landingCopy.loginCta}
           </Link>
@@ -140,7 +148,7 @@ export function LandingPage() {
               </article>
             ))}
           </div>
-          <Link className="hero-inline-link" href={cta.product}>
+          <Link className="hero-inline-link" href={cta.howTo}>
             {landingCopy.productTour}
             <ArrowRight size={16} aria-hidden />
           </Link>
@@ -153,6 +161,32 @@ export function LandingPage() {
           {landingCopy.trustLabels.map((label) => (
             <span key={label}>{label}</span>
           ))}
+        </div>
+      </section>
+
+      <section
+        className="landing-section landing-use-cases"
+        aria-labelledby="use-cases-title"
+        id="use-cases"
+      >
+        <header className="section-head">
+          <span className="section-kicker">Use cases</span>
+          <h2 id="use-cases-title">{landingCopy.useCasesTitle}</h2>
+          <p>{landingCopy.useCasesIntro}</p>
+        </header>
+        <div className="use-cases-grid">
+          {landingCopy.useCases.map((item, index) => {
+            const Icon = useCaseIcons[index] ?? ShieldCheck;
+            return (
+              <article className="use-case-card" key={item.title}>
+                <div className="use-case-icon">
+                  <Icon size={20} aria-hidden />
+                </div>
+                <h3>{item.title}</h3>
+                <p>{item.description}</p>
+              </article>
+            );
+          })}
         </div>
       </section>
 
@@ -182,25 +216,76 @@ export function LandingPage() {
         </div>
       </section>
 
+      <section className="landing-section landing-howto" aria-labelledby="howto-title" id="how-to">
+        <header className="section-head">
+          <span className="section-kicker">Quick start</span>
+          <h2 id="howto-title">{landingCopy.howToTitle}</h2>
+          <p>{landingCopy.howToIntro}</p>
+        </header>
+        <ol className="howto-list">
+          {landingCopy.howToSteps.map((step, index) => (
+            <li className="howto-item" key={step.title}>
+              <span className="howto-index">{index + 1}</span>
+              <div>
+                <h3>{step.title}</h3>
+                <p>{step.description}</p>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </section>
+
       <section
-        className="landing-section landing-journey"
-        aria-labelledby="journey-title"
-        id="journey"
+        className="landing-section landing-tradeoffs"
+        aria-labelledby="tradeoffs-title"
+        id="tradeoffs"
       >
         <header className="section-head">
-          <span className="section-kicker">
-            <Route size={14} aria-hidden style={{ display: "inline", verticalAlign: "-2px" }} />{" "}
-            Flow
-          </span>
-          <h2 id="journey-title">{landingCopy.stepsTitle}</h2>
-          <p>{landingCopy.stepsIntro}</p>
+          <span className="section-kicker">Scope</span>
+          <h2 id="tradeoffs-title">{landingCopy.tradeoffsTitle}</h2>
+          <p>{landingCopy.tradeoffsIntro}</p>
         </header>
-        <div className="journey-track">
-          {landingCopy.steps.map((step, index) => (
-            <article className="journey-step" key={step.title}>
-              <div className="journey-step-num">{index + 1}</div>
-              <h3>{step.title}</h3>
-              <p>{step.description}</p>
+        <div className="tradeoffs-grid">
+          <article className="tradeoffs-card tradeoffs-card-strength">
+            <h3>
+              <PlusCircle size={18} aria-hidden />
+              Strengths
+            </h3>
+            <ul>
+              {landingCopy.tradeoffsStrengths.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </article>
+          <article className="tradeoffs-card tradeoffs-card-limit">
+            <h3>
+              <MinusCircle size={18} aria-hidden />
+              Limits
+            </h3>
+            <ul>
+              {landingCopy.tradeoffsLimits.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section
+        className="landing-section landing-more"
+        aria-labelledby="more-title"
+        id="capabilities"
+      >
+        <header className="section-head">
+          <span className="section-kicker">Extended</span>
+          <h2 id="more-title">{landingCopy.moreFeaturesTitle}</h2>
+          <p>{landingCopy.moreFeaturesIntro}</p>
+        </header>
+        <div className="more-features-grid">
+          {landingCopy.moreFeatures.map((item) => (
+            <article className="more-feature-card" key={item.title}>
+              <h3>{item.title}</h3>
+              <p>{item.description}</p>
             </article>
           ))}
         </div>
@@ -219,7 +304,7 @@ export function LandingPage() {
           </div>
           <div className="platform-pillar">
             <strong>Backend</strong>
-            <span>Spring Boot compliance API, document hashing, Web3j gateways (MVP / T-REX)</span>
+            <span>Spring Boot compliance API, document hashing, Web3j gateways (legacy + T-REX)</span>
           </div>
           <div className="platform-pillar">
             <strong>Blockchain</strong>
@@ -273,14 +358,8 @@ export function LandingPage() {
       </section>
 
       <ExperienceFooter
-        links={[
-          { href: cta.investor, label: landingCopy.investorCta },
-          { href: cta.admin, label: landingCopy.adminCta },
-          { href: cta.register, label: landingCopy.joinCta },
-          { external: true, href: cta.github, label: copy.common.github }
-        ]}
         status={measurementId ? landingCopy.analyticsEnabled : landingCopy.analyticsDisabled}
-        summary={copy.common.footerSummary}
+        variant="landing"
       />
     </main>
   );

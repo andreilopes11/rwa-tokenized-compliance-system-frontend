@@ -8,7 +8,7 @@ export async function GET() {
     providers: {
       google: Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET),
       wallet: true,
-      demo: true
+      email: true
     },
     mfaEnabled: true
   });

@@ -1,6 +1,6 @@
 # RWA Tokenized Compliance — Frontend
 
-Next.js App Router: landing, demo auth, investor/admin dashboards, BFF to Spring Boot.
+Next.js App Router: regulated landing, secure auth, investor/issuer dashboards, BFF to Spring Boot.
 
 ## Contract with `_docs`
 
@@ -10,7 +10,7 @@ Next.js App Router: landing, demo auth, investor/admin dashboards, BFF to Spring
 | Deploy / env | [`../_docs/deployment.md`](../_docs/deployment.md) |
 | Security | [`../_docs/security.md`](../_docs/security.md) |
 
-Environment variables are documented only in [`../_docs/deployment.md`](../_docs/deployment.md) and [`.env.example`](.env.example) (template).
+Environment variables are documented in [`../_docs/deployment.md`](../_docs/deployment.md) and [`.env.example`](.env.example).
 
 ## Commands
 
@@ -22,12 +22,13 @@ npm run dev          # http://localhost:3000
 
 ## Routes
 
-`/`, `/login`, `/register`, `/dashboard`, `/admin` — see `_docs/frontend-spec.md`.
+`/`, `/login`, `/register`, `/dashboard`, `/admin`, `/terms`, `/privacy` — see `_docs/frontend-spec.md`.
 
-## Features (Testnet Public)
+## Features
 
-- Register → auto-login (demo session cookie)
-- BFF forwards `X-Investor-Wallet`; 502 retry UX
-- KYC status polling until terminal state
+- Register → secure auto-login (HttpOnly compliance session)
+- Light/dark theme with production-oriented UX
+- BFF forwards `X-Investor-Wallet`; 502 retry for resilience
+- KYC status polling until terminal AML state
 - Wagmi `useReadContract` for token balance and registry `isVerified`
-- Admin token in `sessionStorage` (portfolio pattern; see spec)
+- Issuer admin token pattern for regulated operations

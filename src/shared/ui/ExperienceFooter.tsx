@@ -1,5 +1,8 @@
 import Link from "next/link";
+import { ShieldCheck } from "lucide-react";
 import { appConfig } from "@/shared/config/app";
+import { copy } from "@/shared/lib/copy";
+import { ThemeToggle } from "./ThemeToggle";
 
 export type ExperienceFooterLink = {
   external?: boolean;
@@ -8,34 +11,80 @@ export type ExperienceFooterLink = {
 };
 
 type ExperienceFooterProps = {
-  links: ExperienceFooterLink[];
-  status: string;
-  summary: string;
+  extraLinks?: ExperienceFooterLink[];
+  status?: string;
+  variant?: "default" | "landing";
 };
 
-export function ExperienceFooter({ links, status, summary }: ExperienceFooterProps) {
+export function ExperienceFooter({
+  extraLinks = [],
+  status,
+  variant = "default"
+}: ExperienceFooterProps) {
+  const footerCopy = copy.footer;
+  const common = copy.common;
+
   return (
-    <footer className="experience-footer">
-      <div className="experience-footer-inner">
-        <div className="experience-footer-copy">
-          <strong>{appConfig.brandName}</strong>
-          <p>{summary}</p>
+    <footer className={`experience-footer${variant === "landing" ? " experience-footer-landing" : ""}`}>
+      <div className="experience-footer-grid">
+        <div className="experience-footer-brand">
+          <Link className="experience-footer-logo" href="/">
+            <ShieldCheck aria-hidden size={20} />
+            <strong>{appConfig.brandName}</strong>
+          </Link>
+          <p>{footerCopy.tagline}</p>
         </div>
-        <div className="experience-footer-meta">
-          <span className="status-chip">{status}</span>
+
+        <div className="experience-footer-col">
+          <strong>{footerCopy.productTitle}</strong>
+          <nav aria-label="Product links">
+            {footerCopy.productLinks.map((link) => (
+              <Link href={link.href} key={link.href}>
+                {link.label}
+              </Link>
+            ))}
+          </nav>
         </div>
-        <nav className="experience-footer-links" aria-label="Footer">
-          {links.map((link) => (
-            <Link
-              href={link.href}
-              key={`${link.href}:${link.label}`}
-              rel={link.external ? "noopener noreferrer" : undefined}
-              target={link.external ? "_blank" : undefined}
-            >
-              {link.label}
+
+        <div className="experience-footer-col">
+          <strong>{footerCopy.resourcesTitle}</strong>
+          <nav aria-label="Resource links">
+            {footerCopy.resourceLinks.map((link) => (
+              <Link href={link.href} key={link.href}>
+                {link.label}
+              </Link>
+            ))}
+            <Link href={appConfig.repositoryUrl} rel="noopener noreferrer" target="_blank">
+              {common.github}
             </Link>
-          ))}
-        </nav>
+            {extraLinks.map((link) => (
+              <Link
+                href={link.href}
+                key={`${link.href}:${link.label}`}
+                rel={link.external ? "noopener noreferrer" : undefined}
+                target={link.external ? "_blank" : undefined}
+              >
+                {link.label}
+              </Link>
+            ))}
+          </nav>
+        </div>
+
+        <div className="experience-footer-col">
+          <strong>{footerCopy.legalTitle}</strong>
+          <nav aria-label="Legal links">
+            <Link href="/terms">{footerCopy.terms}</Link>
+            <Link href="/privacy">{footerCopy.privacy}</Link>
+          </nav>
+        </div>
+      </div>
+
+      <div className="experience-footer-bottom">
+        <span>{footerCopy.copyright}</span>
+        <div className="experience-footer-bottom-actions">
+          {status ? <span className="status-chip">{status}</span> : null}
+          <ThemeToggle showLabel />
+        </div>
       </div>
     </footer>
   );
