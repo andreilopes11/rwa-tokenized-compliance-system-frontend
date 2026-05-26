@@ -1,10 +1,9 @@
-import Link from "next/link";
-import { ShieldCheck } from "lucide-react";
+"use client";
+
 import type { ReactNode } from "react";
-import { appConfig } from "@/shared/config/app";
-import { copy } from "@/shared/lib/copy";
+import { useMessages } from "@/shared/i18n/LocaleProvider";
 import { ExperienceFooter } from "./ExperienceFooter";
-import { ThemeToggle } from "./ThemeToggle";
+import { GlobalAppHeader } from "./GlobalAppHeader";
 
 type LegalPageShellProps = {
   children: ReactNode;
@@ -14,20 +13,11 @@ type LegalPageShellProps = {
 };
 
 export function LegalPageShell({ children, eyebrow, title, updated }: LegalPageShellProps) {
+  const m = useMessages();
+
   return (
     <main className="experience-shell legal-shell">
-      <header className="legal-header">
-        <Link className="legal-brand" href="/">
-          <ShieldCheck aria-hidden size={22} />
-          {appConfig.brandName}
-        </Link>
-        <nav className="legal-header-nav" aria-label="Legal navigation">
-          <Link href="/">{copy.common.backHome}</Link>
-          <Link href="/terms">{copy.footer.terms}</Link>
-          <Link href="/privacy">{copy.footer.privacy}</Link>
-          <ThemeToggle />
-        </nav>
-      </header>
+      <GlobalAppHeader variant="compact" />
 
       <article className="legal-content">
         <header className="legal-content-head">
@@ -38,7 +28,7 @@ export function LegalPageShell({ children, eyebrow, title, updated }: LegalPageS
         <div className="legal-prose">{children}</div>
       </article>
 
-      <ExperienceFooter status={copy.common.footerStatusLive} variant="default" />
+      <ExperienceFooter status={m.common.footerStatusLive} variant="default" />
     </main>
   );
 }

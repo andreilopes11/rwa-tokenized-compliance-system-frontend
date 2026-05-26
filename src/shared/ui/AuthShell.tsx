@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { appConfig } from "@/shared/config/app";
 import { ExperienceFooter } from "./ExperienceFooter";
+import { GlobalAppHeader } from "./GlobalAppHeader";
 import { ThemeToggle } from "./ThemeToggle";
 
 type AuthHighlight = {
@@ -34,6 +35,7 @@ export function AuthShell({
 }: AuthShellProps) {
   return (
     <main className="experience-shell auth-shell">
+      <GlobalAppHeader className="auth-global-header" variant="default" />
       <div className="auth-shell-inner">
         <section className="auth-card">
           <aside className="auth-overview">

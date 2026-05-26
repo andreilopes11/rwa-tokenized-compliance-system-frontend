@@ -49,7 +49,8 @@ import type {
   TaxSummaryResponse,
   TutorialResponse
 } from "@/shared/api/types";
-import { copy } from "@/shared/lib/copy";
+import { formatMessage } from "@/shared/i18n/format";
+import { useMessages } from "@/shared/i18n/LocaleProvider";
 import {
   isWalletAddress,
   shortenAddress,
@@ -86,6 +87,7 @@ export function InvestorDashboard({ sessionWalletAddress }: InvestorDashboardPro
   const { connectors, connectAsync, isPending: walletConnecting } = useConnect();
   const { disconnect } = useDisconnect();
   const { switchChainAsync, isPending: switchingNetwork } = useSwitchChain();
+  const m = useMessages();
 
   const [walletAddress, setWalletAddress] = useState("");
   const [documentReference, setDocumentReference] = useState("");
@@ -220,8 +222,6 @@ export function InvestorDashboard({ sessionWalletAddress }: InvestorDashboardPro
     ],
     [account.isConnected, activeStatus, positions.length, registryVerified, unreadNotifications, walletAddress]
   );
-  const commonCopy = copy.common;
-
   const reportRequestError = useCallback((err: unknown, fallback: string) => {
     if (isApiError(err) && err.retryable) {
       setGatewayError(err.message);
@@ -296,12 +296,12 @@ export function InvestorDashboard({ sessionWalletAddress }: InvestorDashboardPro
     setError("");
     setNotice("");
     if (typeof window !== "undefined" && !("ethereum" in window)) {
-      setError("No injected wallet was found. Install or enable a browser wallet to continue.");
+      setError(m.wallet.noWalletFound);
       return;
     }
     const connector = connectors[0];
     if (!connector) {
-      setError("No injected wallet connector is available.");
+      setError(m.wallet.noConnector);
       return;
     }
 
@@ -313,7 +313,7 @@ export function InvestorDashboard({ sessionWalletAddress }: InvestorDashboardPro
         await refreshStatus(connectedAddress);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Wallet connection failed.");
+      setError(err instanceof Error ? err.message : m.wallet.connectionFailed);
     }
   }
 
@@ -330,7 +330,7 @@ export function InvestorDashboard({ sessionWalletAddress }: InvestorDashboardPro
 
   function disconnectWallet() {
     disconnect();
-    setNotice("Wallet disconnected. You can still paste a wallet address for API status checks.");
+    setNotice(m.wallet.disconnectedNotice);
   }
 
   async function refreshStatus(address = walletAddress) {
@@ -510,7 +510,7 @@ export function InvestorDashboard({ sessionWalletAddress }: InvestorDashboardPro
       router.push("/login?role=investor");
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to sign out.");
+      setError(err instanceof Error ? err.message : m.errors.signOutFailed);
     } finally {
       setSigningOut(false);
     }
@@ -533,7 +533,7 @@ export function InvestorDashboard({ sessionWalletAddress }: InvestorDashboardPro
                 type="button"
               >
                 <RefreshCw size={18} aria-hidden />
-                Switch to {activeChain.name}
+                {formatMessage(m.wallet.switchToChain, { chainName: activeChain.name })}
               </button>
             )}
             {account.isConnected ? (
@@ -549,7 +549,7 @@ export function InvestorDashboard({ sessionWalletAddress }: InvestorDashboardPro
                 type="button"
               >
                 <Wallet size={18} aria-hidden />
-                Connect wallet
+                {walletConnecting ? m.wallet.connecting : m.wallet.connect}
               </button>
             )}
             <Button
@@ -559,7 +559,7 @@ export function InvestorDashboard({ sessionWalletAddress }: InvestorDashboardPro
               size="sm"
               variant="ghost"
             >
-              {commonCopy.signOut}
+              {m.common.signOut}
             </Button>
           </div>
         }

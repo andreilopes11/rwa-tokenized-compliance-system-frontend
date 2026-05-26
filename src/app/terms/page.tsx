@@ -1,8 +1,9 @@
+import { getServerMessages } from "@/shared/i18n/server";
 import { LegalPageShell } from "@/shared/ui/LegalPageShell";
-import { copy } from "@/shared/lib/copy";
 
-export default function TermsPage() {
-  const terms = copy.legal.terms;
+export default async function TermsPage() {
+  const { messages } = await getServerMessages();
+  const terms = messages.legal.terms;
 
   return (
     <LegalPageShell eyebrow={terms.eyebrow} title={terms.title} updated={terms.updated}>

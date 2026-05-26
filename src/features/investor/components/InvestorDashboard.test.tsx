@@ -1,5 +1,6 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { renderWithProviders } from "@/test/renderWithProviders";
 import { InvestorDashboard } from "./InvestorDashboard";
 
 const wallet = "0x1111111111111111111111111111111111111111";
@@ -96,7 +97,7 @@ describe("InvestorDashboard", () => {
 
   it("blocks KYC when session wallet differs from submitted wallet", async () => {
     const sessionWallet = "0x2222222222222222222222222222222222222222";
-    render(<InvestorDashboard sessionWalletAddress={sessionWallet} />);
+    renderWithProviders(<InvestorDashboard sessionWalletAddress={sessionWallet} />);
 
     fireEvent.change(screen.getByLabelText(/document reference/i), {
       target: { value: "passport://case-123" }
@@ -110,7 +111,7 @@ describe("InvestorDashboard", () => {
   });
 
   it("shows a wallet-unavailable error when no injected provider exists", async () => {
-    render(<InvestorDashboard />);
+    renderWithProviders(<InvestorDashboard />);
 
     fireEvent.click(screen.getByRole("button", { name: /connect wallet/i }));
 
@@ -126,7 +127,7 @@ describe("InvestorDashboard", () => {
       }
     });
 
-    render(<InvestorDashboard />);
+    renderWithProviders(<InvestorDashboard />);
 
     fireEvent.click(screen.getByRole("button", { name: /connect wallet/i }));
     await screen.findByText(/investor status refreshed/i);
@@ -158,7 +159,7 @@ describe("InvestorDashboard", () => {
       }
     });
 
-    render(<InvestorDashboard />);
+    renderWithProviders(<InvestorDashboard />);
 
     fireEvent.click(screen.getByRole("button", { name: /connect wallet/i }));
     await screen.findByText(/investor status refreshed/i);

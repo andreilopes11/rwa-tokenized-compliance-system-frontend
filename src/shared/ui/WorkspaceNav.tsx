@@ -1,8 +1,8 @@
 "use client";
 
 import { XCircle } from "lucide-react";
+import { useMessages } from "@/shared/i18n/LocaleProvider";
 import { Button } from "@/shared/ui/Button";
-import { copy } from "@/shared/lib/copy";
 
 type WorkspaceNavProps = {
   onSignOut: () => void;
@@ -10,6 +10,8 @@ type WorkspaceNavProps = {
 };
 
 export function WorkspaceNav({ onSignOut, signingOut }: WorkspaceNavProps) {
+  const m = useMessages();
+
   return (
     <nav className="nav-actions workspace-nav" aria-label="Workspace actions">
       <Button
@@ -19,7 +21,7 @@ export function WorkspaceNav({ onSignOut, signingOut }: WorkspaceNavProps) {
         size="sm"
         variant="ghost"
       >
-        {copy.common.signOut}
+        {m.common.signOut}
       </Button>
     </nav>
   );

@@ -147,7 +147,6 @@ body:has(.experience-shell) {
 
 .experience-shell .nav-link,
 .experience-shell .wallet-pill,
-.experience-shell .connect-button,
 .experience-shell .secondary-button,
 .experience-shell .primary-button {
   background: var(--xp-surface);
@@ -158,11 +157,41 @@ body:has(.experience-shell) {
   font-weight: 600;
 }
 
+.experience-shell .connect-button {
+  background: linear-gradient(135deg, #0f766e 0%, #0b5f59 100%);
+  border: 1px solid rgba(15, 118, 110, 0.45);
+  border-radius: 12px;
+  box-shadow: 0 10px 24px rgba(15, 118, 110, 0.22);
+  color: #ffffff;
+  font-weight: 700;
+}
+
 .experience-shell .nav-link:hover,
 .experience-shell .wallet-pill:hover,
-.experience-shell .connect-button:hover {
+.experience-shell .secondary-button:hover {
   background: var(--xp-surface-hover);
   border-color: var(--xp-border-strong);
+  color: var(--xp-accent);
+}
+
+.experience-shell .connect-button:hover {
+  background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%);
+  border-color: rgba(45, 212, 191, 0.55);
+  box-shadow: 0 12px 28px rgba(15, 118, 110, 0.3);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.experience-shell .wallet-pill {
+  background: color-mix(in srgb, var(--xp-surface) 88%, #0f766e 12%);
+  border: 1px solid color-mix(in srgb, var(--xp-border) 70%, #0f766e 30%);
+  color: var(--xp-text);
+  font-weight: 600;
+}
+
+.experience-shell .wallet-pill:hover {
+  background: var(--xp-surface-hover);
+  border-color: var(--xp-accent);
   color: var(--xp-accent);
 }
 
@@ -833,4 +862,172 @@ html[data-theme="dark"] .experience-shell .ui-button-secondary:hover {
   align-items: center;
   display: flex;
   gap: 0.65rem;
+}
+
+/* Global header + language switcher */
+
+.global-app-header {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1rem;
+  justify-content: space-between;
+}
+
+.global-app-header-inline,
+.auth-global-header {
+  background: var(--xp-bg-elevated);
+  border: 1px solid var(--xp-border);
+  border-radius: var(--xp-radius-lg);
+  margin: 0 auto;
+  max-width: 1240px;
+  padding: 0.75rem 1rem;
+  width: calc(100% - clamp(1rem, 4vw, 2rem));
+}
+
+.auth-global-header {
+  margin-bottom: 0.75rem;
+}
+
+.global-app-header-nav.global-app-header-links {
+  align-items: center;
+  display: flex;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.5rem;
+  justify-content: center;
+}
+
+.global-app-header-links a {
+  border-radius: 999px;
+  color: var(--xp-text-muted);
+  font-size: 0.88rem;
+  font-weight: 600;
+  padding: 0.4rem 0.75rem;
+  text-decoration: none;
+}
+
+.global-app-header-links a:hover {
+  background: var(--xp-surface-hover);
+  color: var(--xp-text);
+}
+
+.global-app-header-actions,
+.header-utilities {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.header-utilities {
+  margin-left: auto;
+}
+
+.language-switcher {
+  align-items: center;
+  background: var(--xp-surface);
+  border: 1px solid var(--xp-border);
+  border-radius: 999px;
+  color: var(--xp-text-muted);
+  display: inline-flex;
+  gap: 0.35rem;
+  padding: 0.35rem 0.55rem 0.35rem 0.65rem;
+}
+
+.language-switcher select {
+  background: transparent;
+  border: 0;
+  color: var(--xp-text);
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  min-width: 6.5rem;
+  padding: 0.15rem 0.25rem;
+}
+
+.workspace-topbar {
+  align-items: center;
+  display: grid;
+  gap: 0.75rem 1rem;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr) auto;
+}
+
+.topbar-global-nav {
+  justify-content: center;
+}
+
+@media (max-width: 960px) {
+  .workspace-topbar {
+    grid-template-columns: 1fr;
+  }
+
+  .topbar-global-nav {
+    justify-content: flex-start;
+  }
+}
+
+/* Wallet controls on dashboard topbar (light + dark) */
+
+.experience-shell .topbar .connect-button {
+  background: linear-gradient(135deg, #14b8a6 0%, #0f766e 100%);
+  border-color: rgba(255, 255, 255, 0.28);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.22);
+  color: #f8fffe;
+}
+
+.experience-shell .topbar .connect-button:hover {
+  background: linear-gradient(135deg, #2dd4bf 0%, #14b8a6 100%);
+  border-color: rgba(255, 255, 255, 0.45);
+  color: #ffffff;
+}
+
+.experience-shell .topbar .wallet-pill {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.22);
+  color: #f4fbf8;
+}
+
+.experience-shell .topbar .wallet-pill:hover {
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(94, 234, 212, 0.45);
+  color: #99f6e4;
+}
+
+html[data-theme="light"] .experience-shell .topbar .connect-button {
+  background: linear-gradient(135deg, #0f766e 0%, #115e59 100%);
+  border-color: rgba(15, 118, 110, 0.35);
+  box-shadow: 0 10px 22px rgba(15, 118, 110, 0.25);
+  color: #ffffff;
+}
+
+html[data-theme="light"] .experience-shell .topbar .wallet-pill {
+  background: #ecfdf5;
+  border-color: rgba(15, 118, 110, 0.28);
+  color: #0f3d38;
+}
+
+html[data-theme="dark"] .experience-shell .topbar .connect-button {
+  background: linear-gradient(135deg, #2dd4bf 0%, #0f766e 100%);
+  border-color: rgba(94, 234, 212, 0.45);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+  color: #042f2e;
+}
+
+html[data-theme="dark"] .experience-shell .topbar .connect-button:hover {
+  background: linear-gradient(135deg, #5eead4 0%, #14b8a6 100%);
+  color: #022c27;
+}
+
+html[data-theme="dark"] .experience-shell .topbar .wallet-pill {
+  background: #121722;
+  border-color: rgba(255, 255, 255, 0.18);
+  color: #f4f7fb;
+}
+
+html[data-theme="dark"] .experience-shell .topbar .wallet-pill:hover {
+  background: #171d2a;
+  border-color: rgba(62, 243, 220, 0.4);
+  color: #99f6e4;
 }

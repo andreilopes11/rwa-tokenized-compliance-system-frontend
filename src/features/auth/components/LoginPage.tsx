@@ -11,7 +11,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, useState } from "react";
 import { isValidEmail } from "@/features/auth/lib/validators";
 import { useAuthRoleParam } from "@/features/auth/lib/useAuthRoleParam";
-import { copy } from "@/shared/lib/copy";
+import { useMessages } from "@/shared/i18n/LocaleProvider";
 import { Alert } from "@/shared/ui/Alert";
 import { AuthShell } from "@/shared/ui/AuthShell";
 import { Button, buttonClassName } from "@/shared/ui/Button";
@@ -41,8 +41,9 @@ export function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const loginCopy = copy.login;
-  const common = copy.common;
+  const m = useMessages();
+  const loginCopy = m.login;
+  const common = m.common;
 
   const normalizedEmail = email.trim();
   const normalizedMfa = mfaCode.trim();

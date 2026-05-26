@@ -1,8 +1,9 @@
+import { getServerMessages } from "@/shared/i18n/server";
 import { LegalPageShell } from "@/shared/ui/LegalPageShell";
-import { copy } from "@/shared/lib/copy";
 
-export default function PrivacyPage() {
-  const privacy = copy.legal.privacy;
+export default async function PrivacyPage() {
+  const { messages } = await getServerMessages();
+  const privacy = messages.legal.privacy;
 
   return (
     <LegalPageShell eyebrow={privacy.eyebrow} title={privacy.title} updated={privacy.updated}>

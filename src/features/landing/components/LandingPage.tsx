@@ -19,9 +19,9 @@ import {
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import "../landing.css";
-import { copy } from "@/shared/lib/copy";
+import { useMessages } from "@/shared/i18n/LocaleProvider";
 import { ExperienceFooter } from "@/shared/ui/ExperienceFooter";
-import { ThemeToggle } from "@/shared/ui/ThemeToggle";
+import { GlobalAppHeader } from "@/shared/ui/GlobalAppHeader";
 
 const featureIcons = [LockKeyhole, ShieldCheck, BarChart3, CheckCircle2] as const;
 const useCaseIcons = [BriefcaseBusiness, UserRound, ShieldCheck] as const;
@@ -30,8 +30,8 @@ const securityIcons = [Lock, Zap, Layers3] as const;
 export function LandingPage() {
   const [analyticsLoaded, setAnalyticsLoaded] = useState(false);
   const measurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
-
-  const landingCopy = copy.landing;
+  const m = useMessages();
+  const landingCopy = m.landing;
   const cta = useMemo(
     () => ({
       investor: `/login?next=${encodeURIComponent("/dashboard")}&role=investor`,
@@ -72,28 +72,7 @@ export function LandingPage() {
 
   return (
     <main className="experience-shell landing-shell">
-      <header className="landing-nav">
-        <Link className="landing-brand" href="/">
-          <ShieldCheck size={22} aria-hidden />
-          {copy.common.brand}
-        </Link>
-        <nav className="landing-nav-center" aria-label="Primary">
-          <Link href={cta.useCases}>{landingCopy.navUseCases}</Link>
-          <Link href={cta.product}>{landingCopy.navProduct}</Link>
-          <Link href={cta.howTo}>{landingCopy.navHowTo}</Link>
-          <Link href={cta.platform}>{landingCopy.navPlatform}</Link>
-          <Link href={cta.trust}>{landingCopy.navTrust}</Link>
-        </nav>
-        <div className="landing-nav-actions">
-          <ThemeToggle className="landing-theme-toggle" />
-          <Link className="landing-nav-ghost" href={cta.login}>
-            {landingCopy.loginCta}
-          </Link>
-          <Link className="landing-nav-cta" href={cta.register}>
-            {landingCopy.joinCta}
-          </Link>
-        </div>
-      </header>
+      <GlobalAppHeader showLandingNav variant="landing" />
 
       <section className="landing-hero" aria-labelledby="hero-title">
         <div className="hero-copy">

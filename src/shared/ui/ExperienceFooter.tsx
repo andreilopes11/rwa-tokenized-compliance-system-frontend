@@ -1,7 +1,9 @@
+"use client";
+
 import Link from "next/link";
 import { ShieldCheck } from "lucide-react";
 import { appConfig } from "@/shared/config/app";
-import { copy } from "@/shared/lib/copy";
+import { useMessages } from "@/shared/i18n/LocaleProvider";
 import { ThemeToggle } from "./ThemeToggle";
 
 export type ExperienceFooterLink = {
@@ -21,8 +23,9 @@ export function ExperienceFooter({
   status,
   variant = "default"
 }: ExperienceFooterProps) {
-  const footerCopy = copy.footer;
-  const common = copy.common;
+  const m = useMessages();
+  const footerCopy = m.footer;
+  const common = m.common;
 
   return (
     <footer className={`experience-footer${variant === "landing" ? " experience-footer-landing" : ""}`}>

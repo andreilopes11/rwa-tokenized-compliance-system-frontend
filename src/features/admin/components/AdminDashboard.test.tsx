@@ -1,5 +1,6 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { renderWithProviders } from "@/test/renderWithProviders";
 import { AdminDashboard } from "./AdminDashboard";
 
 const wallet = "0x1111111111111111111111111111111111111111";
@@ -26,7 +27,7 @@ describe("AdminDashboard", () => {
       const fetchMock = vi.fn(mockFetch);
       vi.stubGlobal("fetch", fetchMock);
 
-      render(<AdminDashboard />);
+      renderWithProviders(<AdminDashboard />);
 
       expect((await screen.findAllByText("0x1111...1111")).length).toBeGreaterThan(0);
       expect(screen.getByText("REQUEST_CREATED")).toBeInTheDocument();

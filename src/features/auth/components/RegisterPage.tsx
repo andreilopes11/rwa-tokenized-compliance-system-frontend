@@ -12,7 +12,7 @@ import {
   passwordStrengthScore
 } from "@/features/auth/lib/validators";
 import { useAuthRoleParam } from "@/features/auth/lib/useAuthRoleParam";
-import { copy } from "@/shared/lib/copy";
+import { useMessages } from "@/shared/i18n/LocaleProvider";
 import { Alert } from "@/shared/ui/Alert";
 import { AuthShell } from "@/shared/ui/AuthShell";
 import { Button, buttonClassName } from "@/shared/ui/Button";
@@ -50,8 +50,9 @@ export function RegisterPage() {
   const [success, setSuccess] = useState<RegisterSuccess | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const registerCopy = copy.register;
-  const common = copy.common;
+  const m = useMessages();
+  const registerCopy = m.register;
+  const common = m.common;
   const passwordChecks = useMemo(() => buildPasswordChecks(password), [password]);
   const strengthScore = passwordStrengthScore(passwordChecks);
   const strengthLabel =
