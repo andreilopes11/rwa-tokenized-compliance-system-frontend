@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { isInvestorOnlyBackendPath } from "@/features/auth/lib/middleware-auth";
 import {
   clearAuthCookies,
   ensureSession,
@@ -38,6 +39,13 @@ async function proxy(request: NextRequest, context: RouteContext) {
   const isAdminRoute = path.startsWith("api/admin/");
   if (isAdminRoute && session.role !== "admin") {
     return NextResponse.json({ messages: ["Admin session required."] }, { status: 403 });
+  }
+
+  if (isInvestorOnlyBackendPath(path) && session.role !== "investor") {
+    return NextResponse.json(
+      { messages: ["Investor session required. Sign in as an investor to use this endpoint."] },
+      { status: 403 }
+    );
   }
 
   const backendBaseUrl = process.env.BACKEND_API_BASE_URL ?? "http://localhost:8080";

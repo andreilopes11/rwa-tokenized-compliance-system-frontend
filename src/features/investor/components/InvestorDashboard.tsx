@@ -507,7 +507,8 @@ export function InvestorDashboard({ sessionWalletAddress }: InvestorDashboardPro
     try {
       await fetch("/api/auth/logout", { method: "POST" });
       disconnect();
-      router.push("/login");
+      router.push("/login?role=investor");
+      router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to sign out.");
     } finally {
@@ -524,12 +525,6 @@ export function InvestorDashboard({ sessionWalletAddress }: InvestorDashboardPro
         title="Investor / Portfolio Workspace"
         actions={
           <div className="wallet-actions">
-            <Link className="nav-link" href="/">
-              {commonCopy.landing}
-            </Link>
-            <Link className="nav-link" href="/admin">
-              {commonCopy.adminDashboard}
-            </Link>
             {wrongNetwork && (
               <button
                 className="secondary-button"

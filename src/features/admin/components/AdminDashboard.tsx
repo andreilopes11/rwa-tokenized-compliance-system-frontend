@@ -15,7 +15,6 @@ import {
   ShieldOff,
   XCircle
 } from "lucide-react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { fetchAssetOfferings } from "@/features/assets/api/client";
@@ -69,14 +68,12 @@ import {
   statusClass,
   statusLabel
 } from "@/shared/lib/formatters";
-import { copy } from "@/shared/lib/copy";
 import { activeChain, explorerLink } from "@/shared/lib/web3";
 import { Alert } from "@/shared/ui/Alert";
 import { Button } from "@/shared/ui/Button";
 import { DashboardHero } from "@/shared/ui/DashboardHero";
 import { SiteTopBar } from "@/shared/ui/SiteTopBar";
-
-const commonCopy = copy.common;
+import { WorkspaceNav } from "@/shared/ui/WorkspaceNav";
 const statusOptions: Array<KycStatus | ""> = ["", "PENDING", "APPROVED", "REJECTED", "REVOKED", "FAILED_ON_CHAIN"];
 const investorTypeOptions: InvestorType[] = ["RETAIL", "ACCREDITED", "QUALIFIED", "INSTITUTIONAL"];
 const configuredTokenAddress = process.env.NEXT_PUBLIC_TOKEN_ADDRESS ?? "";
@@ -513,6 +510,7 @@ export function AdminDashboard() {
     try {
       await fetch("/api/auth/logout", { method: "POST" });
       router.push("/login?role=admin");
+      router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to sign out.");
     } finally {
@@ -525,25 +523,7 @@ export function AdminDashboard() {
       <SiteTopBar
         subtitle="KYC queue · identity approvals · lifecycle operations · audit evidence"
         title="Admin / Issuer Control Room"
-        actions={
-          <nav className="nav-actions" aria-label="Dashboard navigation">
-            <Link className="nav-link" href="/">
-              {commonCopy.landing}
-            </Link>
-            <Link className="nav-link" href="/dashboard">
-              {commonCopy.investorDashboard}
-            </Link>
-            <Button
-              leadingIcon={<XCircle size={16} />}
-              loading={signingOut}
-              onClick={signOut}
-              size="sm"
-              variant="ghost"
-            >
-              {commonCopy.signOut}
-            </Button>
-          </nav>
-        }
+        actions={<WorkspaceNav onSignOut={signOut} signingOut={signingOut} />}
       />
 
       <DashboardHero

@@ -828,3 +828,9 @@ html[data-theme="dark"] .experience-shell .ui-button-secondary:hover {
   border-color: rgba(62, 243, 220, 0.35);
   color: var(--xp-accent);
 }
+
+.experience-shell .workspace-nav {
+  align-items: center;
+  display: flex;
+  gap: 0.65rem;
+}

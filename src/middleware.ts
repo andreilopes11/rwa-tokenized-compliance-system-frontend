@@ -1,41 +1,58 @@
 import { NextRequest, NextResponse } from "next/server";
+import {
+  AUTH_PAGES,
+  hasSessionCookie,
+  parseRoleFromAccessToken,
+  PUBLIC_PATHS
+} from "@/features/auth/lib/middleware-auth";
 
-const PUBLIC_PATHS = ["/", "/login", "/register", "/terms", "/privacy"];
 const AUTH_API_PREFIX = "/api/auth";
-
-function hasSessionCookie(request: NextRequest) {
-  return Boolean(
-    request.cookies.get("rwa_access_token")?.value || request.cookies.get("rwa_refresh_token")?.value
-  );
-}
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const authenticated = hasSessionCookie(request);
+  const role = parseRoleFromAccessToken(request);
 
   if (pathname.startsWith(AUTH_API_PREFIX) || pathname.startsWith("/api/backend")) {
     return NextResponse.next();
   }
 
-  if (PUBLIC_PATHS.includes(pathname) || pathname.startsWith("/_next")) {
+  if (authenticated && AUTH_PAGES.includes(pathname as (typeof AUTH_PAGES)[number])) {
+    if (role === "admin") {
+      return NextResponse.redirect(new URL("/admin", request.url));
+    }
+    if (role === "investor") {
+      return NextResponse.redirect(new URL("/dashboard", request.url));
+    }
+    return NextResponse.next();
+  }
+
+  if (PUBLIC_PATHS.includes(pathname as (typeof PUBLIC_PATHS)[number]) || pathname.startsWith("/_next")) {
     return NextResponse.next();
   }
 
   if (pathname.startsWith("/admin")) {
-    if (!hasSessionCookie(request)) {
+    if (!authenticated) {
       const loginUrl = new URL("/login", request.url);
       loginUrl.searchParams.set("role", "admin");
       loginUrl.searchParams.set("next", pathname);
       return NextResponse.redirect(loginUrl);
     }
+    if (role === "investor") {
+      return NextResponse.redirect(new URL("/dashboard", request.url));
+    }
     return NextResponse.next();
   }
 
   if (pathname.startsWith("/dashboard")) {
-    if (!hasSessionCookie(request)) {
+    if (!authenticated) {
       const loginUrl = new URL("/login", request.url);
       loginUrl.searchParams.set("role", "investor");
       loginUrl.searchParams.set("next", pathname);
       return NextResponse.redirect(loginUrl);
+    }
+    if (role === "admin") {
+      return NextResponse.redirect(new URL("/admin", request.url));
     }
     return NextResponse.next();
   }
