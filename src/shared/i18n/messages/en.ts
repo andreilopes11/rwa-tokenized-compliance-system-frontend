@@ -74,7 +74,12 @@ export const en = {
     copyright: "© 2026 RWA Compliance · Regulated tokenization infrastructure.",
     legalTitle: "Legal",
     privacy: "Privacy policy",
-    productLinks: [{ href: "/register", label: "Create account" }],
+    productLinks: [
+      { href: "/login?next=%2Fdashboard&role=investor", label: "Investor workspace" },
+      { href: "/login?next=%2Fcompliance&role=compliance", label: "Compliance workspace" },
+      { href: "/login?next=%2Fgovernance&role=governance", label: "Governance workspace" },
+      { href: "/login?next=%2Faudit&role=audit", label: "Audit workspace" }
+    ],
     productTitle: "Product",
     resourceLinks: [
       { href: "/#how-to", label: "How it works" },

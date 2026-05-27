@@ -608,27 +608,13 @@ html[data-theme="dark"] .landing-shell .lp-btn-primary {
 
 /* Platform band */
 .landing-platform {
-  align-items: center;
   background:
-    radial-gradient(ellipse 70% 50% at 50% 100%, rgba(139, 92, 246, 0.12), transparent 60%),
-    var(--lp-bg-elevated);
+    radial-gradient(ellipse 70% 50% at 100% 100%, rgba(139, 92, 246, 0.1), transparent 60%),
+    radial-gradient(ellipse 60% 45% at 0% 0%, rgba(13, 148, 136, 0.08), transparent 55%),
+    color-mix(in srgb, var(--lp-bg-elevated) 96%, transparent);
   border: 1px solid var(--lp-border);
   border-radius: var(--lp-radius-lg);
-  display: flex;
-  flex-direction: column;
-  margin: 0 clamp(1rem, 3vw, 2rem) clamp(2rem, 4vw, 3rem);
-  max-width: calc(var(--lp-max) + 4rem);
-  padding: clamp(2.5rem, 6vw, 3.5rem) clamp(1.5rem, 4vw, 2.5rem);
-  text-align: center;
-}
-
-.landing-platform .landing-platform-head {
-  align-items: center;
-  justify-items: center;
-  margin-left: auto;
-  margin-right: auto;
-  max-width: 52rem;
-  text-align: center;
+  box-shadow: 0 16px 48px rgba(15, 23, 42, 0.05);
 }
 
 .landing-platform .platform-pillars,
@@ -644,7 +630,7 @@ html[data-theme="dark"] .landing-shell .lp-btn-primary {
 }
 
 .platform-pillar {
-  background: var(--lp-surface);
+  background: color-mix(in srgb, var(--lp-surface) 85%, var(--lp-bg-elevated));
   border: 1px solid var(--lp-border);
   border-radius: 16px;
   display: grid;
@@ -674,8 +660,8 @@ html[data-theme="dark"] .landing-shell .lp-btn-primary {
 
 .feature-strip span {
   align-items: center;
-  background: rgba(62, 243, 220, 0.08);
-  border: 1px solid rgba(62, 243, 220, 0.2);
+  background: var(--lp-surface);
+  border: 1px solid var(--lp-border);
   border-radius: 999px;
   color: var(--lp-text-muted);
   display: inline-flex;

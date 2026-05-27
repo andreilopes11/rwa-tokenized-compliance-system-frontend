@@ -76,8 +76,9 @@ export const pt = {
     privacy: "Política de privacidade",
     productLinks: [
       { href: "/login?next=%2Fdashboard&role=investor", label: "Portal do investidor" },
-      { href: "/login?next=%2Fadmin&role=admin", label: "Console do emissor" },
-      { href: "/register", label: "Criar conta" }
+      { href: "/login?next=%2Fcompliance&role=compliance", label: "Workspace de compliance" },
+      { href: "/login?next=%2Fgovernance&role=governance", label: "Workspace de governança" },
+      { href: "/login?next=%2Faudit&role=audit", label: "Workspace de auditoria" }
     ],
     productTitle: "Produto",
     resourceLinks: [

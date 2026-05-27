@@ -270,8 +270,8 @@ export function LandingPage() {
         </div>
       </section>
 
-      <section className="landing-platform" aria-labelledby="platform-title" id="platform">
-        <header className="section-head landing-platform-head">
+      <section className="landing-section landing-platform" aria-labelledby="platform-title" id="platform">
+        <header className="section-head">
           <span className="section-kicker">{landingCopy.architectureKicker}</span>
           <h2 id="platform-title">{landingCopy.architectureTitle}</h2>
           <p>{landingCopy.architectureBody}</p>
