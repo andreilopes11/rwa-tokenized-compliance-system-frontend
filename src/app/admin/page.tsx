@@ -1,7 +1,5 @@
-import { AdminDashboard } from "@/features/admin/components/AdminDashboard";
-import { requireSession } from "@/features/auth/server/session";
+import { redirect } from "next/navigation";
 
 export default async function AdminPage() {
-  await requireSession("admin");
-  return <AdminDashboard />;
+  redirect("/governance");
 }

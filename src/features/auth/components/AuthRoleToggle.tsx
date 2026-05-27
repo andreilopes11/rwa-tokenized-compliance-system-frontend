@@ -3,7 +3,7 @@
 import type { AuthRole } from "@/features/auth/lib/useAuthRole";
 
 type AuthRoleToggleProps = {
-  adminLabel: string;
+  governanceLabel: string;
   ariaLabel: string;
   investorLabel: string;
   onChange: (role: AuthRole) => void;
@@ -11,7 +11,7 @@ type AuthRoleToggleProps = {
 };
 
 export function AuthRoleToggle({
-  adminLabel,
+  governanceLabel,
   ariaLabel,
   investorLabel,
   onChange,
@@ -28,12 +28,12 @@ export function AuthRoleToggle({
         {investorLabel}
       </button>
       <button
-        aria-pressed={role === "admin"}
-        className={role === "admin" ? "selected" : undefined}
-        onClick={() => onChange("admin")}
+        aria-pressed={role === "governance"}
+        className={role === "governance" ? "selected" : undefined}
+        onClick={() => onChange("governance")}
         type="button"
       >
-        {adminLabel}
+        {governanceLabel}
       </button>
     </div>
   );

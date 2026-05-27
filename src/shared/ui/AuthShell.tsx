@@ -34,7 +34,7 @@ export function AuthShell({
 }: AuthShellProps) {
   return (
     <main className="experience-shell auth-shell">
-      <GlobalAppHeader className="auth-global-header" variant="default" />
+      <GlobalAppHeader className="auth-global-header" variant="auth" />
       <div className="auth-shell-inner">
         <section className="auth-card">
           <aside className="auth-overview">

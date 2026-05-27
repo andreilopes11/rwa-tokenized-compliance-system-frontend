@@ -32,6 +32,7 @@ import {
   markNotificationRead,
   quoteFees,
   submitKycRequest,
+  preflightTransfer,
   fetchTaxSummary,
   fetchTutorials
 } from "@/features/investor/api/client";
@@ -46,6 +47,7 @@ import type {
   KycRequestResponse,
   NotificationResponse,
   PositionResponse,
+  TransferPreflightResponse,
   TaxSummaryResponse,
   TutorialResponse
 } from "@/shared/api/types";
@@ -106,6 +108,9 @@ export function InvestorDashboard({ sessionWalletAddress }: InvestorDashboardPro
   const [subscriptionAmounts, setSubscriptionAmounts] = useState<Record<string, string>>({});
   const [redemptionAmounts, setRedemptionAmounts] = useState<Record<string, string>>({});
   const [error, setError] = useState("");
+  const [recipientAddress, setRecipientAddress] = useState("");
+  const [transferAmount, setTransferAmount] = useState("");
+  const [preflight, setPreflight] = useState<TransferPreflightResponse | null>(null);
   const [gatewayError, setGatewayError] = useState("");
   const [assetError, setAssetError] = useState("");
   const [notice, setNotice] = useState("");
@@ -113,7 +118,7 @@ export function InvestorDashboard({ sessionWalletAddress }: InvestorDashboardPro
   const [signingOut, setSigningOut] = useState(false);
   const [pollingKyc, setPollingKyc] = useState(false);
 
-  const chainReads = useInvestorChainReads(walletAddress);
+  const chainReads = useInvestorChainReads(walletAddress, recipientAddress);
   const activeStatus = status?.status ?? request?.status ?? "PENDING";
   const registryVerified =
     chainReads.registryVerifiedOnChain ?? status?.onChainVerified ?? false;
@@ -127,6 +132,10 @@ export function InvestorDashboard({ sessionWalletAddress }: InvestorDashboardPro
   const canRefresh = isWalletAddress(walletAddress) && !loading;
   const lifecycleReady = Boolean(registryVerified && status?.status === "APPROVED" && isWalletAddress(walletAddress));
   const wrongNetwork = account.isConnected && currentChainId !== activeChain.id;
+  const kycPendingChain = activeStatus === "APPROVED_PENDING_CHAIN";
+  const lifecycleDisabledReason = kycPendingChain
+    ? "Awaiting blockchain confirmation. Lifecycle actions unlock after APPROVED + onChainVerified."
+    : "";
   const chartData =
     financialSummary?.positions?.map((position) => ({
       name: position.symbol,
@@ -294,7 +303,8 @@ export function InvestorDashboard({ sessionWalletAddress }: InvestorDashboardPro
     try {
       setAssets(await fetchAssetOfferings({ status: "ACTIVE", limit: 5 }));
     } catch (err) {
-      setAssetError(err instanceof Error ? err.message : "Asset offering refresh failed.");
+      const message = err instanceof Error ? err.message : m.errors.assetOfferingsRefreshFailed;
+      setAssetError(resolveClientError(message, t));
     }
   }
 
@@ -411,6 +421,10 @@ export function InvestorDashboard({ sessionWalletAddress }: InvestorDashboardPro
       setError("Enter a subscription amount greater than zero.");
       return;
     }
+    if (kycPendingChain) {
+      setError("Awaiting blockchain confirmation before lifecycle requests are allowed.");
+      return;
+    }
 
     setLoading(true);
     setError("");
@@ -439,6 +453,10 @@ export function InvestorDashboard({ sessionWalletAddress }: InvestorDashboardPro
     const amount = parseAmount(redemptionAmounts[asset.assetId]);
     if (!amount) {
       setError("Enter a redemption amount greater than zero.");
+      return;
+    }
+    if (kycPendingChain) {
+      setError("Awaiting blockchain confirmation before lifecycle requests are allowed.");
       return;
     }
 
@@ -496,6 +514,33 @@ export function InvestorDashboard({ sessionWalletAddress }: InvestorDashboardPro
     }
   }
 
+  async function runTransferPreflight() {
+    if (!isWalletAddress(walletAddress) || !isWalletAddress(recipientAddress)) {
+      setError("Enter valid sender and recipient wallet addresses for transfer preflight.");
+      return;
+    }
+    const amount = parseAmount(transferAmount);
+    if (!amount) {
+      setError("Enter a transfer amount greater than zero for preflight.");
+      return;
+    }
+    setLoading(true);
+    setError("");
+    try {
+      const response = await preflightTransfer(walletAddress, recipientAddress, amount);
+      setPreflight(response);
+      setNotice(
+        response.allowed
+          ? "Preflight passed. Final transfer can still revert if chain state changes before inclusion."
+          : `Preflight blocked: ${response.message ?? response.reasonCode ?? "COMPLIANCE_CHECK_FAILED"}`
+      );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Transfer preflight failed.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
   async function markRead(notificationId: string) {
     try {
       const updated = await markNotificationRead(notificationId);
@@ -522,7 +567,12 @@ export function InvestorDashboard({ sessionWalletAddress }: InvestorDashboardPro
     }
   }
 
-  const StatusIcon = activeStatus === "APPROVED" ? CheckCircle2 : activeStatus === "PENDING" ? AlertTriangle : XCircle;
+  const StatusIcon =
+    activeStatus === "APPROVED"
+      ? CheckCircle2
+      : activeStatus === "SUBMITTED" || activeStatus === "IN_REVIEW" || activeStatus === "APPROVED_PENDING_CHAIN" || activeStatus === "PENDING"
+        ? AlertTriangle
+        : XCircle;
 
   return (
     <main className="experience-shell dashboard-shell">
@@ -623,7 +673,7 @@ export function InvestorDashboard({ sessionWalletAddress }: InvestorDashboardPro
             </form>
             {error && <Alert tone="error">{error}</Alert>}
             {gatewayError ? (
-              <Alert tone="error" title="Backend unavailable">
+              <Alert tone="error" title={m.errors.gatewayUnavailableTitle}>
                 {gatewayError}
                 <div className="actions">
                   <button
@@ -636,7 +686,7 @@ export function InvestorDashboard({ sessionWalletAddress }: InvestorDashboardPro
                     type="button"
                   >
                     <RefreshCw size={16} aria-hidden />
-                    Retry
+                    {m.common.retry}
                   </button>
                 </div>
               </Alert>
@@ -713,6 +763,87 @@ export function InvestorDashboard({ sessionWalletAddress }: InvestorDashboardPro
                 </strong>
               </div>
             </div>
+            {kycPendingChain ? (
+              <Alert tone="info">
+                Awaiting blockchain confirmation. Chain-dependent actions remain disabled until status is APPROVED and on-chain verification is true.
+              </Alert>
+            ) : null}
+          </section>
+
+          <section className="panel" aria-labelledby="transfer-preflight-title">
+            <h2 id="transfer-preflight-title">Transfer preflight</h2>
+            <p className="muted">
+              Static checks run before wallet signing: sender compliance, recipient compliance, network alignment, and latest compliance state.
+            </p>
+            <div className="field">
+              <label htmlFor="preflight-recipient">Recipient wallet</label>
+              <input
+                id="preflight-recipient"
+                className="mono"
+                onChange={(event) => setRecipientAddress(event.target.value)}
+                placeholder="0x..."
+                value={recipientAddress}
+              />
+            </div>
+            <div className="field">
+              <label htmlFor="preflight-amount">Amount</label>
+              <input
+                id="preflight-amount"
+                min={0}
+                onChange={(event) => setTransferAmount(event.target.value)}
+                placeholder="10"
+                type="number"
+                value={transferAmount}
+              />
+            </div>
+            <div className="actions">
+              <button className="secondary-button" disabled={loading} onClick={() => void refreshStatus()} type="button">
+                <RefreshCw size={18} aria-hidden />
+                Refresh state
+              </button>
+              <button
+                className="primary-button"
+                disabled={
+                  loading
+                  || wrongNetwork
+                  || !isWalletAddress(walletAddress)
+                  || !isWalletAddress(recipientAddress)
+                  || !parseAmount(transferAmount)
+                }
+                onClick={() => void runTransferPreflight()}
+                type="button"
+              >
+                <ShieldCheck size={18} aria-hidden />
+                Run preflight
+              </button>
+            </div>
+            <ul className="activity-list">
+              <li>
+                <strong>Sender compliance</strong>
+                <span className={`status ${chainReads.registryVerifiedOnChain ? "approved" : "pending"}`}>
+                  {chainReads.registryVerifiedOnChain ? "VERIFIED" : "NOT VERIFIED"}
+                </span>
+              </li>
+              <li>
+                <strong>Recipient compliance</strong>
+                <span className={`status ${chainReads.recipientVerifiedOnChain ? "approved" : "pending"}`}>
+                  {chainReads.recipientVerifiedOnChain ? "VERIFIED" : "NOT VERIFIED"}
+                </span>
+              </li>
+              <li>
+                <strong>Network alignment</strong>
+                <span className={`status ${wrongNetwork ? "rejected" : "approved"}`}>
+                  {wrongNetwork ? "WRONG NETWORK" : "ALIGNED"}
+                </span>
+              </li>
+              <li>
+                <strong>API preflight decision</strong>
+                <span className={`status ${preflight?.allowed ? "approved" : "pending"}`}>
+                  {preflight ? (preflight.allowed ? "ALLOWED" : preflight.reasonCode ?? "BLOCKED") : "NOT RUN"}
+                </span>
+              </li>
+            </ul>
+            <p className="muted">Final on-chain execution remains authoritative and may still revert if state changes before inclusion.</p>
           </section>
 
           <section className="panel" aria-labelledby="portfolio-title">
@@ -844,6 +975,7 @@ export function InvestorDashboard({ sessionWalletAddress }: InvestorDashboardPro
                       <button
                         className="primary-button"
                         disabled={!lifecycleReady || loading}
+                        title={lifecycleDisabledReason}
                         onClick={() => requestSubscription(asset)}
                         type="button"
                       >
@@ -878,6 +1010,7 @@ export function InvestorDashboard({ sessionWalletAddress }: InvestorDashboardPro
                       <button
                         className="secondary-button"
                         disabled={!lifecycleReady || loading || positionBalance(asset.assetId) <= 0}
+                        title={lifecycleDisabledReason}
                         onClick={() => requestRedemption(asset)}
                         type="button"
                       >

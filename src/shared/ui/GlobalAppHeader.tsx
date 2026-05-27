@@ -7,7 +7,7 @@ import { useMessages } from "@/shared/i18n/LocaleProvider";
 import { GlobalHeaderNav } from "./GlobalHeaderNav";
 import { HeaderUtilities } from "./HeaderUtilities";
 
-export type GlobalHeaderVariant = "landing" | "default" | "compact";
+export type GlobalHeaderVariant = "landing" | "default" | "compact" | "auth";
 
 type GlobalAppHeaderProps = {
   actions?: ReactNode;
@@ -29,7 +29,9 @@ export function GlobalAppHeader({
       ? `landing-nav global-app-header ${className}`.trim()
       : variant === "compact"
         ? `legal-header global-app-header ${className}`.trim()
-        : `global-app-header global-app-header-inline ${className}`.trim();
+        : variant === "auth"
+          ? `global-app-header global-app-header-inline global-app-header-auth ${className}`.trim()
+          : `global-app-header global-app-header-inline ${className}`.trim();
 
   return (
     <header className={headerClass}>
@@ -38,7 +40,7 @@ export function GlobalAppHeader({
         <span>{m.common.brand}</span>
       </Link>
 
-      {showLandingNav || variant === "default" ? (
+      {variant === "auth" ? null : showLandingNav || variant === "default" ? (
         <GlobalHeaderNav variant={showLandingNav ? "landing" : "default"} />
       ) : variant === "compact" ? (
         <GlobalHeaderNav className="legal-header-nav global-app-header-nav" />

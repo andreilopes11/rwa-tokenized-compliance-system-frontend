@@ -38,8 +38,31 @@ async function proxy(request: NextRequest, context: RouteContext) {
 
   const params = await context.params;
   const path = params.path.join("/");
-  const isAdminRoute = path.startsWith("api/admin/");
-  if (isAdminRoute && session.role !== "admin") {
+  const isComplianceRoute =
+    path.startsWith("api/admin/kyc/")
+    || path.startsWith("api/admin/identities/")
+    || path.startsWith("api/admin/subscriptions/")
+    || path.startsWith("api/admin/redemptions/")
+    || path.startsWith("api/admin/investors/");
+  const isGovernanceRoute =
+    path.startsWith("api/admin/assets/")
+    || path === "api/admin/assets"
+    || path.startsWith("api/admin/force-sync/");
+  const isAuditRoute =
+    path.startsWith("api/admin/audit-events")
+    || path.startsWith("api/admin/blockchain-transactions")
+    || path.startsWith("api/admin/reports/");
+
+  if (isComplianceRoute && session.role !== "compliance") {
+    return NextResponse.json({ messages: ["errors.complianceSessionRequired"] }, { status: 403 });
+  }
+  if (isGovernanceRoute && session.role !== "governance") {
+    return NextResponse.json({ messages: ["errors.governanceSessionRequired"] }, { status: 403 });
+  }
+  if (isAuditRoute && session.role !== "audit" && session.role !== "governance" && session.role !== "compliance") {
+    return NextResponse.json({ messages: ["errors.auditSessionRequired"] }, { status: 403 });
+  }
+  if (path.startsWith("api/admin/") && session.role === "investor") {
     return NextResponse.json({ messages: ["errors.adminSessionRequired"] }, { status: 403 });
   }
 
@@ -64,6 +87,9 @@ async function proxy(request: NextRequest, context: RouteContext) {
   }
 
   const headers = new Headers(authHeaders);
+  if (session.role === "investor" && session.walletAddress) {
+    headers.set("X-Investor-Wallet", session.walletAddress);
+  }
   headers.set("Accept-Language", localeFromRequest(request));
   const contentType = request.headers.get("content-type");
   if (contentType) {
@@ -83,6 +109,9 @@ async function proxy(request: NextRequest, context: RouteContext) {
   }
 
   if (response.status === 401 || response.status === 403) {
+    if (response.status === 403 && path.includes("/documents")) {
+      return NextResponse.json({ messages: ["errors.documentForbidden"] }, { status: 403 });
+    }
     const body = await response.text();
     const proxyResponse = new NextResponse(body, {
       headers: {

@@ -1,4 +1,12 @@
-export type KycStatus = "PENDING" | "APPROVED" | "REJECTED" | "REVOKED" | "FAILED_ON_CHAIN";
+export type KycStatus =
+  | "PENDING"
+  | "SUBMITTED"
+  | "IN_REVIEW"
+  | "APPROVED_PENDING_CHAIN"
+  | "APPROVED"
+  | "REJECTED"
+  | "REVOKED"
+  | "FAILED_ON_CHAIN";
 export type AssetOfferingStatus = "DRAFT" | "ACTIVE" | "PAUSED" | "CLOSED";
 export type LifecycleStatus = "PENDING" | "APPROVED" | "REJECTED" | "FAILED_ON_CHAIN";
 export type InvestorType = "RETAIL" | "ACCREDITED" | "QUALIFIED" | "INSTITUTIONAL";
@@ -22,6 +30,12 @@ export type InvestorStatusResponse = {
   identityHash: string | null;
   transactionHash: string | null;
   message: string;
+};
+
+export type TransferPreflightResponse = {
+  allowed: boolean;
+  reasonCode: string | null;
+  message: string | null;
 };
 
 export type AuditEventResponse = {

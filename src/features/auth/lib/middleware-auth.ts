@@ -1,6 +1,6 @@
 import type { NextRequest } from "next/server";
 
-export type SessionRole = "admin" | "investor";
+export type SessionRole = "investor" | "compliance" | "governance" | "audit";
 
 export const ACCESS_TOKEN_COOKIE = "rwa_access_token";
 export const REFRESH_TOKEN_COOKIE = "rwa_refresh_token";
@@ -29,11 +29,17 @@ export function parseRoleFromAccessToken(request: NextRequest): SessionRole | nu
     const base64 = payloadPart.replace(/-/g, "+").replace(/_/g, "/");
     const decoded = atob(base64);
     const payload = JSON.parse(decoded) as { role?: string };
-    if (payload.role === "ADMIN") {
-      return "admin";
-    }
     if (payload.role === "INVESTOR") {
       return "investor";
+    }
+    if (payload.role === "COMPLIANCE_OFFICER") {
+      return "compliance";
+    }
+    if (payload.role === "AUDITOR") {
+      return "audit";
+    }
+    if (payload.role === "SUPER_ADMIN" || payload.role === "ADMIN") {
+      return "governance";
     }
     return null;
   } catch {
@@ -42,7 +48,10 @@ export function parseRoleFromAccessToken(request: NextRequest): SessionRole | nu
 }
 
 export function workspacePathForRole(role: SessionRole | null): string {
-  return role === "admin" ? "/admin" : "/dashboard";
+  if (role === "investor") return "/dashboard";
+  if (role === "compliance") return "/compliance";
+  if (role === "audit") return "/audit";
+  return "/governance";
 }
 
 export function isInvestorOnlyBackendPath(path: string): boolean {

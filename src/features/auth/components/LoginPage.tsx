@@ -10,6 +10,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, useState } from "react";
 import { isValidEmail } from "@/features/auth/lib/validators";
+import type { AuthRole } from "@/features/auth/lib/useAuthRole";
 import { useAuthRoleParam } from "@/features/auth/lib/useAuthRoleParam";
 import { useLocale, useMessages } from "@/shared/i18n/LocaleProvider";
 import { resolveClientError } from "@/shared/i18n/resolveClientError";
@@ -25,11 +26,26 @@ type TouchedState = {
 export function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { role, setRole } = useAuthRoleParam(searchParams.get("role") === "admin" ? "admin" : "investor");
-  const next = searchParams.get("next") ?? (role === "admin" ? "/admin" : "/dashboard");
+  const roleParam = searchParams.get("role");
+  const initialRole =
+    roleParam === "compliance" || roleParam === "governance" || roleParam === "audit" || roleParam === "admin"
+      ? roleParam === "admin"
+        ? "governance"
+        : roleParam
+      : "investor";
+  const { role, setRole } = useAuthRoleParam(initialRole);
+  const next =
+    searchParams.get("next")
+    ?? (role === "investor"
+      ? "/dashboard"
+      : role === "compliance"
+        ? "/compliance"
+        : role === "audit"
+          ? "/audit"
+          : "/governance");
   const registered = searchParams.get("registered") === "1";
   const prefilledEmail = searchParams.get("email")?.trim() ?? "";
-  const defaultEmail = prefilledEmail || (role === "admin" ? "admin@compliance.local" : "investor@company.com");
+  const defaultEmail = prefilledEmail || (role === "investor" ? "investor@company.com" : "admin@compliance.local");
 
   const [email, setEmail] = useState(defaultEmail);
   const [password, setPassword] = useState("");
@@ -104,7 +120,6 @@ export function LoginPage() {
   return (
     <AuthShell
       backLabel={common.backHome}
-      eyebrow={loginCopy.provider}
       footerStatus={common.footerStatusAuth}
       highlights={loginCopy.highlights.map((item, index) => ({
         ...item,
@@ -137,22 +152,22 @@ export function LoginPage() {
               <span className="helper-text">{loginCopy.roleHelp}</span>
             </div>
             <div className="segmented-control" role="group" aria-label={loginCopy.role}>
-              <button
-                aria-pressed={role === "investor"}
-                className={role === "investor" ? "selected" : ""}
-                onClick={() => setRole("investor")}
-                type="button"
-              >
-                {loginCopy.investor}
-              </button>
-              <button
-                aria-pressed={role === "admin"}
-                className={role === "admin" ? "selected" : ""}
-                onClick={() => setRole("admin")}
-                type="button"
-              >
-                {loginCopy.admin}
-              </button>
+              {([
+                { id: "investor", label: loginCopy.investor },
+                { id: "compliance", label: "Compliance" },
+                { id: "governance", label: "Governance" },
+                { id: "audit", label: "Audit" }
+              ] as Array<{ id: AuthRole; label: string }>).map((roleOption) => (
+                <button
+                  key={roleOption.id}
+                  aria-pressed={role === roleOption.id}
+                  className={role === roleOption.id ? "selected" : ""}
+                  onClick={() => setRole(roleOption.id)}
+                  type="button"
+                >
+                  {roleOption.label}
+                </button>
+              ))}
             </div>
           </div>
 

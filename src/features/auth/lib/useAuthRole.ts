@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-export type AuthRole = "investor" | "admin";
+export type AuthRole = "investor" | "compliance" | "governance" | "audit";
 
 function readRoleFromLocation(defaultRole: AuthRole): AuthRole {
   if (typeof window === "undefined") {
@@ -10,12 +10,12 @@ function readRoleFromLocation(defaultRole: AuthRole): AuthRole {
   }
 
   const fromQuery = new URLSearchParams(window.location.search).get("role");
-  if (fromQuery === "admin") {
-    return "admin";
-  }
   if (fromQuery === "investor") {
     return "investor";
   }
+  if (fromQuery === "compliance") return "compliance";
+  if (fromQuery === "audit") return "audit";
+  if (fromQuery === "governance" || fromQuery === "admin") return "governance";
   return defaultRole;
 }
 

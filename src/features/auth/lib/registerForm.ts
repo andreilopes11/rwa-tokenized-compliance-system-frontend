@@ -23,7 +23,7 @@ export function getRegisterFormBlockers(input: {
   } else if (input.password.length > 0 && input.confirmPassword.length === 0) {
     blockers.push("Confirm your password.");
   }
-  if (input.role === "admin" && !input.inviteCode.trim()) {
+  if (input.role !== "investor" && !input.inviteCode.trim()) {
     blockers.push("Admin invite code is required.");
   }
   if (input.walletAddress && !isValidWalletAddress(input.walletAddress)) {

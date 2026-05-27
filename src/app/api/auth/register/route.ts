@@ -14,7 +14,7 @@ import {
 type RegisterRequest = {
   email?: string;
   password?: string;
-  role?: "investor" | "admin";
+  role?: "investor" | "compliance" | "governance" | "audit";
   walletAddress?: string;
   inviteCode?: string;
 };
@@ -23,7 +23,10 @@ export async function POST(request: NextRequest) {
   const payload = (await request.json()) as RegisterRequest;
   const email = payload.email?.trim().toLowerCase() ?? "";
   const password = payload.password ?? "";
-  const role = payload.role === "admin" ? "admin" : "investor";
+  const role =
+    payload.role === "compliance" || payload.role === "governance" || payload.role === "audit"
+      ? payload.role
+      : "investor";
   const walletAddress = payload.walletAddress?.trim() ?? "";
   const inviteCode = payload.inviteCode?.trim() ?? "";
 
@@ -42,17 +45,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ message: "Enter a valid EVM wallet address." }, { status: 400 });
   }
 
-  const path =
-    role === "admin"
-      ? "/api/auth/admin/register"
-      : "/api/auth/investor/register";
+  const path = role === "investor" ? "/api/auth/investor/register" : "/api/auth/admin/register";
 
   const body =
-    role === "admin"
-      ? { email, password, inviteCode }
-      : { email, password, walletAddress: walletAddress || undefined };
+    role === "investor"
+      ? { email, password, walletAddress: walletAddress || undefined }
+      : { email, password, inviteCode };
 
-  if (role === "admin" && !inviteCode) {
+  if (role !== "investor" && !inviteCode) {
     return NextResponse.json({ message: "Admin invite code is required." }, { status: 400 });
   }
 
@@ -65,7 +65,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ message: result.message }, { status: result.status });
   }
 
-  const redirectTo = role === "admin" ? "/admin" : "/dashboard";
+  const redirectTo =
+    role === "investor" ? "/dashboard" : role === "compliance" ? "/compliance" : role === "audit" ? "/audit" : "/governance";
   const response = NextResponse.json(
     {
       message: "Account created. You are signed in.",

@@ -11,6 +11,7 @@ import type {
   PositionResponse,
   RedemptionResponse,
   SubscriptionResponse,
+  TransferPreflightResponse,
   TaxSummaryResponse,
   TutorialResponse
 } from "@/shared/api/types";
@@ -113,5 +114,20 @@ export async function fetchInvestorAuditEvents(
 ): Promise<AuditEventResponse[]> {
   return jsonFetch<AuditEventResponse[]>(
     `/api/investors/${encodeURIComponent(walletAddress)}/audit-events?limit=${limit}`
+  );
+}
+
+export async function preflightTransfer(
+  walletAddress: string,
+  recipientWalletAddress: string,
+  amount: number
+): Promise<TransferPreflightResponse> {
+  return jsonFetch<TransferPreflightResponse>(
+    `/api/investors/${encodeURIComponent(walletAddress)}/transfers/preflight`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ to: recipientWalletAddress, amount })
+    }
   );
 }

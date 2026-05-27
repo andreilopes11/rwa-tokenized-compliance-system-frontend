@@ -3,7 +3,7 @@
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-export type AuthRole = "investor" | "admin";
+export type AuthRole = "investor" | "compliance" | "governance" | "audit";
 
 export function useAuthRoleParam(defaultRole: AuthRole = "investor") {
   const router = useRouter();
@@ -11,7 +11,12 @@ export function useAuthRoleParam(defaultRole: AuthRole = "investor") {
   const searchParams = useSearchParams();
 
   const roleFromUrl = useMemo<AuthRole>(() => {
-    return searchParams.get("role") === "admin" ? "admin" : defaultRole;
+    const role = searchParams.get("role");
+    if (role === "investor") return "investor";
+    if (role === "compliance") return "compliance";
+    if (role === "audit") return "audit";
+    if (role === "governance" || role === "admin") return "governance";
+    return defaultRole;
   }, [defaultRole, searchParams]);
 
   const [role, setRoleState] = useState<AuthRole>(roleFromUrl);

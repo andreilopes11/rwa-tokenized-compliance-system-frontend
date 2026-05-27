@@ -57,9 +57,6 @@ export function ExperienceFooter({
                 {link.label}
               </Link>
             ))}
-            <Link href={appConfig.repositoryUrl} rel="noopener noreferrer" target="_blank">
-              {common.github}
-            </Link>
             {extraLinks.map((link) => (
               <Link
                 href={link.href}

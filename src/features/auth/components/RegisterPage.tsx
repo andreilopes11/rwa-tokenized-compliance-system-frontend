@@ -12,6 +12,7 @@ import {
   passwordStrengthScore
 } from "@/features/auth/lib/validators";
 import { useAuthRoleParam } from "@/features/auth/lib/useAuthRoleParam";
+import type { AuthRole } from "@/features/auth/lib/useAuthRole";
 import { useLocale, useMessages } from "@/shared/i18n/LocaleProvider";
 import { resolveClientError } from "@/shared/i18n/resolveClientError";
 import { Alert } from "@/shared/ui/Alert";
@@ -72,7 +73,7 @@ export function RegisterPage() {
     email: !isValidEmail(email) ? registerCopy.invalidEmail : "",
     password: !passwordPolicyMet ? registerCopy.passwordHelp : "",
     walletAddress: walletAddress && !isValidWalletAddress(walletAddress) ? registerCopy.walletInvalid : "",
-    inviteCode: role === "admin" && !inviteCode.trim() ? "Admin invite code is required." : ""
+    inviteCode: role !== "investor" && !inviteCode.trim() ? "Admin invite code is required." : ""
   };
 
   const showFieldError = (field: keyof TouchedState) =>
@@ -105,7 +106,7 @@ export function RegisterPage() {
           email: email.trim(),
           password,
           walletAddress: walletAddress.trim() || undefined,
-          inviteCode: role === "admin" ? inviteCode.trim() : undefined
+          inviteCode: role !== "investor" ? inviteCode.trim() : undefined
         })
       });
 
@@ -145,7 +146,6 @@ export function RegisterPage() {
   return (
     <AuthShell
       backLabel={common.backHome}
-      eyebrow={registerCopy.role}
       footerStatus={common.footerStatusAuth}
       highlights={registerCopy.highlights.map((item, index) => ({
         ...item,
@@ -190,22 +190,22 @@ export function RegisterPage() {
                 <span className="helper-text">{registerCopy.roleHelp}</span>
               </div>
               <div className="segmented-control" role="group" aria-label={registerCopy.role}>
-                <button
-                  aria-pressed={role === "investor"}
-                  className={role === "investor" ? "selected" : ""}
-                  onClick={() => setRole("investor")}
-                  type="button"
-                >
-                  {registerCopy.investor}
-                </button>
-                <button
-                  aria-pressed={role === "admin"}
-                  className={role === "admin" ? "selected" : ""}
-                  onClick={() => setRole("admin")}
-                  type="button"
-                >
-                  {registerCopy.admin}
-                </button>
+                {([
+                  { id: "investor", label: registerCopy.investor },
+                  { id: "compliance", label: "Compliance" },
+                  { id: "governance", label: "Governance" },
+                  { id: "audit", label: "Audit" }
+                ] as Array<{ id: AuthRole; label: string }>).map((roleOption) => (
+                  <button
+                    key={roleOption.id}
+                    aria-pressed={role === roleOption.id}
+                    className={role === roleOption.id ? "selected" : ""}
+                    onClick={() => setRole(roleOption.id)}
+                    type="button"
+                  >
+                    {roleOption.label}
+                  </button>
+                ))}
               </div>
             </div>
 
@@ -311,7 +311,7 @@ export function RegisterPage() {
               ) : null}
             </div>
 
-            {role === "admin" ? (
+            {role !== "investor" ? (
               <div className="field">
                 <label htmlFor="register-invite">Admin invite code</label>
                 <input

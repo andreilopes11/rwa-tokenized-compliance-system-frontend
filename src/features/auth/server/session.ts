@@ -2,7 +2,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { getServerLocale } from "@/shared/i18n/server";
 
-export type SessionRole = "investor" | "admin";
+export type SessionRole = "investor" | "compliance" | "governance" | "audit";
 
 export type ComplianceSession = {
   userId: string;
@@ -25,7 +25,7 @@ export type BackendAuthSession = {
   user: {
     userId: string;
     email: string;
-    role: "INVESTOR" | "ADMIN";
+    role: "INVESTOR" | "COMPLIANCE_OFFICER" | "SUPER_ADMIN" | "AUDITOR" | "ADMIN";
     walletAddress?: string | null;
     mfaEnabled: boolean;
   };
@@ -41,7 +41,10 @@ function backendBaseUrl() {
 }
 
 function mapRole(role: BackendAuthUser["role"]): SessionRole {
-  return role === "ADMIN" ? "admin" : "investor";
+  if (role === "INVESTOR") return "investor";
+  if (role === "COMPLIANCE_OFFICER") return "compliance";
+  if (role === "AUDITOR") return "audit";
+  return "governance";
 }
 
 function decodeJwtExpiry(token: string): number | null {
@@ -190,7 +193,15 @@ export async function requireSession(role?: SessionRole): Promise<ComplianceSess
     redirect("/login");
   }
   if (role && session.role !== role) {
-    redirect(session.role === "admin" ? "/admin" : "/dashboard");
+    const routeForRole =
+      session.role === "investor"
+        ? "/dashboard"
+        : session.role === "compliance"
+          ? "/compliance"
+          : session.role === "audit"
+            ? "/audit"
+            : "/governance";
+    redirect(routeForRole);
   }
   return session;
 }

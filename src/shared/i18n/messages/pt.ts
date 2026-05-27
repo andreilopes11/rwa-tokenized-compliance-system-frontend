@@ -28,9 +28,14 @@ export const pt = {
   errors: {
     apiUnavailable:
       "A API de conformidade está temporariamente indisponível. Certifique-se de que o backend Spring Boot esteja em execução e tente novamente.",
+    assetOfferingsRefreshFailed: "Não foi possível atualizar as ofertas de ativos. Tente novamente.",
+    gatewayUnavailableTitle: "API de conformidade indisponível",
     authRequired: "Autenticação obrigatória.",
     sessionExpired: "Sessão expirada. Entre novamente.",
     adminSessionRequired: "Sessão de administrador obrigatória.",
+    complianceSessionRequired: "Sessão de compliance obrigatória.",
+    governanceSessionRequired: "Sessão de governança obrigatória.",
+    auditSessionRequired: "Sessão de auditoria obrigatória.",
     investorSessionRequired:
       "Sessão de investidor obrigatória. Entre como investidor para usar este endpoint.",
     authApiNotFound:
@@ -39,9 +44,11 @@ export const pt = {
       "Endpoint do backend não encontrado. Certifique-se de que o serviço de conformidade esteja em execução na porta 8080.",
     authenticationFailed: "Falha na solicitação de autenticação.",
     signOutFailed: "Não foi possível encerrar a sessão.",
-    requestFailed: "Falha na solicitação."
+    requestFailed: "Falha na solicitação.",
+    documentForbidden: "Acesso a este documento é proibido."
   },
   common: {
+    retry: "Tentar novamente",
     adminDashboard: "Painel administrativo",
     backHome: "Voltar ao início",
     brand: "RWA Compliance",

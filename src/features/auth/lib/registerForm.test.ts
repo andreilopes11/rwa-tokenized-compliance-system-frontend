@@ -18,7 +18,7 @@ describe("getRegisterFormBlockers", () => {
     expect(blockers).toEqual([]);
   });
 
-  it("requires invite code for admin registration", () => {
+  it("requires invite code for governance registration", () => {
     const password = "SecurePass1";
     const blockers = getRegisterFormBlockers({
       confirmPassword: password,
@@ -26,7 +26,7 @@ describe("getRegisterFormBlockers", () => {
       inviteCode: "",
       password,
       passwordChecks: buildPasswordChecks(password),
-      role: "admin",
+      role: "governance",
       walletAddress: ""
     });
 

@@ -28,9 +28,14 @@ export const en = {
   errors: {
     apiUnavailable:
       "Compliance API is temporarily unavailable. Ensure the Spring Boot backend is running, then retry.",
+    assetOfferingsRefreshFailed: "Unable to refresh asset offerings. Try again.",
+    gatewayUnavailableTitle: "Compliance API unavailable",
     authRequired: "Authentication required.",
     sessionExpired: "Session expired. Sign in again.",
     adminSessionRequired: "Admin session required.",
+    complianceSessionRequired: "Compliance officer session required.",
+    governanceSessionRequired: "Super-admin governance session required.",
+    auditSessionRequired: "Auditor session required.",
     investorSessionRequired:
       "Investor session required. Sign in as an investor to use this endpoint.",
     authApiNotFound:
@@ -39,9 +44,11 @@ export const en = {
       "Backend endpoint not found. Ensure the compliance service is running on port 8080.",
     authenticationFailed: "Authentication request failed.",
     signOutFailed: "Unable to sign out.",
-    requestFailed: "Request failed."
+    requestFailed: "Request failed.",
+    documentForbidden: "Access to this document is forbidden."
   },
   common: {
+    retry: "Retry",
     adminDashboard: "Admin dashboard",
     backHome: "Back to home",
     brand: "RWA Compliance",

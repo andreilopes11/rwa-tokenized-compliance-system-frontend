@@ -28,9 +28,14 @@ export const es = {
   errors: {
     apiUnavailable:
       "La API de cumplimiento no está disponible temporalmente. Asegúrese de que el backend Spring Boot esté en ejecución e inténtelo de nuevo.",
+    assetOfferingsRefreshFailed: "No se pudieron actualizar las ofertas de activos. Inténtelo de nuevo.",
+    gatewayUnavailableTitle: "API de cumplimiento no disponible",
     authRequired: "Se requiere autenticación.",
     sessionExpired: "Sesión expirada. Inicie sesión de nuevo.",
     adminSessionRequired: "Se requiere sesión de administrador.",
+    complianceSessionRequired: "Se requiere sesión de cumplimiento.",
+    governanceSessionRequired: "Se requiere sesión de gobernanza.",
+    auditSessionRequired: "Se requiere sesión de auditoría.",
     investorSessionRequired:
       "Se requiere sesión de inversor. Inicie sesión como inversor para usar este punto de acceso.",
     authApiNotFound:
@@ -39,9 +44,11 @@ export const es = {
       "Punto de acceso del backend no encontrado. Asegúrese de que el servicio de cumplimiento esté en ejecución en el puerto 8080.",
     authenticationFailed: "Error en la solicitud de autenticación.",
     signOutFailed: "No se pudo cerrar la sesión.",
-    requestFailed: "Error en la solicitud."
+    requestFailed: "Error en la solicitud.",
+    documentForbidden: "Acceso a este documento prohibido."
   },
   common: {
+    retry: "Reintentar",
     adminDashboard: "Panel de administración",
     backHome: "Volver al inicio",
     brand: "RWA Compliance",

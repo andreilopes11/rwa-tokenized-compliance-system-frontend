@@ -9,7 +9,7 @@ import {
 type LoginRequest = {
   email?: string;
   password?: string;
-  role?: "investor" | "admin";
+  role?: "investor" | "compliance" | "governance" | "audit";
   mfaCode?: string;
 };
 
@@ -17,7 +17,14 @@ export async function POST(request: NextRequest) {
   const payload = (await request.json()) as LoginRequest;
   const email = payload.email?.trim().toLowerCase() ?? "";
   const password = payload.password ?? "";
-  const role = payload.role === "admin" ? "ADMIN" : "INVESTOR";
+  const role =
+    payload.role === "compliance"
+      ? "COMPLIANCE_OFFICER"
+      : payload.role === "audit"
+        ? "AUDITOR"
+        : payload.role === "governance"
+          ? "SUPER_ADMIN"
+          : "INVESTOR";
   const mfaCode = payload.mfaCode?.trim() ?? "";
 
   if (!email || !password) {
@@ -40,7 +47,14 @@ export async function POST(request: NextRequest) {
   const response = NextResponse.json({
     user: {
       email: result.data.user.email,
-      role: result.data.user.role === "ADMIN" ? "admin" : "investor",
+        role:
+          result.data.user.role === "INVESTOR"
+            ? "investor"
+            : result.data.user.role === "COMPLIANCE_OFFICER"
+              ? "compliance"
+              : result.data.user.role === "AUDITOR"
+                ? "audit"
+                : "governance",
       walletAddress: result.data.user.walletAddress
     }
   });
