@@ -120,6 +120,7 @@ export function LoginPage() {
   return (
     <AuthShell
       backLabel={common.backHome}
+      eyebrow={loginCopy.highlightsTitle}
       footerStatus={common.footerStatusAuth}
       highlights={loginCopy.highlights.map((item, index) => ({
         ...item,

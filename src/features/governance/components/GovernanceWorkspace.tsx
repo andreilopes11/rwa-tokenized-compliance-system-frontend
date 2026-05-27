@@ -1,15 +1,23 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { fetchAssetOfferings } from "@/features/assets/api/client";
-import { fetchAdminAssetPauseStatus, pauseAdminAssetToken, unpauseAdminAssetToken } from "@/features/admin/api/client";
+import { useCallback, useEffect, useState } from "react";
+import {
+  fetchAdminAssetPauseStatus,
+  listAdminAssetOfferings,
+  pauseAdminAssetToken,
+  unpauseAdminAssetToken
+} from "@/features/admin/api/client";
+import { isApiError } from "@/shared/api/errors";
 import type { AssetOfferingResponse, PauseStatusResponse } from "@/shared/api/types";
+import { useLocale } from "@/shared/i18n/LocaleProvider";
+import { resolveClientError } from "@/shared/i18n/resolveClientError";
 import { Alert } from "@/shared/ui/Alert";
 import { Button } from "@/shared/ui/Button";
 import { SiteTopBar } from "@/shared/ui/SiteTopBar";
 import { WorkspaceNav } from "@/shared/ui/WorkspaceNav";
 
 export function GovernanceWorkspace() {
+  const { t } = useLocale();
   const [assets, setAssets] = useState<AssetOfferingResponse[]>([]);
   const [pauseStatuses, setPauseStatuses] = useState<Record<string, PauseStatusResponse>>({});
   const [error, setError] = useState("");
@@ -17,18 +25,40 @@ export function GovernanceWorkspace() {
   const [loading, setLoading] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
 
-  async function refresh() {
-    const offerings = await fetchAssetOfferings();
-    setAssets(offerings);
-    const statusEntries = await Promise.all(
-      offerings.map(async (asset) => [asset.assetId, await fetchAdminAssetPauseStatus(asset.assetId)] as const)
+  const reportError = useCallback(
+    (err: unknown, fallback: string) => {
+      if (isApiError(err)) {
+        setError(resolveClientError(err.message, t));
+        return;
+      }
+      setError(err instanceof Error ? err.message : fallback);
+    },
+    [t]
+  );
+
+  const refreshPauseStatuses = useCallback(async (offerings: AssetOfferingResponse[]) => {
+    const results = await Promise.allSettled(
+      offerings.map((asset) => fetchAdminAssetPauseStatus(asset.assetId))
     );
-    setPauseStatuses(Object.fromEntries(statusEntries));
-  }
+    const statuses: Record<string, PauseStatusResponse> = {};
+    offerings.forEach((asset, index) => {
+      const result = results[index];
+      if (result.status === "fulfilled") {
+        statuses[asset.assetId] = result.value;
+      }
+    });
+    setPauseStatuses(statuses);
+  }, []);
+
+  const refresh = useCallback(async () => {
+    const offerings = await listAdminAssetOfferings({ limit: 50 });
+    setAssets(offerings);
+    await refreshPauseStatuses(offerings);
+  }, [refreshPauseStatuses]);
 
   useEffect(() => {
-    void refresh().catch((err) => setError(err instanceof Error ? err.message : "Unable to load governance assets."));
-  }, []);
+    void refresh().catch((err) => reportError(err, "Unable to load governance assets."));
+  }, [refresh, reportError]);
 
   async function act(action: () => Promise<unknown>, success: string) {
     try {
@@ -38,7 +68,7 @@ export function GovernanceWorkspace() {
       setNotice(success);
       await refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Request failed.");
+      reportError(err, "Request failed.");
     } finally {
       setLoading(false);
     }
@@ -63,27 +93,34 @@ export function GovernanceWorkspace() {
         <div className="panel">
           <div className="panel-head">
             <h2>Asset pause controls</h2>
-            <Button onClick={() => void refresh()} size="sm" variant="ghost">
+            <Button disabled={loading} onClick={() => void refresh().catch((err) => reportError(err, "Refresh failed."))} size="sm" variant="ghost">
               Refresh
             </Button>
           </div>
           {assets.length === 0 ? (
-            <p className="muted">No assets configured.</p>
+            <p className="muted">No assets configured. Create an asset offering in governance operations or seed the database.</p>
           ) : (
             <ul className="activity-list">
               {assets.map((asset) => {
-                const paused = pauseStatuses[asset.assetId]?.paused === true;
+                const pauseStatus = pauseStatuses[asset.assetId];
+                const paused = pauseStatus?.paused === true;
                 return (
                   <li key={asset.assetId}>
                     <div>
                       <strong>
                         {asset.symbol} · {asset.name}
                       </strong>
-                      <p className="muted">{paused ? "TOKEN PAUSED" : "TOKEN ACTIVE"}</p>
+                      <p className="muted">
+                        {pauseStatus === undefined
+                          ? "Pause state unavailable (chain read failed or not loaded)."
+                          : paused
+                            ? "TOKEN PAUSED"
+                            : "TOKEN ACTIVE"}
+                      </p>
                     </div>
                     <div className="actions">
                       <Button
-                        disabled={loading || paused}
+                        disabled={loading || paused || pauseStatus === undefined}
                         onClick={() =>
                           void act(
                             () => pauseAdminAssetToken(asset.assetId),

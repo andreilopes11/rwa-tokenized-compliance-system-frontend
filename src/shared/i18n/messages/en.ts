@@ -45,7 +45,18 @@ export const en = {
     authenticationFailed: "Authentication request failed.",
     signOutFailed: "Unable to sign out.",
     requestFailed: "Request failed.",
-    documentForbidden: "Access to this document is forbidden."
+    documentForbidden: "Access to this document is forbidden.",
+    upstreamUnavailable:
+      "The compliance service is temporarily unavailable. Wait a moment and try again.",
+    chainNotReady:
+      "On-chain eligibility is not confirmed yet. Wait for blockchain confirmation before continuing.",
+    chainSubmissionFailed: "Blockchain submission failed. Operations will retry automatically.",
+    recipientNotCompliant:
+      "The recipient is not eligible to receive this token under issuer compliance rules.",
+    tokenPaused: "This token is paused. Transfers and lifecycle actions are temporarily disabled.",
+    wrongNetwork: "Switch your wallet to the required network before signing.",
+    kycWalletMismatch: "The wallet must match your session and connected wallet.",
+    approveTriggersChain: "This action triggers blockchain attestation and cannot be undone from the UI alone."
   },
   common: {
     retry: "Retry",
@@ -63,11 +74,7 @@ export const en = {
     copyright: "© 2026 RWA Compliance · Regulated tokenization infrastructure.",
     legalTitle: "Legal",
     privacy: "Privacy policy",
-    productLinks: [
-      { href: "/login?next=%2Fdashboard&role=investor", label: "Investor portal" },
-      { href: "/login?next=%2Fadmin&role=admin", label: "Issuer console" },
-      { href: "/register", label: "Create account" }
-    ],
+    productLinks: [{ href: "/register", label: "Create account" }],
     productTitle: "Product",
     resourceLinks: [
       { href: "/#how-to", label: "How it works" },
@@ -467,7 +474,67 @@ export const en = {
       heroEyebrow: "Investor workspace",
       heroTitle: "Portfolio, eligibility, and lifecycle actions in one place",
       topbarSubtitle: "{chainName} chain {chainId} · off-chain eligibility · on-chain transfer guard",
-      topbarTitle: "Investor / Portfolio Workspace"
+      topbarTitle: "Investor / Portfolio Workspace",
+      nav: {
+        overview: "Overview",
+        onboarding: "Onboarding",
+        compliance: "Compliance",
+        portfolio: "Portfolio",
+        offerings: "Invest",
+        redemptions: "Redeem",
+        transfer: "Transfer",
+        activity: "Activity"
+      },
+      kyc: {
+        submitted: "Submitted",
+        inReview: "In review",
+        approvedPendingChain: "Approved — awaiting blockchain confirmation",
+        approved: "Approved",
+        rejected: "Rejected",
+        revoked: "Revoked",
+        failedOnChain: "Action required — chain sync pending",
+        polling: "Updating compliance status…",
+        onChainVerified: "On-chain verified",
+        offChainOnly: "Off-chain status only"
+      }
+    },
+    compliance: {
+      topbarTitle: "Compliance workspace",
+      topbarSubtitle: "KYC decisions and lifecycle queues — no governance controls",
+      nav: {
+        dashboard: "Dashboard",
+        kyc: "KYC queue",
+        revoke: "Revoke",
+        subscriptions: "Subscriptions",
+        redemptions: "Redemptions",
+        audit: "Events"
+      },
+      approveConfirm: "Triggers blockchain attestation. Continue?",
+      subscriptionBlocked: "Investor is not on-chain verified. Subscription approve is blocked."
+    },
+    governance: {
+      topbarTitle: "Governance workspace",
+      topbarSubtitle: "Emergency controls, assets, oracle, and ForceSync — no routine KYC",
+      nav: {
+        overview: "Overview",
+        assets: "Assets",
+        pause: "Emergency",
+        oracle: "Oracle",
+        forceSync: "Force sync",
+        forceSyncApprove: "Four-eyes",
+        operations: "Operations"
+      }
+    },
+    audit: {
+      topbarTitle: "Audit workspace",
+      topbarSubtitle: "Read-only oversight — no write actions",
+      nav: {
+        timeline: "Timeline",
+        kyc: "KYC history",
+        chain: "On-chain",
+        export: "Export",
+        forceSync: "Force sync trail"
+      }
     }
   }
 } as const;

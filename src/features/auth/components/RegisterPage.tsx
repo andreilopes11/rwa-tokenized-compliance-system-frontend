@@ -146,6 +146,7 @@ export function RegisterPage() {
   return (
     <AuthShell
       backLabel={common.backHome}
+      eyebrow={registerCopy.highlightsTitle}
       footerStatus={common.footerStatusAuth}
       highlights={registerCopy.highlights.map((item, index) => ({
         ...item,
@@ -321,7 +322,6 @@ export function RegisterPage() {
                   type="password"
                   value={inviteCode}
                 />
-                <p className="helper-text">Local invite code: <code>local-admin-invite</code></p>
               </div>
             ) : null}
 

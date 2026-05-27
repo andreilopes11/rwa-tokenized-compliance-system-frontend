@@ -38,6 +38,28 @@ export type TransferPreflightResponse = {
   message: string | null;
 };
 
+export type ForceSyncStatus =
+  | "RETRY_SCHEDULED"
+  | "PENDING_SECOND_APPROVAL"
+  | "APPROVED"
+  | "DENIED"
+  | "FAILED";
+
+export type ForceSyncResponse = {
+  syncId: string;
+  requestId: string | null;
+  walletAddress: string;
+  reasonCode: string;
+  incidentTicketId: string | null;
+  initiatedBy: string;
+  approvedBy: string | null;
+  status: ForceSyncStatus;
+  transactionHash: string | null;
+  lastError: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type AuditEventResponse = {
   eventId: string;
   category: string;

@@ -32,11 +32,16 @@ import {
   markNotificationRead,
   quoteFees,
   submitKycRequest,
-  preflightTransfer,
   fetchTaxSummary,
   fetchTutorials
 } from "@/features/investor/api/client";
 import { useInvestorChainReads } from "@/features/investor/hooks/useInvestorChainReads";
+import { useKycPolling } from "@/features/investor/hooks/useKycPolling";
+import { useTransferPreflight } from "@/features/investor/hooks/useTransferPreflight";
+import { isKycPollingComplete, isLifecycleReady } from "@/features/investor/lib/kyc";
+import { InvestorWorkspaceNav } from "@/features/investor/components/InvestorWorkspaceNav";
+import { UpstreamUnavailableAlert } from "@/shared/ui/UpstreamUnavailableAlert";
+import { mapTransferPreflightReason } from "@/shared/i18n/mapTransferPreflightReason";
 import { isApiError } from "@/shared/api/errors";
 import type {
   AssetOfferingResponse,
@@ -47,7 +52,6 @@ import type {
   KycRequestResponse,
   NotificationResponse,
   PositionResponse,
-  TransferPreflightResponse,
   TaxSummaryResponse,
   TutorialResponse
 } from "@/shared/api/types";
@@ -68,9 +72,6 @@ import { SiteTopBar } from "@/shared/ui/SiteTopBar";
 
 const tokenAddress = process.env.NEXT_PUBLIC_TOKEN_ADDRESS ?? "";
 const registryAddress = process.env.NEXT_PUBLIC_IDENTITY_REGISTRY_ADDRESS ?? "";
-const KYC_POLL_MS = 4000;
-const TERMINAL_KYC_STATUSES = new Set(["APPROVED", "REJECTED", "FAILED_ON_CHAIN", "REVOKED"]);
-
 const PortfolioChart = dynamic(
   () => import("./PortfolioChart").then((module) => module.PortfolioChart),
   {
@@ -110,13 +111,12 @@ export function InvestorDashboard({ sessionWalletAddress }: InvestorDashboardPro
   const [error, setError] = useState("");
   const [recipientAddress, setRecipientAddress] = useState("");
   const [transferAmount, setTransferAmount] = useState("");
-  const [preflight, setPreflight] = useState<TransferPreflightResponse | null>(null);
   const [gatewayError, setGatewayError] = useState("");
   const [assetError, setAssetError] = useState("");
   const [notice, setNotice] = useState("");
   const [loading, setLoading] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
-  const [pollingKyc, setPollingKyc] = useState(false);
+  const [showPollingBanner, setShowPollingBanner] = useState(false);
 
   const chainReads = useInvestorChainReads(walletAddress, recipientAddress);
   const activeStatus = status?.status ?? request?.status ?? "PENDING";
@@ -130,7 +130,9 @@ export function InvestorDashboard({ sessionWalletAddress }: InvestorDashboardPro
   const latestTxExplorer = explorerLink("tx", latestTxHash);
   const canSubmit = isWalletAddress(walletAddress) && documentReference.trim().length > 2 && !loading;
   const canRefresh = isWalletAddress(walletAddress) && !loading;
-  const lifecycleReady = Boolean(registryVerified && status?.status === "APPROVED" && isWalletAddress(walletAddress));
+  const lifecycleReady = Boolean(
+    isLifecycleReady(status) && isWalletAddress(walletAddress) && registryVerified
+  );
   const wrongNetwork = account.isConnected && currentChainId !== activeChain.id;
   const kycPendingChain = activeStatus === "APPROVED_PENDING_CHAIN";
   const lifecycleDisabledReason = kycPendingChain
@@ -233,6 +235,32 @@ export function InvestorDashboard({ sessionWalletAddress }: InvestorDashboardPro
     ],
     [account.isConnected, activeStatus, positions.length, registryVerified, unreadNotifications, walletAddress]
   );
+  const transferPreflight = useTransferPreflight({
+    walletAddress,
+    recipientAddress,
+    transferAmount,
+    investorStatus: status,
+    wrongNetwork,
+    tokenPaused: false
+  });
+
+  const { polling: kycPollingActive } = useKycPolling({
+    requestId: request?.requestId,
+    walletAddress: isWalletAddress(walletAddress) ? walletAddress : undefined,
+    enabled: Boolean(request?.requestId && !isKycPollingComplete(activeStatus, status?.onChainVerified)),
+    onUpdate: (kyc, statusResponse) => {
+      setRequest(kyc);
+      setStatus(statusResponse);
+      if (isKycPollingComplete(statusResponse.status, statusResponse.onChainVerified)) {
+        setNotice(
+          statusResponse.status === "APPROVED" && statusResponse.onChainVerified
+            ? "KYC approved and confirmed on-chain."
+            : "KYC review completed."
+        );
+      }
+    }
+  });
+
   const reportRequestError = useCallback(
     (err: unknown, fallback: string) => {
       if (isApiError(err) && err.retryable) {
@@ -260,43 +288,8 @@ export function InvestorDashboard({ sessionWalletAddress }: InvestorDashboardPro
   }, []);
 
   useEffect(() => {
-    if (!request?.requestId || !isWalletAddress(walletAddress)) {
-      setPollingKyc(false);
-      return;
-    }
-    if (TERMINAL_KYC_STATUSES.has(activeStatus)) {
-      setPollingKyc(false);
-      return;
-    }
-
-    setPollingKyc(true);
-    const intervalId = window.setInterval(() => {
-      void (async () => {
-        try {
-          const [kyc, statusResponse] = await Promise.all([
-            fetchKycRequest(request.requestId),
-            fetchInvestorStatus(walletAddress)
-          ]);
-          setRequest(kyc);
-          setStatus(statusResponse);
-          if (TERMINAL_KYC_STATUSES.has(statusResponse.status)) {
-            setNotice(
-              statusResponse.status === "APPROVED"
-                ? "KYC approved. On-chain authorization is reflected below."
-                : "KYC review completed."
-            );
-          }
-        } catch {
-          // Polling errors are non-fatal; manual refresh remains available.
-        }
-      })();
-    }, KYC_POLL_MS);
-
-    return () => {
-      window.clearInterval(intervalId);
-      setPollingKyc(false);
-    };
-  }, [activeStatus, request?.requestId, walletAddress]);
+    setShowPollingBanner(kycPollingActive);
+  }, [kycPollingActive]);
 
   async function refreshAssets() {
     setAssetError("");
@@ -514,33 +507,6 @@ export function InvestorDashboard({ sessionWalletAddress }: InvestorDashboardPro
     }
   }
 
-  async function runTransferPreflight() {
-    if (!isWalletAddress(walletAddress) || !isWalletAddress(recipientAddress)) {
-      setError("Enter valid sender and recipient wallet addresses for transfer preflight.");
-      return;
-    }
-    const amount = parseAmount(transferAmount);
-    if (!amount) {
-      setError("Enter a transfer amount greater than zero for preflight.");
-      return;
-    }
-    setLoading(true);
-    setError("");
-    try {
-      const response = await preflightTransfer(walletAddress, recipientAddress, amount);
-      setPreflight(response);
-      setNotice(
-        response.allowed
-          ? "Preflight passed. Final transfer can still revert if chain state changes before inclusion."
-          : `Preflight blocked: ${response.message ?? response.reasonCode ?? "COMPLIANCE_CHECK_FAILED"}`
-      );
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Transfer preflight failed.");
-    } finally {
-      setLoading(false);
-    }
-  }
-
   async function markRead(notificationId: string) {
     try {
       const updated = await markNotificationRead(notificationId);
@@ -624,6 +590,9 @@ export function InvestorDashboard({ sessionWalletAddress }: InvestorDashboardPro
         }
       />
 
+      <InvestorWorkspaceNav />
+
+      <div data-screen-id="INV-S01" id="overview">
       <DashboardHero
         description={m.workspace.investor.heroDescription}
         eyebrow={m.workspace.investor.heroEyebrow}
@@ -631,10 +600,24 @@ export function InvestorDashboard({ sessionWalletAddress }: InvestorDashboardPro
         stats={heroStats}
         title={m.workspace.investor.heroTitle}
       />
+      </div>
 
       <section className="content">
+        {gatewayError ? (
+          <UpstreamUnavailableAlert
+            onRetry={() => {
+              setGatewayError("");
+              void refreshStatus();
+            }}
+          />
+        ) : null}
         <div className="panel-grid">
-          <section className="panel" aria-labelledby="onboarding-title">
+          <section
+            className="panel"
+            data-screen-id="INV-S02"
+            id="onboarding"
+            aria-labelledby="onboarding-title"
+          >
             <h2 id="onboarding-title">Investor onboarding</h2>
             <form onSubmit={submitRequest}>
               <div className="field">
@@ -692,12 +675,17 @@ export function InvestorDashboard({ sessionWalletAddress }: InvestorDashboardPro
               </Alert>
             ) : null}
             {notice && <Alert tone="info">{notice}</Alert>}
-            {pollingKyc ? (
-              <Alert tone="info">Polling KYC status every few seconds until a final decision is recorded.</Alert>
+            {showPollingBanner ? (
+              <Alert tone="info">{m.workspace.investor.kyc.polling}</Alert>
             ) : null}
           </section>
 
-          <section className="panel" aria-labelledby="status-title">
+          <section
+            className="panel"
+            data-screen-id="INV-S03"
+            id="compliance"
+            aria-labelledby="status-title"
+          >
             <h2 id="status-title">Compliance status</h2>
             {rejectMessage ? <Alert tone="error">{rejectMessage}</Alert> : null}
             {latestTxExplorer ? (
@@ -770,7 +758,12 @@ export function InvestorDashboard({ sessionWalletAddress }: InvestorDashboardPro
             ) : null}
           </section>
 
-          <section className="panel" aria-labelledby="transfer-preflight-title">
+          <section
+            className="panel"
+            data-screen-id="INV-S07"
+            id="transfer"
+            aria-labelledby="transfer-preflight-title"
+          >
             <h2 id="transfer-preflight-title">Transfer preflight</h2>
             <p className="muted">
               Static checks run before wallet signing: sender compliance, recipient compliance, network alignment, and latest compliance state.
@@ -796,6 +789,11 @@ export function InvestorDashboard({ sessionWalletAddress }: InvestorDashboardPro
                 value={transferAmount}
               />
             </div>
+            {transferPreflight.errorKey ? (
+              <Alert tone="error">
+                {resolveClientError(transferPreflight.errorKey, t)}
+              </Alert>
+            ) : null}
             <div className="actions">
               <button className="secondary-button" disabled={loading} onClick={() => void refreshStatus()} type="button">
                 <RefreshCw size={18} aria-hidden />
@@ -803,18 +801,14 @@ export function InvestorDashboard({ sessionWalletAddress }: InvestorDashboardPro
               </button>
               <button
                 className="primary-button"
-                disabled={
-                  loading
-                  || wrongNetwork
-                  || !isWalletAddress(walletAddress)
-                  || !isWalletAddress(recipientAddress)
-                  || !parseAmount(transferAmount)
-                }
-                onClick={() => void runTransferPreflight()}
+                disabled={!transferPreflight.canSignTransfer}
+                onClick={() => void transferPreflight.refreshIfStale()}
                 type="button"
               >
-                <ShieldCheck size={18} aria-hidden />
-                Run preflight
+                <Send size={18} aria-hidden />
+                {transferPreflight.canSignTransfer
+                  ? "Ready to sign transfer"
+                  : "Transfer blocked until preflight passes"}
               </button>
             </div>
             <ul className="activity-list">
@@ -838,15 +832,31 @@ export function InvestorDashboard({ sessionWalletAddress }: InvestorDashboardPro
               </li>
               <li>
                 <strong>API preflight decision</strong>
-                <span className={`status ${preflight?.allowed ? "approved" : "pending"}`}>
-                  {preflight ? (preflight.allowed ? "ALLOWED" : preflight.reasonCode ?? "BLOCKED") : "NOT RUN"}
+                <span
+                  className={`status ${transferPreflight.preflight?.allowed ? "approved" : "pending"}`}
+                >
+                  {transferPreflight.loading
+                    ? "CHECKING…"
+                    : transferPreflight.preflight
+                      ? transferPreflight.preflight.allowed
+                        ? "ALLOWED"
+                        : resolveClientError(
+                            mapTransferPreflightReason(transferPreflight.preflight.reasonCode),
+                            t
+                          )
+                      : "NOT RUN"}
                 </span>
               </li>
             </ul>
             <p className="muted">Final on-chain execution remains authoritative and may still revert if state changes before inclusion.</p>
           </section>
 
-          <section className="panel" aria-labelledby="portfolio-title">
+          <section
+            className="panel"
+            data-screen-id="INV-S04"
+            id="portfolio"
+            aria-labelledby="portfolio-title"
+          >
             <div className="section-header">
               <h2 id="portfolio-title">Portfolio summary</h2>
               <span className="muted">EUR primary · USD indicative</span>
@@ -891,7 +901,12 @@ export function InvestorDashboard({ sessionWalletAddress }: InvestorDashboardPro
             )}
           </section>
 
-          <section className="panel" aria-labelledby="offerings-title">
+          <section
+            className="panel"
+            data-screen-id="INV-S05"
+            id="offerings"
+            aria-labelledby="offerings-title"
+          >
             <div className="section-header">
               <h2 id="offerings-title">Asset offerings</h2>
               <button className="secondary-button" disabled={loading} onClick={refreshAssets} type="button">
@@ -1032,7 +1047,12 @@ export function InvestorDashboard({ sessionWalletAddress }: InvestorDashboardPro
           </section>
         </div>
 
-        <aside className="panel" aria-labelledby="activity-title">
+        <aside
+          className="panel"
+          data-screen-id="INV-S08"
+          id="activity"
+          aria-labelledby="activity-title"
+        >
           <h2 id="activity-title">Token activity</h2>
           <ul className="activity-list">
             <li>

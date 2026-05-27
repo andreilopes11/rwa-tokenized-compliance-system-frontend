@@ -54,6 +54,20 @@ export function workspacePathForRole(role: SessionRole | null): string {
   return "/governance";
 }
 
+/** GET paths compliance/audit may call for case review and subscription gating. */
+export function isStaffSharedInvestorReadPath(path: string, method: string): boolean {
+  if (method !== "GET") {
+    return false;
+  }
+  if (/^api\/investors\/[^/]+\/status$/.test(path)) {
+    return true;
+  }
+  if (/^api\/kyc\/requests\/[0-9a-f-]+$/.test(path)) {
+    return true;
+  }
+  return false;
+}
+
 export function isInvestorOnlyBackendPath(path: string): boolean {
   if (path.startsWith("api/kyc/")) {
     return true;

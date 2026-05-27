@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { isInvestorOnlyBackendPath } from "@/features/auth/lib/middleware-auth";
+import {
+  isInvestorOnlyBackendPath,
+  isStaffSharedInvestorReadPath
+} from "@/features/auth/lib/middleware-auth";
 import {
   clearAuthCookies,
   ensureSession,
@@ -12,8 +15,8 @@ type RouteContext = {
 };
 
 const GATEWAY_UNAVAILABLE_BODY = {
-  message: "errors.apiUnavailable",
-  messages: ["errors.apiUnavailable"]
+  message: "errors.upstreamUnavailable",
+  messages: ["errors.upstreamUnavailable"]
 };
 
 function localeFromRequest(request: NextRequest): string {
@@ -67,10 +70,15 @@ async function proxy(request: NextRequest, context: RouteContext) {
   }
 
   if (isInvestorOnlyBackendPath(path) && session.role !== "investor") {
-    return NextResponse.json(
-      { messages: ["errors.investorSessionRequired"] },
-      { status: 403 }
-    );
+    const staffRead =
+      isStaffSharedInvestorReadPath(path, request.method) &&
+      (session.role === "compliance" || session.role === "audit");
+    if (!staffRead) {
+      return NextResponse.json(
+        { messages: ["errors.investorSessionRequired"] },
+        { status: 403 }
+      );
+    }
   }
 
   const backendBaseUrl = process.env.BACKEND_API_BASE_URL ?? "http://localhost:8080";

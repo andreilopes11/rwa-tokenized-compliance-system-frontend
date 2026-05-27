@@ -45,7 +45,18 @@ export const es = {
     authenticationFailed: "Error en la solicitud de autenticación.",
     signOutFailed: "No se pudo cerrar la sesión.",
     requestFailed: "Error en la solicitud.",
-    documentForbidden: "Acceso a este documento prohibido."
+    documentForbidden: "Acceso a este documento prohibido.",
+    upstreamUnavailable:
+      "El servicio de cumplimiento no está disponible temporalmente. Espere e inténtelo de nuevo.",
+    chainNotReady:
+      "La elegibilidad en cadena aún no está confirmada. Espere la confirmación blockchain.",
+    chainSubmissionFailed: "Error en el envío a blockchain. Se reintentará automáticamente.",
+    recipientNotCompliant:
+      "El destinatario no cumple las reglas del emisor para recibir este token.",
+    tokenPaused: "El token está en pausa. Las transferencias están deshabilitadas.",
+    wrongNetwork: "Cambie su billetera a la red requerida antes de firmar.",
+    kycWalletMismatch: "La billetera debe coincidir con su sesión y billetera conectada.",
+    approveTriggersChain: "Esta acción activa la attestación en blockchain. ¿Continuar?"
   },
   common: {
     retry: "Reintentar",
@@ -468,7 +479,67 @@ export const es = {
       heroTitle: "Portafolio, elegibilidad y acciones del ciclo de vida en un solo lugar",
       topbarSubtitle:
         "Red {chainName} {chainId} · elegibilidad off-chain · protección de transferencia en cadena",
-      topbarTitle: "Inversor / Workspace de portafolio"
+      topbarTitle: "Inversor / Workspace de portafolio",
+      nav: {
+        overview: "Resumen",
+        onboarding: "Onboarding",
+        compliance: "Cumplimiento",
+        portfolio: "Portafolio",
+        offerings: "Invertir",
+        redemptions: "Rescatar",
+        transfer: "Transferir",
+        activity: "Actividad"
+      },
+      kyc: {
+        submitted: "Enviado",
+        inReview: "En revisión",
+        approvedPendingChain: "Aprobado — esperando confirmación en cadena",
+        approved: "Aprobado",
+        rejected: "Rechazado",
+        revoked: "Revocado",
+        failedOnChain: "Acción requerida — sincronización pendiente",
+        polling: "Actualizando estado de cumplimiento…",
+        onChainVerified: "Verificado en cadena",
+        offChainOnly: "Solo estado off-chain"
+      }
+    },
+    compliance: {
+      topbarTitle: "Workspace de cumplimiento",
+      topbarSubtitle: "Decisiones KYC y colas — sin controles de gobernanza",
+      nav: {
+        dashboard: "Panel",
+        kyc: "Cola KYC",
+        revoke: "Revocar",
+        subscriptions: "Suscripciones",
+        redemptions: "Rescates",
+        audit: "Eventos"
+      },
+      approveConfirm: "Activa attestación en blockchain. ¿Continuar?",
+      subscriptionBlocked: "El inversor no está verificado en cadena. Aprobación bloqueada."
+    },
+    governance: {
+      topbarTitle: "Workspace de gobernanza",
+      topbarSubtitle: "Controles de emergencia, activos, oracle y ForceSync",
+      nav: {
+        overview: "Resumen",
+        assets: "Activos",
+        pause: "Emergencia",
+        oracle: "Oracle",
+        forceSync: "Force sync",
+        forceSyncApprove: "Cuatro ojos",
+        operations: "Operaciones"
+      }
+    },
+    audit: {
+      topbarTitle: "Workspace de auditoría",
+      topbarSubtitle: "Supervisión de solo lectura",
+      nav: {
+        timeline: "Línea temporal",
+        kyc: "Historial KYC",
+        chain: "En cadena",
+        export: "Exportar",
+        forceSync: "Trail Force sync"
+      }
     }
   }
 } as const;

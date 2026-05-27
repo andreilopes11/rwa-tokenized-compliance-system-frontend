@@ -4,6 +4,7 @@ import type {
   AssetComplianceRulesUpdateRequest,
   AssetOfferingCreateRequest,
   AssetOfferingResponse,
+  AssetOfferingStatus,
   AuditEventResponse,
   BlockchainTransactionResponse,
   InvestorComplianceProfileResponse,
@@ -61,6 +62,15 @@ export async function listAdminAuditEvents(
 ): Promise<AuditEventResponse[]> {
   return jsonFetch<AuditEventResponse[]>(
     `/api/admin/audit-events${queryString(filters)}`,
+    authorizedRequest()
+  );
+}
+
+export async function listAdminAssetOfferings(
+  filters: { status?: AssetOfferingStatus | ""; limit?: number } = {}
+): Promise<AssetOfferingResponse[]> {
+  return jsonFetch<AssetOfferingResponse[]>(
+    `/api/admin/assets${queryString(filters)}`,
     authorizedRequest()
   );
 }

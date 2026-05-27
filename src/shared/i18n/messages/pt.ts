@@ -45,7 +45,18 @@ export const pt = {
     authenticationFailed: "Falha na solicitação de autenticação.",
     signOutFailed: "Não foi possível encerrar a sessão.",
     requestFailed: "Falha na solicitação.",
-    documentForbidden: "Acesso a este documento é proibido."
+    documentForbidden: "Acesso a este documento é proibido.",
+    upstreamUnavailable:
+      "O serviço de conformidade está temporariamente indisponível. Aguarde e tente novamente.",
+    chainNotReady:
+      "A elegibilidade on-chain ainda não foi confirmada. Aguarde a confirmação na blockchain.",
+    chainSubmissionFailed: "Falha no envio à blockchain. Nova tentativa automática.",
+    recipientNotCompliant:
+      "O destinatário não cumpre as regras do emissor para receber este token.",
+    tokenPaused: "O token está pausado. Transferências desativadas.",
+    wrongNetwork: "Mude a carteira para a rede exigida antes de assinar.",
+    kycWalletMismatch: "A carteira deve coincidir com a sessão e carteira ligada.",
+    approveTriggersChain: "Esta ação dispara atestação on-chain. Continuar?"
   },
   common: {
     retry: "Tentar novamente",
@@ -468,7 +479,67 @@ export const pt = {
       heroTitle: "Portfólio, elegibilidade e ações de ciclo de vida em um só lugar",
       topbarSubtitle:
         "Rede {chainName} {chainId} · elegibilidade off-chain · proteção de transferência on-chain",
-      topbarTitle: "Investidor / Workspace de portfólio"
+      topbarTitle: "Investidor / Workspace de portfólio",
+      nav: {
+        overview: "Visão geral",
+        onboarding: "Onboarding",
+        compliance: "Conformidade",
+        portfolio: "Portfólio",
+        offerings: "Investir",
+        redemptions: "Resgatar",
+        transfer: "Transferir",
+        activity: "Atividade"
+      },
+      kyc: {
+        submitted: "Submetido",
+        inReview: "Em revisão",
+        approvedPendingChain: "Aprovado — aguardando confirmação on-chain",
+        approved: "Aprovado",
+        rejected: "Rejeitado",
+        revoked: "Revogado",
+        failedOnChain: "Ação necessária — sincronização pendente",
+        polling: "A atualizar estado de conformidade…",
+        onChainVerified: "Verificado on-chain",
+        offChainOnly: "Apenas estado off-chain"
+      }
+    },
+    compliance: {
+      topbarTitle: "Workspace de conformidade",
+      topbarSubtitle: "Decisões KYC e filas — sem controlos de governação",
+      nav: {
+        dashboard: "Painel",
+        kyc: "Fila KYC",
+        revoke: "Revogar",
+        subscriptions: "Subscrições",
+        redemptions: "Resgates",
+        audit: "Eventos"
+      },
+      approveConfirm: "Dispara atestação on-chain. Continuar?",
+      subscriptionBlocked: "Investidor não verificado on-chain. Aprovação bloqueada."
+    },
+    governance: {
+      topbarTitle: "Workspace de governação",
+      topbarSubtitle: "Controlo de emergência, ativos, oracle e ForceSync",
+      nav: {
+        overview: "Visão geral",
+        assets: "Ativos",
+        pause: "Emergência",
+        oracle: "Oracle",
+        forceSync: "Force sync",
+        forceSyncApprove: "Quatro olhos",
+        operations: "Operações"
+      }
+    },
+    audit: {
+      topbarTitle: "Workspace de auditoria",
+      topbarSubtitle: "Supervisão só de leitura",
+      nav: {
+        timeline: "Linha temporal",
+        kyc: "Histórico KYC",
+        chain: "On-chain",
+        export: "Exportar",
+        forceSync: "Trilho Force sync"
+      }
     }
   }
 } as const;

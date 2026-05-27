@@ -12,7 +12,7 @@ export async function jsonFetch<T>(path: string, init?: RequestInit): Promise<T>
       headers: apiLocaleHeaders(init?.headers)
     });
   } catch {
-    throw new ApiError("errors.apiUnavailable", 502, true);
+    throw new ApiError("errors.upstreamUnavailable", 502, true);
   }
 
   const payload = await response.json().catch(() => null);
@@ -22,8 +22,11 @@ export async function jsonFetch<T>(path: string, init?: RequestInit): Promise<T>
       ? ((payload as { messages: string[] }).messages.join(" ") || response.statusText)
       : ((payload as { message?: string } | null)?.message ?? response.statusText);
     const retryable = response.status === 502 || response.status === 503;
-    const message = messages || "errors.requestFailed";
-    throw new ApiError(message, response.status, retryable);
+    const upstreamMessage =
+      response.status === 502 || response.status === 503
+        ? "errors.upstreamUnavailable"
+        : messages || "errors.requestFailed";
+    throw new ApiError(upstreamMessage, response.status, retryable);
   }
 
   return payload as T;
