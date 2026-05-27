@@ -2,16 +2,42 @@ import { ApiError } from "@/shared/api/errors";
 import { apiLocaleHeaders } from "@/shared/i18n/apiLocale";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "/api/backend";
+const RETRYABLE_STATUSES = new Set([502, 503]);
+const RETRY_DELAYS_MS = [250, 600];
+
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 export async function jsonFetch<T>(path: string, init?: RequestInit): Promise<T> {
-  let response: Response;
-  try {
-    response = await fetch(`${API_BASE_URL}${path}`, {
-      credentials: "same-origin",
-      ...init,
-      headers: apiLocaleHeaders(init?.headers)
-    });
-  } catch {
+  const requestInit: RequestInit = {
+    credentials: "same-origin",
+    ...init,
+    headers: apiLocaleHeaders(init?.headers)
+  };
+  let response: Response | null = null;
+  let attempts = 0;
+
+  while (attempts <= RETRY_DELAYS_MS.length) {
+    try {
+      response = await fetch(`${API_BASE_URL}${path}`, requestInit);
+    } catch {
+      if (attempts >= RETRY_DELAYS_MS.length) {
+        throw new ApiError("errors.upstreamUnavailable", 502, true);
+      }
+      await sleep(RETRY_DELAYS_MS[attempts] ?? 0);
+      attempts += 1;
+      continue;
+    }
+
+    if (!RETRYABLE_STATUSES.has(response.status) || attempts >= RETRY_DELAYS_MS.length) {
+      break;
+    }
+    await sleep(RETRY_DELAYS_MS[attempts] ?? 0);
+    attempts += 1;
+  }
+
+  if (!response) {
     throw new ApiError("errors.upstreamUnavailable", 502, true);
   }
 

@@ -43,6 +43,18 @@ export function useTransferPreflight({
   const debouncedAmount = useDebouncedValue(transferAmount, PREFLIGHT_DEBOUNCE_MS);
 
   const runPreflight = useCallback(async () => {
+    if (!isWalletAddress(walletAddress) || !isWalletAddress(debouncedRecipient)) {
+      setPreflight(null);
+      setErrorKey(null);
+      return;
+    }
+    const amount = parseAmount(debouncedAmount);
+    if (!amount) {
+      setPreflight(null);
+      setErrorKey(null);
+      return;
+    }
+
     if (wrongNetwork) {
       setPreflight(null);
       setErrorKey("errors.wrongNetwork");
@@ -53,22 +65,16 @@ export function useTransferPreflight({
       setErrorKey("errors.tokenPaused");
       return;
     }
+    if (!investorStatus) {
+      setPreflight(null);
+      setErrorKey(null);
+      return;
+    }
     if (
-      isChainActionBlocked(investorStatus?.status, investorStatus?.onChainVerified)
+      isChainActionBlocked(investorStatus.status, investorStatus.onChainVerified)
     ) {
       setPreflight(null);
       setErrorKey("errors.chainNotReady");
-      return;
-    }
-    if (!isWalletAddress(walletAddress) || !isWalletAddress(debouncedRecipient)) {
-      setPreflight(null);
-      setErrorKey(null);
-      return;
-    }
-    const amount = parseAmount(debouncedAmount);
-    if (!amount) {
-      setPreflight(null);
-      setErrorKey(null);
       return;
     }
 

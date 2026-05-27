@@ -284,7 +284,10 @@ export function InvestorDashboard({ sessionWalletAddress }: InvestorDashboardPro
   }, [account.address, sessionWalletAddress]);
 
   useEffect(() => {
-    void refreshAssets();
+    const timer = window.setTimeout(() => {
+      void refreshAssets();
+    }, 1200);
+    return () => window.clearTimeout(timer);
   }, []);
 
   useEffect(() => {
@@ -296,6 +299,10 @@ export function InvestorDashboard({ sessionWalletAddress }: InvestorDashboardPro
     try {
       setAssets(await fetchAssetOfferings({ status: "ACTIVE", limit: 5 }));
     } catch (err) {
+      if (isApiError(err) && err.retryable) {
+        setAssetError(m.errors.assetOfferingsRefreshFailed);
+        return;
+      }
       const message = err instanceof Error ? err.message : m.errors.assetOfferingsRefreshFailed;
       setAssetError(resolveClientError(message, t));
     }
@@ -318,8 +325,18 @@ export function InvestorDashboard({ sessionWalletAddress }: InvestorDashboardPro
       const result = await connectAsync({ connector, chainId: activeChain.id });
       const connectedAddress = result.accounts[0] ?? "";
       if (connectedAddress) {
-        setWalletAddress(connectedAddress);
-        await refreshStatus(connectedAddress);
+        if (
+          sessionWalletAddress &&
+          connectedAddress.toLowerCase() !== sessionWalletAddress.toLowerCase()
+        ) {
+          setWalletAddress(sessionWalletAddress);
+          await refreshStatus(sessionWalletAddress);
+          setError(resolveClientError("errors.kycWalletMismatch", t));
+          return;
+        }
+        const targetAddress = sessionWalletAddress ?? connectedAddress;
+        setWalletAddress(targetAddress);
+        await refreshStatus(targetAddress);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : m.wallet.connectionFailed);
@@ -356,19 +373,28 @@ export function InvestorDashboard({ sessionWalletAddress }: InvestorDashboardPro
         fetchInvestorPositions(address),
         fetchInvestorAuditEvents(address, 10)
       ]);
-      const [financialResponse, taxResponse, notificationResponse, tutorialResponse] = await Promise.all([
+      const ancillaryResults = await Promise.allSettled([
         fetchFinancialSummary(address),
         fetchTaxSummary(address, "en"),
         fetchNotifications(address),
         fetchTutorials("en")
       ]);
+      const [financialResult, taxResult, notificationResult, tutorialResult] = ancillaryResults;
       setStatus(statusResponse);
       setPositions(positionsResponse);
       setAuditEvents(eventsResponse);
-      setFinancialSummary(financialResponse);
-      setTaxSummary(taxResponse);
-      setNotifications(notificationResponse);
-      setTutorials(tutorialResponse);
+      if (financialResult.status === "fulfilled") {
+        setFinancialSummary(financialResult.value);
+      }
+      if (taxResult.status === "fulfilled") {
+        setTaxSummary(taxResult.value);
+      }
+      if (notificationResult.status === "fulfilled") {
+        setNotifications(notificationResult.value);
+      }
+      if (tutorialResult.status === "fulfilled") {
+        setTutorials(tutorialResult.value);
+      }
       setNotice("Investor status refreshed from the compliance API.");
     } catch (err) {
       reportRequestError(err, "Status refresh failed.");
