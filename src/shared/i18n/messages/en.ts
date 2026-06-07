@@ -485,8 +485,8 @@ export const en = {
         onboarding: "Onboarding",
         compliance: "Compliance",
         portfolio: "Portfolio",
-        offerings: "Invest",
-        redemptions: "Redeem",
+        contractsPublic: "Public contracts",
+        contractsPrivate: "Private contracts",
         transfer: "Transfer",
         activity: "Activity"
       },

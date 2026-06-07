@@ -3,10 +3,15 @@ export {
   fetchAdminAssetPauseStatus,
   fetchAdminOperationsReport,
   fetchOracleFeed,
+  grantAssetInvestorAccess,
   listAdminAssetOfferings,
+  listAssetInvestorAccess,
   pauseAdminAssetToken,
+  publishAdminAssetOffering,
+  revokeAssetInvestorAccess,
   unpauseAdminAssetToken,
-  updateAdminAssetComplianceRules
+  updateAdminAssetComplianceRules,
+  updateAdminAssetOffering
 } from "@/features/admin/api/client";
 
 import { jsonFetch, authorizedRequest } from "@/shared/api/http";

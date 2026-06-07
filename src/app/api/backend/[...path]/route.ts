@@ -31,6 +31,14 @@ export async function POST(request: NextRequest, context: RouteContext) {
   return proxy(request, context);
 }
 
+export async function PATCH(request: NextRequest, context: RouteContext) {
+  return proxy(request, context);
+}
+
+export async function DELETE(request: NextRequest, context: RouteContext) {
+  return proxy(request, context);
+}
+
 async function proxy(request: NextRequest, context: RouteContext) {
   const session = await ensureSession();
   if (!session) {

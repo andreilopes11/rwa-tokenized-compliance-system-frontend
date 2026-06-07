@@ -2,9 +2,12 @@ import { authorizedRequest, jsonFetch, queryString } from "@/shared/api/http";
 import type {
   AssetComplianceRulesResponse,
   AssetComplianceRulesUpdateRequest,
+  AssetInvestorAccessGrantRequest,
+  AssetInvestorAccessResponse,
   AssetOfferingCreateRequest,
   AssetOfferingResponse,
   AssetOfferingStatus,
+  AssetOfferingUpdateRequest,
   AuditEventResponse,
   BlockchainTransactionResponse,
   InvestorComplianceProfileResponse,
@@ -84,6 +87,58 @@ export async function createAdminAssetOffering(
       method: "POST",
       body: JSON.stringify(request)
     })
+  );
+}
+
+export async function updateAdminAssetOffering(
+  assetId: string,
+  request: AssetOfferingUpdateRequest
+): Promise<AssetOfferingResponse> {
+  return jsonFetch<AssetOfferingResponse>(
+    `/api/admin/assets/${encodeURIComponent(assetId)}`,
+    authorizedRequest({
+      method: "PATCH",
+      body: JSON.stringify(request)
+    })
+  );
+}
+
+export async function publishAdminAssetOffering(assetId: string): Promise<AssetOfferingResponse> {
+  return jsonFetch<AssetOfferingResponse>(
+    `/api/admin/assets/${encodeURIComponent(assetId)}/publish`,
+    authorizedRequest({ method: "POST" })
+  );
+}
+
+export async function listAssetInvestorAccess(
+  assetId: string
+): Promise<AssetInvestorAccessResponse[]> {
+  return jsonFetch<AssetInvestorAccessResponse[]>(
+    `/api/admin/assets/${encodeURIComponent(assetId)}/investor-access`,
+    authorizedRequest()
+  );
+}
+
+export async function grantAssetInvestorAccess(
+  assetId: string,
+  request: AssetInvestorAccessGrantRequest
+): Promise<AssetInvestorAccessResponse> {
+  return jsonFetch<AssetInvestorAccessResponse>(
+    `/api/admin/assets/${encodeURIComponent(assetId)}/investor-access`,
+    authorizedRequest({
+      method: "POST",
+      body: JSON.stringify(request)
+    })
+  );
+}
+
+export async function revokeAssetInvestorAccess(
+  assetId: string,
+  identityHash: string
+): Promise<void> {
+  await jsonFetch<void>(
+    `/api/admin/assets/${encodeURIComponent(assetId)}/investor-access/${encodeURIComponent(identityHash)}`,
+    authorizedRequest({ method: "DELETE" })
   );
 }
 

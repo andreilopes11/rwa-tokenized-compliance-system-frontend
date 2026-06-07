@@ -283,12 +283,21 @@ export function InvestorDashboard({ sessionWalletAddress }: InvestorDashboardPro
     }
   }, [account.address, sessionWalletAddress]);
 
+  const publicContracts = useMemo(
+    () => assets.filter((asset) => asset.visibility === "PUBLIC"),
+    [assets]
+  );
+  const privateContracts = useMemo(
+    () => assets.filter((asset) => asset.visibility === "PRIVATE"),
+    [assets]
+  );
+
   useEffect(() => {
     const timer = window.setTimeout(() => {
       void refreshAssets();
     }, 1200);
     return () => window.clearTimeout(timer);
-  }, []);
+  }, [walletAddress, status?.identityHash]);
 
   useEffect(() => {
     setShowPollingBanner(kycPollingActive);
@@ -297,7 +306,14 @@ export function InvestorDashboard({ sessionWalletAddress }: InvestorDashboardPro
   async function refreshAssets() {
     setAssetError("");
     try {
-      setAssets(await fetchAssetOfferings({ status: "ACTIVE", limit: 5 }));
+      setAssets(
+        await fetchAssetOfferings({
+          status: "ACTIVE",
+          limit: 50,
+          walletAddress: isWalletAddress(walletAddress) ? walletAddress : undefined,
+          identityHash: status?.identityHash ?? request?.identityHash ?? undefined
+        })
+      );
     } catch (err) {
       if (isApiError(err) && err.retryable) {
         setAssetError(m.errors.assetOfferingsRefreshFailed);
@@ -930,25 +946,28 @@ export function InvestorDashboard({ sessionWalletAddress }: InvestorDashboardPro
           <section
             className="panel"
             data-screen-id="INV-S05"
-            id="offerings"
-            aria-labelledby="offerings-title"
+            id="contracts-public"
+            aria-labelledby="contracts-public-title"
           >
             <div className="section-header">
-              <h2 id="offerings-title">Asset offerings</h2>
+              <h2 id="contracts-public-title">Public contracts</h2>
               <button className="secondary-button" disabled={loading} onClick={refreshAssets} type="button">
                 <RefreshCw size={18} aria-hidden />
                 Refresh
               </button>
             </div>
+            <p className="muted">
+              Published contracts visible to every verified investor. Complete KYC to subscribe.
+            </p>
             {assetError && <Alert tone="error">{assetError}</Alert>}
-            {assets.length === 0 ? (
+            {publicContracts.length === 0 ? (
               <div className="empty-state">
                 <Landmark size={20} aria-hidden />
-                No active offerings are available.
+                No public contracts are available right now.
               </div>
             ) : (
               <div className="offering-grid">
-                {assets.map((asset) => {
+                {publicContracts.map((asset) => {
                   const subscriptionQuote = feeQuotes[`${asset.assetId}:SUBSCRIPTION`];
                   const redemptionQuote = feeQuotes[`${asset.assetId}:REDEMPTION`];
                   return (
@@ -956,7 +975,7 @@ export function InvestorDashboard({ sessionWalletAddress }: InvestorDashboardPro
                     <div>
                       <h3>{asset.name}</h3>
                       <span className={`status ${asset.status === "ACTIVE" ? "approved" : "pending"}`}>
-                        {asset.status}
+                        {asset.status} · PUBLIC
                       </span>
                     </div>
                     <dl className="definition-grid">
@@ -1048,6 +1067,126 @@ export function InvestorDashboard({ sessionWalletAddress }: InvestorDashboardPro
                         <Calculator size={16} aria-hidden />
                         Quote fee
                       </button>
+                      <button
+                        className="secondary-button"
+                        disabled={!lifecycleReady || loading || positionBalance(asset.assetId) <= 0}
+                        title={lifecycleDisabledReason}
+                        onClick={() => requestRedemption(asset)}
+                        type="button"
+                      >
+                        <RefreshCw size={16} aria-hidden />
+                        Redeem
+                      </button>
+                    </div>
+                    {(subscriptionQuote || redemptionQuote) && (
+                      <div className="fee-quote-grid">
+                        {subscriptionQuote && <FeeQuoteCard title="Subscription fees" quote={subscriptionQuote} />}
+                        {redemptionQuote && <FeeQuoteCard title="Redemption fees" quote={redemptionQuote} />}
+                      </div>
+                    )}
+                  </article>
+                  );
+                })}
+              </div>
+            )}
+          </section>
+
+          <section
+            className="panel"
+            data-screen-id="INV-S06"
+            id="contracts-private"
+            aria-labelledby="contracts-private-title"
+          >
+            <div className="section-header">
+              <h2 id="contracts-private-title">Private contracts</h2>
+            </div>
+            <p className="muted">
+              Invite-only contracts. Visible only when an administrator links your investor identity hash.
+            </p>
+            {privateContracts.length === 0 ? (
+              <div className="empty-state">
+                <Landmark size={20} aria-hidden />
+                No private contracts are linked to your investor profile.
+              </div>
+            ) : (
+              <div className="offering-grid">
+                {privateContracts.map((asset) => {
+                  const subscriptionQuote = feeQuotes[`${asset.assetId}:SUBSCRIPTION`];
+                  const redemptionQuote = feeQuotes[`${asset.assetId}:REDEMPTION`];
+                  return (
+                  <article className="offering-card" key={asset.assetId}>
+                    <div>
+                      <h3>{asset.name}</h3>
+                      <span className={`status ${asset.status === "ACTIVE" ? "approved" : "pending"}`}>
+                        {asset.status} · PRIVATE
+                      </span>
+                    </div>
+                    <dl className="definition-grid">
+                      <div>
+                        <dt>Symbol</dt>
+                        <dd>{asset.symbol}</dd>
+                      </div>
+                      <div>
+                        <dt>Type</dt>
+                        <dd>{asset.assetType.replaceAll("_", " ")}</dd>
+                      </div>
+                      <div>
+                        <dt>NAV</dt>
+                        <dd>{formatCurrency(asset.navPrice)}</dd>
+                      </div>
+                      <div>
+                        <dt>Supply cap</dt>
+                        <dd>{formatNumber(asset.supplyCap)}</dd>
+                      </div>
+                      <div>
+                        <dt>Position</dt>
+                        <dd>{formatNumber(positionBalance(asset.assetId))}</dd>
+                      </div>
+                    </dl>
+                    <p className="muted">{asset.issuerMetadata ?? asset.issuerName}</p>
+                    <div className="lifecycle-controls" aria-label={`${asset.symbol} lifecycle actions`}>
+                      <div className="field compact-field">
+                        <label htmlFor={`subscribe-private-${asset.assetId}`}>Subscription amount</label>
+                        <input
+                          id={`subscribe-private-${asset.assetId}`}
+                          min={0}
+                          onChange={(event) =>
+                            setSubscriptionAmounts({
+                              ...subscriptionAmounts,
+                              [asset.assetId]: event.target.value
+                            })
+                          }
+                          placeholder="100"
+                          type="number"
+                          value={subscriptionAmounts[asset.assetId] ?? ""}
+                        />
+                      </div>
+                      <button
+                        className="primary-button"
+                        disabled={!lifecycleReady || loading}
+                        title={lifecycleDisabledReason}
+                        onClick={() => requestSubscription(asset)}
+                        type="button"
+                      >
+                        <Send size={16} aria-hidden />
+                        Subscribe
+                      </button>
+                      <div className="field compact-field">
+                        <label htmlFor={`redeem-private-${asset.assetId}`}>Redemption amount</label>
+                        <input
+                          id={`redeem-private-${asset.assetId}`}
+                          min={0}
+                          onChange={(event) =>
+                            setRedemptionAmounts({
+                              ...redemptionAmounts,
+                              [asset.assetId]: event.target.value
+                            })
+                          }
+                          placeholder="25"
+                          type="number"
+                          value={redemptionAmounts[asset.assetId] ?? ""}
+                        />
+                      </div>
                       <button
                         className="secondary-button"
                         disabled={!lifecycleReady || loading || positionBalance(asset.assetId) <= 0}

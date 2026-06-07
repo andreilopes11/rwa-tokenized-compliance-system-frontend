@@ -8,6 +8,7 @@ export type KycStatus =
   | "REVOKED"
   | "FAILED_ON_CHAIN";
 export type AssetOfferingStatus = "DRAFT" | "ACTIVE" | "PAUSED" | "CLOSED";
+export type AssetOfferingVisibility = "PUBLIC" | "PRIVATE";
 export type LifecycleStatus = "PENDING" | "APPROVED" | "REJECTED" | "FAILED_ON_CHAIN";
 export type InvestorType = "RETAIL" | "ACCREDITED" | "QUALIFIED" | "INSTITUTIONAL";
 
@@ -83,6 +84,7 @@ export type AssetOfferingResponse = {
   assetType: string;
   jurisdiction: string;
   status: AssetOfferingStatus;
+  visibility: AssetOfferingVisibility;
   supplyCap: number;
   navPrice: number;
   issuerName: string;
@@ -98,11 +100,33 @@ export type AssetOfferingCreateRequest = {
   assetType: string;
   jurisdiction: string;
   status: AssetOfferingStatus;
+  visibility?: AssetOfferingVisibility;
   supplyCap: number;
   navPrice: number;
   issuerName: string;
   issuerMetadata?: string;
   tokenAddress?: string;
+};
+
+export type AssetOfferingUpdateRequest = {
+  status?: AssetOfferingStatus;
+  visibility?: AssetOfferingVisibility;
+  name?: string;
+  issuerMetadata?: string;
+};
+
+export type AssetInvestorAccessResponse = {
+  accessId: string;
+  assetId: string;
+  identityHash: string;
+  walletAddress: string | null;
+  grantedBy: string;
+  grantedAt: string;
+};
+
+export type AssetInvestorAccessGrantRequest = {
+  identityHash: string;
+  walletAddress?: string;
 };
 
 export type LifecycleRequestCreateRequest = {

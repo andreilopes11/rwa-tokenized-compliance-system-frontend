@@ -486,8 +486,8 @@ export const pt = {
         onboarding: "Onboarding",
         compliance: "Conformidade",
         portfolio: "Portfólio",
-        offerings: "Investir",
-        redemptions: "Resgatar",
+        contractsPublic: "Contratos públicos",
+        contractsPrivate: "Contratos privados",
         transfer: "Transferir",
         activity: "Atividade"
       },
