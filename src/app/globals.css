@@ -1,15 +1,33 @@
 :root {
-  --background: #f6f7f4;
-  --foreground: #17211b;
-  --muted: #667269;
-  --panel: #ffffff;
-  --panel-border: #d9dfd7;
-  --primary: #0f766e;
-  --primary-strong: #115e59;
-  --accent: #b45309;
-  --danger: #b91c1c;
-  --success: #15803d;
-  --ink-soft: #32413a;
+  /* TECHNICAL §7 — VaultGuard design tokens */
+  --vg-bg: #0f1419;
+  --vg-surface: #1a222c;
+  --vg-text: #e8eef4;
+  --vg-muted: #8b9aab;
+  --vg-accent: #2f6fed;
+  --vg-accent-soft: #1e3a5f;
+  --vg-success: #1f8a5b;
+  --vg-warning: #c49214;
+  --vg-danger: #c23b3b;
+  --vg-border: #2a3542;
+  --vg-radius: 8px;
+  --vg-font-display: var(--font-vg-display), "Source Serif 4", Georgia, serif;
+  --vg-font-body: var(--font-vg-body), "IBM Plex Sans", system-ui, sans-serif;
+  --vg-font-mono: var(--font-vg-mono), "IBM Plex Mono", ui-monospace, monospace;
+
+  /* Legacy aliases → vg (ops console default: institutional dark) */
+  --background: var(--vg-bg);
+  --foreground: var(--vg-text);
+  --muted: var(--vg-muted);
+  --panel: var(--vg-surface);
+  --panel-border: var(--vg-border);
+  --primary: var(--vg-accent);
+  --primary-strong: #2558c7;
+  --accent: var(--vg-warning);
+  --danger: var(--vg-danger);
+  --success: var(--vg-success);
+  --ink-soft: #c5d0db;
+  --radius: var(--vg-radius);
 }
 
 * {
@@ -18,9 +36,11 @@
 
 body {
   margin: 0;
-  background: var(--background);
+  background:
+    radial-gradient(circle at top left, rgba(47, 111, 237, 0.12), transparent 36%),
+    linear-gradient(180deg, #0f1419 0%, #121820 50%, #0f1419 100%);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--vg-font-body);
   letter-spacing: 0;
   line-height: 1.5;
 }
@@ -57,7 +77,7 @@ button:focus-visible,
 input:focus-visible,
 select:focus-visible,
 a:focus-visible {
-  outline: 3px solid rgba(15, 118, 110, 0.2);
+  outline: 3px solid rgba(47, 111, 237, 0.35);
   outline-offset: 2px;
 }
 
@@ -1183,74 +1203,74 @@ a:focus-visible {
 /* Experience Refresh */
 
 :root {
-  --background: #eef4ef;
-  --foreground: #162019;
-  --ink: #162019;
-  --muted: #5f6e64;
-  --panel: rgba(255, 255, 255, 0.94);
+  --ink: var(--vg-text);
+  --panel-strong: #222b36;
+  --primary-soft: rgba(47, 111, 237, 0.14);
+  --accent-soft: rgba(196, 146, 20, 0.14);
+  --danger-soft: rgba(194, 59, 59, 0.14);
+  --success-soft: rgba(31, 138, 91, 0.14);
+  --shadow-xs: 0 8px 24px rgba(0, 0, 0, 0.28);
+  --shadow-sm: 0 14px 34px rgba(0, 0, 0, 0.32);
+  --shadow-md: 0 22px 48px rgba(0, 0, 0, 0.38);
+  --shadow-lg: 0 30px 70px rgba(0, 0, 0, 0.48);
+  --chrome-bg: rgba(15, 20, 25, 0.92);
+  --chrome-border: var(--vg-border);
+  --chrome-text: var(--vg-text);
+  --chrome-muted: var(--vg-muted);
+  --chrome-link: #c5d0db;
+  --body-grid: rgba(255, 255, 255, 0.03);
+}
+
+/* Optional light marketing surfaces — keep vg accent (trust blue), not teal/purple */
+[data-theme="light"] {
+  --vg-bg: #f3f5f8;
+  --vg-surface: #ffffff;
+  --vg-text: #15202b;
+  --vg-muted: #5c6b7a;
+  --vg-border: #d5dde6;
+  --background: var(--vg-bg);
+  --foreground: var(--vg-text);
+  --muted: var(--vg-muted);
+  --panel: var(--vg-surface);
   --panel-strong: #ffffff;
-  --panel-border: rgba(111, 139, 122, 0.2);
-  --primary: #0f766e;
-  --primary-strong: #0d5f59;
-  --primary-soft: rgba(15, 118, 110, 0.1);
-  --accent: #a45d10;
-  --accent-soft: rgba(164, 93, 16, 0.12);
-  --danger: #b42318;
-  --danger-soft: rgba(180, 35, 24, 0.12);
-  --success: #15803d;
-  --success-soft: rgba(21, 128, 61, 0.12);
-  --ink-soft: #2e4136;
-  --shadow-xs: 0 8px 24px rgba(18, 35, 25, 0.06);
-  --shadow-sm: 0 14px 34px rgba(18, 35, 25, 0.08);
-  --shadow-md: 0 22px 48px rgba(18, 35, 25, 0.12);
-  --shadow-lg: 0 30px 70px rgba(8, 17, 12, 0.18);
-  --chrome-bg: rgba(255, 255, 255, 0.92);
-  --chrome-border: rgba(111, 139, 122, 0.2);
-  --chrome-text: var(--foreground);
-  --chrome-muted: var(--muted);
-  --chrome-link: var(--ink-soft);
-  --body-grid: rgba(19, 34, 25, 0.025);
+  --panel-border: var(--vg-border);
+  --primary: var(--vg-accent);
+  --primary-strong: #2558c7;
+  --primary-soft: rgba(47, 111, 237, 0.1);
+  --ink: var(--vg-text);
+  --ink-soft: #324353;
+  --chrome-bg: rgba(255, 255, 255, 0.94);
+  --chrome-border: var(--vg-border);
+  --chrome-text: var(--vg-text);
+  --chrome-muted: var(--vg-muted);
+  --chrome-link: #324353;
+  --body-grid: rgba(21, 32, 43, 0.03);
+  --shadow-xs: 0 8px 24px rgba(21, 32, 43, 0.06);
+  --shadow-sm: 0 14px 34px rgba(21, 32, 43, 0.08);
+  --shadow-md: 0 22px 48px rgba(21, 32, 43, 0.1);
+  --shadow-lg: 0 30px 70px rgba(21, 32, 43, 0.14);
 }
 
-[data-theme="dark"] {
-  --background: #0a0f0d;
-  --foreground: #edf4ef;
-  --ink: #edf4ef;
-  --muted: rgba(216, 229, 222, 0.72);
-  --panel: rgba(18, 29, 24, 0.94);
-  --panel-strong: #152019;
-  --panel-border: rgba(255, 255, 255, 0.1);
-  --primary: #2dd4bf;
-  --primary-strong: #14b8a6;
-  --primary-soft: rgba(45, 212, 191, 0.12);
-  --accent: #fbbf24;
-  --accent-soft: rgba(251, 191, 36, 0.12);
-  --danger: #f87171;
-  --danger-soft: rgba(248, 113, 113, 0.12);
-  --success: #4ade80;
-  --success-soft: rgba(74, 222, 128, 0.12);
-  --ink-soft: rgba(233, 245, 239, 0.88);
-  --shadow-xs: 0 8px 24px rgba(0, 0, 0, 0.35);
-  --shadow-sm: 0 14px 34px rgba(0, 0, 0, 0.4);
-  --shadow-md: 0 22px 48px rgba(0, 0, 0, 0.45);
-  --shadow-lg: 0 30px 70px rgba(0, 0, 0, 0.55);
-  --chrome-bg: rgba(14, 24, 19, 0.92);
-  --chrome-border: rgba(255, 255, 255, 0.08);
-  --chrome-text: #f5fbf7;
-  --chrome-muted: rgba(222, 232, 226, 0.78);
-  --chrome-link: rgba(245, 251, 247, 0.9);
-  --body-grid: rgba(255, 255, 255, 0.04);
-}
-
+html,
 html[data-theme="dark"] {
   color-scheme: dark;
 }
 
-[data-theme="dark"] body {
+html[data-theme="light"] {
+  color-scheme: light;
+}
+
+[data-theme="dark"] body,
+html:not([data-theme="light"]) body {
   background:
-    radial-gradient(circle at top left, rgba(45, 212, 191, 0.1), transparent 32%),
-    radial-gradient(circle at right 16%, rgba(139, 92, 246, 0.08), transparent 24%),
-    linear-gradient(180deg, #0a0f0d 0%, #0c1210 44%, #0a0e0c 100%);
+    radial-gradient(circle at top left, rgba(47, 111, 237, 0.12), transparent 36%),
+    linear-gradient(180deg, #0f1419 0%, #121820 50%, #0f1419 100%);
+}
+
+[data-theme="light"] body {
+  background:
+    radial-gradient(circle at top left, rgba(47, 111, 237, 0.08), transparent 40%),
+    linear-gradient(180deg, #f3f5f8 0%, #eef2f7 100%);
 }
 
 [data-theme="dark"] body::before {

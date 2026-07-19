@@ -1,7 +1,8 @@
 import { ApiError } from "@/shared/api/errors";
+import { publicRuntime } from "@/shared/config/publicRuntime";
 import { apiLocaleHeaders } from "@/shared/i18n/apiLocale";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "/api/backend";
+const API_BASE_URL = publicRuntime.apiBaseUrl;
 const RETRYABLE_STATUSES = new Set([502, 503]);
 const RETRY_DELAYS_MS = [250, 600];
 

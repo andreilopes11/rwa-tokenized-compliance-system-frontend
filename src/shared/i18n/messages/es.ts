@@ -55,6 +55,10 @@ export const es = {
       "El destinatario no cumple las reglas del emisor para recibir este token.",
     tokenPaused: "El token está en pausa. Las transferencias están deshabilitadas.",
     wrongNetwork: "Cambie su billetera a la red requerida antes de firmar.",
+    senderNotCompliant:
+      "Su billetera no es elegible para enviar este token según las reglas del emisor.",
+    invalidAmount: "Introduzca un importe de transferencia válido mayor que cero.",
+    insufficientBalance: "Saldo de tokens insuficiente para esta transferencia.",
     kycWalletMismatch: "La billetera debe coincidir con su sesión y billetera conectada.",
     approveTriggersChain: "Esta acción activa la attestación en blockchain. ¿Continuar?"
   },
@@ -265,7 +269,7 @@ export const es = {
     steps: [
       {
         title: "Crear cuenta e iniciar sesión",
-        description: "Regístrese con MFA, seleccione el rol de inversor o emisor y acceda al espacio de trabajo seguro."
+        description: "Regístrese con correo y contraseña, seleccione el rol de inversor o emisor y acceda al espacio de trabajo seguro."
       },
       {
         title: "Completar revisión de cumplimiento",
@@ -314,7 +318,7 @@ export const es = {
     howToSteps: [
       {
         title: "Registrarse o iniciar sesión",
-        description: "Seleccione el rol de inversor o emisor y complete MFA según lo exija su organización."
+        description: "Inicie sesión con correo y contraseña para entrar al espacio de trabajo seguro."
       },
       {
         title: "Vincular billetera y enviar KYC",
@@ -382,7 +386,7 @@ export const es = {
     mfaHelp: "Introduzca el código de un solo uso de su autenticador o la política de su organización.",
     mfaPlaceholder: "123456",
     provider: "Método de acceso",
-    providerEmailDescription: "Inicie sesión con su correo registrado y MFA.",
+    providerEmailDescription: "Inicie sesión con su correo registrado y contraseña.",
     providerEmailTitle: "Correo electrónico",
     providerGoogleDescription: "OAuth empresarial cuando Google Workspace está configurado.",
     providerGoogleTitle: "Google",
@@ -449,6 +453,11 @@ export const es = {
     strengthGood: "Buena",
     strengthStrong: "Fuerte",
     strengthWeak: "Débil",
+    inviteCode: "Código de invitación admin",
+    inviteHelp:
+      "Obligatorio para compliance, governance y audit. No es el código MFA del login. Local: local-admin-invite (AUTH_ADMIN_INVITE_CODE).",
+    invitePlaceholder: "local-admin-invite",
+    inviteRequired: "El código de invitación admin es obligatorio.",
     submit: "Crear cuenta",
     submitError: "No se pudo crear la cuenta. Inténtelo de nuevo.",
     submitting: "Creando cuenta...",

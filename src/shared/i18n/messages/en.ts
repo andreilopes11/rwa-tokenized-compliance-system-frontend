@@ -55,6 +55,10 @@ export const en = {
       "The recipient is not eligible to receive this token under issuer compliance rules.",
     tokenPaused: "This token is paused. Transfers and lifecycle actions are temporarily disabled.",
     wrongNetwork: "Switch your wallet to the required network before signing.",
+    senderNotCompliant:
+      "Your wallet is not eligible to send this token under issuer compliance rules.",
+    invalidAmount: "Enter a valid transfer amount greater than zero.",
+    insufficientBalance: "Insufficient token balance for this transfer.",
     kycWalletMismatch: "The wallet must match your session and connected wallet.",
     approveTriggersChain: "This action triggers blockchain attestation and cannot be undone from the UI alone."
   },
@@ -265,7 +269,7 @@ export const en = {
     steps: [
       {
         title: "Create account & sign in",
-        description: "Register with MFA, select investor or issuer role, and enter the secured workspace."
+        description: "Register with email and password, select investor or issuer role, and enter the secured workspace."
       },
       {
         title: "Complete compliance review",
@@ -314,7 +318,7 @@ export const en = {
     howToSteps: [
       {
         title: "Sign up or sign in",
-        description: "Select investor or issuer role and complete MFA as required by your organization."
+        description: "Sign in with email and password to enter the secured workspace."
       },
       {
         title: "Bind wallet & submit KYC",
@@ -382,7 +386,7 @@ export const en = {
     mfaHelp: "Enter the one-time code from your authenticator or organization policy.",
     mfaPlaceholder: "123456",
     provider: "Access method",
-    providerEmailDescription: "Sign in with your registered email and MFA.",
+    providerEmailDescription: "Sign in with your registered email and password.",
     providerEmailTitle: "Email",
     providerGoogleDescription: "Enterprise OAuth when Google Workspace is configured.",
     providerGoogleTitle: "Google",
@@ -449,6 +453,11 @@ export const en = {
     strengthGood: "Good",
     strengthStrong: "Strong",
     strengthWeak: "Weak",
+    inviteCode: "Admin invite code",
+    inviteHelp:
+      "Required for compliance, governance, and audit roles. This is not the login MFA code. Local default: local-admin-invite (AUTH_ADMIN_INVITE_CODE).",
+    invitePlaceholder: "local-admin-invite",
+    inviteRequired: "Admin invite code is required.",
     submit: "Create account",
     submitError: "Unable to create the account. Please try again.",
     submitting: "Creating account...",

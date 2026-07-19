@@ -25,6 +25,7 @@
     "react-dom": "^19.2.6",
     "react-is": "^19.2.0",
     "recharts": "^3.8.1",
+    "server-only": "^0.0.1",
     "viem": "2.48.11",
     "wagmi": "3.6.12"
   },

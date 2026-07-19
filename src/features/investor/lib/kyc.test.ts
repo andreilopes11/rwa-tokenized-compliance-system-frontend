@@ -2,7 +2,10 @@ import { describe, expect, it } from "vitest";
 import {
   isChainActionBlocked,
   isKycPollingComplete,
-  isLifecycleReady
+  isLifecycleReady,
+  KYC_POLL_MS_MAX,
+  KYC_POLL_MS_MIN,
+  nextKycPollDelayMs
 } from "./kyc";
 
 describe("kyc lifecycle gating", () => {
@@ -22,5 +25,13 @@ describe("kyc lifecycle gating", () => {
     expect(isKycPollingComplete("APPROVED", false)).toBe(false);
     expect(isKycPollingComplete("APPROVED", true)).toBe(true);
     expect(isKycPollingComplete("REJECTED", false)).toBe(true);
+  });
+
+  it("samples poll delay within 5–15s", () => {
+    for (let i = 0; i < 40; i += 1) {
+      const delay = nextKycPollDelayMs();
+      expect(delay).toBeGreaterThanOrEqual(KYC_POLL_MS_MIN);
+      expect(delay).toBeLessThanOrEqual(KYC_POLL_MS_MAX);
+    }
   });
 });

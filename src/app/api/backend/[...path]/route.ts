@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
-  isInvestorOnlyBackendPath,
-  isStaffSharedInvestorReadPath
+  denyBackendProxyAccess,
+  stripInvestorAclProbeParams
 } from "@/features/auth/lib/middleware-auth";
 import {
   clearAuthCookies,
   ensureSession,
   getAuthorizedBackendHeaders
 } from "@/features/auth/server/session";
+import { serverRuntime } from "@/shared/config/serverRuntime";
 import { LOCALE_COOKIE, normalizeLocale } from "@/shared/i18n/config";
 
 type RouteContext = {
@@ -49,49 +50,19 @@ async function proxy(request: NextRequest, context: RouteContext) {
 
   const params = await context.params;
   const path = params.path.join("/");
-  const isComplianceRoute =
-    path.startsWith("api/admin/kyc/")
-    || path.startsWith("api/admin/identities/")
-    || path.startsWith("api/admin/subscriptions/")
-    || path.startsWith("api/admin/redemptions/")
-    || path.startsWith("api/admin/investors/");
-  const isGovernanceRoute =
-    path.startsWith("api/admin/assets/")
-    || path === "api/admin/assets"
-    || path.startsWith("api/admin/force-sync/");
-  const isAuditRoute =
-    path.startsWith("api/admin/audit-events")
-    || path.startsWith("api/admin/blockchain-transactions")
-    || path.startsWith("api/admin/reports/");
 
-  if (isComplianceRoute && session.role !== "compliance") {
-    return NextResponse.json({ messages: ["errors.complianceSessionRequired"] }, { status: 403 });
-  }
-  if (isGovernanceRoute && session.role !== "governance") {
-    return NextResponse.json({ messages: ["errors.governanceSessionRequired"] }, { status: 403 });
-  }
-  if (isAuditRoute && session.role !== "audit" && session.role !== "governance" && session.role !== "compliance") {
-    return NextResponse.json({ messages: ["errors.auditSessionRequired"] }, { status: 403 });
-  }
-  if (path.startsWith("api/admin/") && session.role === "investor") {
-    return NextResponse.json({ messages: ["errors.adminSessionRequired"] }, { status: 403 });
+  const denial = denyBackendProxyAccess(session.role, path, request.method);
+  if (denial) {
+    return NextResponse.json({ messages: [denial] }, { status: 403 });
   }
 
-  if (isInvestorOnlyBackendPath(path) && session.role !== "investor") {
-    const staffRead =
-      isStaffSharedInvestorReadPath(path, request.method) &&
-      (session.role === "compliance" || session.role === "audit");
-    if (!staffRead) {
-      return NextResponse.json(
-        { messages: ["errors.investorSessionRequired"] },
-        { status: 403 }
-      );
-    }
-  }
-
-  const backendBaseUrl = process.env.BACKEND_API_BASE_URL ?? "http://localhost:8080";
+  const backendBaseUrl = serverRuntime.backendApiBaseUrl;
   const target = new URL(`${backendBaseUrl.replace(/\/$/, "")}/${path}`);
-  target.search = request.nextUrl.search;
+  const searchParams = new URLSearchParams(request.nextUrl.search);
+  if (session.role === "investor") {
+    stripInvestorAclProbeParams(path, searchParams);
+  }
+  target.search = searchParams.toString();
 
   let authHeaders: HeadersInit;
   try {
@@ -105,6 +76,10 @@ async function proxy(request: NextRequest, context: RouteContext) {
   const headers = new Headers(authHeaders);
   if (session.role === "investor" && session.walletAddress) {
     headers.set("X-Investor-Wallet", session.walletAddress);
+  }
+  // Tenant orchestration: JWT-bound grants only; header must match session.tenantIds (backend enforces).
+  if (session.tenantId) {
+    headers.set("X-Tenant-Id", session.tenantId);
   }
   headers.set("Accept-Language", localeFromRequest(request));
   const contentType = request.headers.get("content-type");

@@ -4,7 +4,6 @@ import { isValidEmail, isValidWalletAddress, meetsPasswordPolicy, type PasswordC
 export function getRegisterFormBlockers(input: {
   confirmPassword: string;
   email: string;
-  inviteCode: string;
   password: string;
   passwordChecks: PasswordChecks;
   role: AuthRole;
@@ -22,9 +21,6 @@ export function getRegisterFormBlockers(input: {
     blockers.push("Confirm password must match.");
   } else if (input.password.length > 0 && input.confirmPassword.length === 0) {
     blockers.push("Confirm your password.");
-  }
-  if (input.role !== "investor" && !input.inviteCode.trim()) {
-    blockers.push("Admin invite code is required.");
   }
   if (input.walletAddress && !isValidWalletAddress(input.walletAddress)) {
     blockers.push("Wallet address must be valid or left empty.");

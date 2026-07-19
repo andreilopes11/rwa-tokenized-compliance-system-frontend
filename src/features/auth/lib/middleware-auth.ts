@@ -86,3 +86,69 @@ export function isInvestorOnlyBackendPath(path: string): boolean {
   }
   return /\/assets\/[^/]+\/(subscriptions|redemptions)/.test(path);
 }
+
+export type BackendProxyDenial =
+  | "errors.complianceSessionRequired"
+  | "errors.governanceSessionRequired"
+  | "errors.auditSessionRequired"
+  | "errors.adminSessionRequired"
+  | "errors.investorSessionRequired";
+
+/**
+ * TECHNICAL §3 BFF role-path matrix. Returns an i18n error key when the role may not
+ * call the path; null when allowed.
+ */
+export function denyBackendProxyAccess(
+  role: SessionRole,
+  path: string,
+  method: string
+): BackendProxyDenial | null {
+  const isComplianceRoute =
+    path.startsWith("api/admin/kyc/")
+    || path.startsWith("api/admin/identities/")
+    || path.startsWith("api/admin/subscriptions/")
+    || path.startsWith("api/admin/redemptions/")
+    || path.startsWith("api/admin/investors/");
+  const isGovernanceRoute =
+    path.startsWith("api/admin/assets/")
+    || path === "api/admin/assets"
+    || path.startsWith("api/admin/force-sync/");
+  const isAuditRoute =
+    path.startsWith("api/admin/audit-events")
+    || path.startsWith("api/admin/blockchain-transactions")
+    || path.startsWith("api/admin/reports/");
+
+  if (isComplianceRoute && role !== "compliance") {
+    return "errors.complianceSessionRequired";
+  }
+  if (isGovernanceRoute && role !== "governance") {
+    return "errors.governanceSessionRequired";
+  }
+  if (isAuditRoute && role !== "audit" && role !== "governance" && role !== "compliance") {
+    return "errors.auditSessionRequired";
+  }
+  if (path.startsWith("api/admin/") && role === "investor") {
+    return "errors.adminSessionRequired";
+  }
+
+  if (isInvestorOnlyBackendPath(path) && role !== "investor") {
+    const staffRead =
+      isStaffSharedInvestorReadPath(path, method)
+      && (role === "compliance" || role === "audit");
+    if (!staffRead) {
+      return "errors.investorSessionRequired";
+    }
+  }
+
+  return null;
+}
+
+/** Strip client ACL probe params from investor catalog requests (BR-15). */
+export function stripInvestorAclProbeParams(path: string, searchParams: URLSearchParams): void {
+  const catalogPath = path.split("?")[0] ?? path;
+  if (catalogPath !== "api/assets") {
+    return;
+  }
+  searchParams.delete("walletAddress");
+  searchParams.delete("identityHash");
+}

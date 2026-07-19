@@ -70,8 +70,10 @@ import { Button } from "@/shared/ui/Button";
 import { DashboardHero } from "@/shared/ui/DashboardHero";
 import { SiteTopBar } from "@/shared/ui/SiteTopBar";
 
-const tokenAddress = process.env.NEXT_PUBLIC_TOKEN_ADDRESS ?? "";
-const registryAddress = process.env.NEXT_PUBLIC_IDENTITY_REGISTRY_ADDRESS ?? "";
+import { publicRuntime } from "@/shared/config/publicRuntime";
+
+const tokenAddress = publicRuntime.tokenAddress ?? "";
+const registryAddress = publicRuntime.identityRegistryAddress ?? "";
 const PortfolioChart = dynamic(
   () => import("./PortfolioChart").then((module) => module.PortfolioChart),
   {
@@ -235,13 +237,15 @@ export function InvestorDashboard({ sessionWalletAddress }: InvestorDashboardPro
     ],
     [account.isConnected, activeStatus, positions.length, registryVerified, unreadNotifications, walletAddress]
   );
+  const transferAssetId = positions[0]?.assetId ?? null;
   const transferPreflight = useTransferPreflight({
     walletAddress,
     recipientAddress,
     transferAmount,
     investorStatus: status,
     wrongNetwork,
-    tokenPaused: false
+    tokenPaused: Boolean(chainReads.tokenPausedOnChain),
+    assetId: transferAssetId
   });
 
   const { polling: kycPollingActive } = useKycPolling({
@@ -293,11 +297,8 @@ export function InvestorDashboard({ sessionWalletAddress }: InvestorDashboardPro
   );
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
-      void refreshAssets();
-    }, 1200);
-    return () => window.clearTimeout(timer);
-  }, [walletAddress, status?.identityHash]);
+    void refreshAssets();
+  }, []);
 
   useEffect(() => {
     setShowPollingBanner(kycPollingActive);
@@ -306,14 +307,8 @@ export function InvestorDashboard({ sessionWalletAddress }: InvestorDashboardPro
   async function refreshAssets() {
     setAssetError("");
     try {
-      setAssets(
-        await fetchAssetOfferings({
-          status: "ACTIVE",
-          limit: 50,
-          walletAddress: isWalletAddress(walletAddress) ? walletAddress : undefined,
-          identityHash: status?.identityHash ?? request?.identityHash ?? undefined
-        })
-      );
+      // Session-bound ACL only — no walletAddress / identityHash probe params (BR-15).
+      setAssets(await fetchAssetOfferings({ status: "ACTIVE", limit: 50 }));
     } catch (err) {
       if (isApiError(err) && err.retryable) {
         setAssetError(m.errors.assetOfferingsRefreshFailed);
@@ -843,13 +838,13 @@ export function InvestorDashboard({ sessionWalletAddress }: InvestorDashboardPro
               </button>
               <button
                 className="primary-button"
-                disabled={!transferPreflight.canSignTransfer}
-                onClick={() => void transferPreflight.refreshIfStale()}
+                disabled={!transferPreflight.canSignTransfer || transferPreflight.loading}
+                onClick={() => void transferPreflight.refreshBeforeSign()}
                 type="button"
               >
                 <Send size={18} aria-hidden />
                 {transferPreflight.canSignTransfer
-                  ? "Ready to sign transfer"
+                  ? "Refresh preflight & ready to sign"
                   : "Transfer blocked until preflight passes"}
               </button>
             </div>

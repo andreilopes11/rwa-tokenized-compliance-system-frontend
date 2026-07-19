@@ -111,7 +111,7 @@ export function SaAssetsScreen() {
     setError("");
     try {
       await grantAssetInvestorAccess(selectedAssetId, {
-        identityHash: identityHash.trim(),
+        identityHash: normalizeIdentityHash(identityHash),
         walletAddress: investorWallet.trim() || undefined
       });
       setNotice("Investor linked by identity hash.");
@@ -129,7 +129,7 @@ export function SaAssetsScreen() {
     }
     setError("");
     try {
-      await revokeAssetInvestorAccess(selectedAssetId, hash);
+      await revokeAssetInvestorAccess(selectedAssetId, normalizeIdentityHash(hash));
       setNotice("Investor access revoked.");
       await refreshAccess(selectedAssetId);
     } catch (err) {
@@ -223,11 +223,11 @@ export function SaAssetsScreen() {
           <h3>Private access — {selectedAsset.symbol}</h3>
           <form className="stack-form" onSubmit={linkInvestor}>
             <div className="field">
-              <label htmlFor="investor-hash">Investor identity hash (64-char SHA-256)</label>
+              <label htmlFor="investor-hash">Investor identity hash (64-char SHA-256, optional 0x)</label>
               <input
                 id="investor-hash"
                 onChange={(e) => setIdentityHash(e.target.value)}
-                pattern="[a-fA-F0-9]{64}"
+                pattern="(0x|0X)?[a-fA-F0-9]{64}"
                 placeholder="From approved KYC profile"
                 required
                 value={identityHash}
@@ -267,4 +267,13 @@ export function SaAssetsScreen() {
       ) : null}
     </div>
   );
+}
+
+/** Accept 0x-prefixed or bare 64-hex identity hashes from KYC UI. */
+export function normalizeIdentityHash(value: string): string {
+  const trimmed = value.trim();
+  if (/^0x[a-fA-F0-9]{64}$/i.test(trimmed)) {
+    return trimmed.slice(2).toLowerCase();
+  }
+  return trimmed.toLowerCase();
 }

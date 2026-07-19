@@ -2,9 +2,20 @@ import type { InvestorStatusResponse, KycRequestResponse } from "@/shared/api/ty
 
 export const KYC_POLL_MS_MIN = 5000;
 export const KYC_POLL_MS_MAX = 15000;
+/** @deprecated Prefer {@link nextKycPollDelayMs} for 5–15s jitter. */
 export const KYC_POLL_MS = 10000;
 
 const TERMINAL_WITHOUT_CHAIN = new Set(["REJECTED", "REVOKED", "FAILED_ON_CHAIN"]);
+
+/** Uniform delay in [minMs, maxMs] inclusive — KYC poll interval (FUNCTIONAL §5 / UX). */
+export function nextKycPollDelayMs(
+  minMs: number = KYC_POLL_MS_MIN,
+  maxMs: number = KYC_POLL_MS_MAX
+): number {
+  const lo = Math.min(minMs, maxMs);
+  const hi = Math.max(minMs, maxMs);
+  return lo + Math.floor(Math.random() * (hi - lo + 1));
+}
 
 export function isKycPollingComplete(
   status: string | undefined,

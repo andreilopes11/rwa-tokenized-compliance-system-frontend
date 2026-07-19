@@ -120,14 +120,19 @@ export async function fetchInvestorAuditEvents(
 export async function preflightTransfer(
   walletAddress: string,
   recipientWalletAddress: string,
-  amount: number
+  amount: number,
+  assetId?: string
 ): Promise<TransferPreflightResponse> {
   return jsonFetch<TransferPreflightResponse>(
     `/api/investors/${encodeURIComponent(walletAddress)}/transfers/preflight`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ to: recipientWalletAddress, amount })
+      body: JSON.stringify({
+        to: recipientWalletAddress,
+        amount,
+        ...(assetId ? { assetId } : {})
+      })
     }
   );
 }

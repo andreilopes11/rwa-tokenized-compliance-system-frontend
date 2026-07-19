@@ -43,8 +43,11 @@ vi.mock("@/features/investor/hooks/useInvestorChainReads", () => ({
     chainReadsEnabled: false,
     tokenBalanceFormatted: null,
     registryVerifiedOnChain: undefined,
+    recipientVerifiedOnChain: undefined,
+    tokenPausedOnChain: undefined,
     balanceLoading: false,
-    verifiedLoading: false
+    verifiedLoading: false,
+    recipientVerifiedLoading: false
   })
 }));
 
@@ -164,10 +167,16 @@ describe("InvestorDashboard", () => {
     fireEvent.click(screen.getByRole("button", { name: /connect wallet/i }));
     await screen.findByText(/investor status refreshed/i);
 
-    fireEvent.change(screen.getByLabelText(/subscription amount/i), {
+    fireEvent.change(document.getElementById("subscribe-33333333-3333-4333-8333-333333333333")!, {
       target: { value: "25" }
     });
-    fireEvent.click(screen.getByRole("button", { name: /subscribe/i }));
+    const publicSubscribe = screen
+      .getAllByRole("button", { name: /^subscribe$/i })
+      .find((btn: HTMLElement) =>
+        btn.closest('[aria-label="LREIF lifecycle actions"]')
+      );
+    expect(publicSubscribe).toBeTruthy();
+    fireEvent.click(publicSubscribe!);
 
     await waitFor(() => {
       expect(fetchMock).toHaveBeenCalledWith(
@@ -182,10 +191,14 @@ describe("InvestorDashboard", () => {
       expect(screen.getByText(/investor status refreshed/i)).toBeInTheDocument();
     });
 
-    fireEvent.change(screen.getByLabelText(/redemption amount/i), {
+    fireEvent.change(document.getElementById("redeem-33333333-3333-4333-8333-333333333333")!, {
       target: { value: "5" }
     });
-    fireEvent.click(screen.getByRole("button", { name: /redeem/i }));
+    const publicRedeem = screen
+      .getAllByRole("button", { name: /^redeem$/i })
+      .find((btn: HTMLElement) => btn.closest('[aria-label="LREIF lifecycle actions"]'));
+    expect(publicRedeem).toBeTruthy();
+    fireEvent.click(publicRedeem!);
 
     await waitFor(() => {
       expect(fetchMock).toHaveBeenCalledWith(
@@ -199,6 +212,53 @@ describe("InvestorDashboard", () => {
     await waitFor(() => {
       expect(screen.getAllByText(/investor status refreshed/i).length).toBeGreaterThan(0);
     });
+  });
+
+  it("splits ACTIVE offerings into public and private marketplace sections", async () => {
+    const fetchMock = vi.fn(mockFetchApproved);
+    vi.stubGlobal("fetch", fetchMock);
+    Object.defineProperty(window, "ethereum", {
+      configurable: true,
+      value: { request: vi.fn().mockResolvedValue([wallet]) }
+    });
+
+    renderWithProviders(<InvestorDashboard sessionWalletAddress={wallet} />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Lisbon Real Estate Income Fund")).toBeInTheDocument();
+    });
+    expect(screen.getByText("Private Credit Note")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /public contracts/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /private contracts/i })).toBeInTheDocument();
+
+    const assetsCalls = fetchMock.mock.calls.filter(([url]) =>
+      String(url).includes("/api/assets") && !String(url).includes("/subscriptions")
+    );
+    expect(assetsCalls.length).toBeGreaterThan(0);
+    for (const [url] of assetsCalls) {
+      expect(String(url)).not.toMatch(/walletAddress=/);
+      expect(String(url)).not.toMatch(/identityHash=/);
+    }
+  });
+
+  it("disables subscribe when investor is not APPROVED + onChainVerified", async () => {
+    vi.stubGlobal("fetch", vi.fn(mockFetch));
+    Object.defineProperty(window, "ethereum", {
+      configurable: true,
+      value: { request: vi.fn().mockResolvedValue([wallet]) }
+    });
+
+    renderWithProviders(<InvestorDashboard sessionWalletAddress={wallet} />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Lisbon Real Estate Income Fund")).toBeInTheDocument();
+    });
+
+    const subscribeButtons = screen.getAllByRole("button", { name: /^subscribe$/i });
+    expect(subscribeButtons.length).toBeGreaterThan(0);
+    for (const button of subscribeButtons) {
+      expect(button).toBeDisabled();
+    }
   });
 });
 
@@ -226,10 +286,27 @@ async function mockFetch(input: RequestInfo | URL) {
         assetType: "REAL_ESTATE",
         jurisdiction: "PT",
         status: "ACTIVE",
+        visibility: "PUBLIC",
         supplyCap: 1000000,
         navPrice: 100,
         issuerName: "RWA Compliance Issuer",
         issuerMetadata: "Simulated portfolio asset backed by tokenized real estate shares.",
+        tokenAddress: null,
+        createdAt: "2026-05-03T00:00:00Z",
+        updatedAt: "2026-05-03T00:00:00Z"
+      },
+      {
+        assetId: "77777777-7777-4777-8777-777777777777",
+        name: "Private Credit Note",
+        symbol: "PCN",
+        assetType: "CREDIT",
+        jurisdiction: "PT",
+        status: "ACTIVE",
+        visibility: "PRIVATE",
+        supplyCap: 500000,
+        navPrice: 100,
+        issuerName: "RWA Compliance Issuer",
+        issuerMetadata: "Granted investors only.",
         tokenAddress: null,
         createdAt: "2026-05-03T00:00:00Z",
         updatedAt: "2026-05-03T00:00:00Z"
@@ -335,10 +412,27 @@ async function mockFetchApproved(input: RequestInfo | URL) {
         assetType: "REAL_ESTATE",
         jurisdiction: "PT",
         status: "ACTIVE",
+        visibility: "PUBLIC",
         supplyCap: 1000000,
         navPrice: 100,
         issuerName: "RWA Compliance Issuer",
         issuerMetadata: "Simulated portfolio asset backed by tokenized real estate shares.",
+        tokenAddress: null,
+        createdAt: "2026-05-03T00:00:00Z",
+        updatedAt: "2026-05-03T00:00:00Z"
+      },
+      {
+        assetId: "77777777-7777-4777-8777-777777777777",
+        name: "Private Credit Note",
+        symbol: "PCN",
+        assetType: "CREDIT",
+        jurisdiction: "PT",
+        status: "ACTIVE",
+        visibility: "PRIVATE",
+        supplyCap: 500000,
+        navPrice: 100,
+        issuerName: "RWA Compliance Issuer",
+        issuerMetadata: "Granted investors only.",
         tokenAddress: null,
         createdAt: "2026-05-03T00:00:00Z",
         updatedAt: "2026-05-03T00:00:00Z"

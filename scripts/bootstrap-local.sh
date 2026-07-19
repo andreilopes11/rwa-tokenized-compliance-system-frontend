@@ -3,8 +3,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 RUNTIME_DIR="$ROOT_DIR/.local-runtime"
-ENV_TEMPLATE="$ROOT_DIR/.env.example"
-ENV_FILE="$ROOT_DIR/.env.local"
+CONTRACTS_TS="$ROOT_DIR/src/shared/config/contracts.generated.ts"
 ANVIL_PID_FILE="$RUNTIME_DIR/anvil.pid"
 ANVIL_LOG_FILE="$RUNTIME_DIR/anvil.log"
 DEPLOY_LOG_FILE="$RUNTIME_DIR/deploy.log"
@@ -36,24 +35,44 @@ to_absolute_path() {
   printf '%s\n' "$ROOT_DIR/$target"
 }
 
-load_env_file() {
-  if [ -f "$ENV_FILE" ]; then
-    set -a
-    # shellcheck disable=SC1090
-    . "$ENV_FILE"
-    set +a
+# Win32 Node cannot open Git Bash paths like /d/... (becomes D:\d\...).
+to_node_fs_path() {
+  local path="$1"
+  if command -v cygpath >/dev/null 2>&1; then
+    cygpath -m "$path"
+    return
   fi
+  if [[ "$path" =~ ^/([a-zA-Z])/(.*)$ ]]; then
+    printf '%s\n' "${BASH_REMATCH[1]^}:/${BASH_REMATCH[2]}"
+    return
+  fi
+  printf '%s\n' "$path"
+}
+
+run_node() {
+  MSYS2_ARG_CONV_EXCL='*' node "$@"
+}
+
+load_contracts_ts() {
+  if [ ! -f "$CONTRACTS_TS" ]; then
+    return 0
+  fi
+  local node_contracts
+  node_contracts="$(to_node_fs_path "$CONTRACTS_TS")"
+  eval "$(
+    run_node -e '
+const fs = require("fs");
+const text = fs.readFileSync(process.argv[1], "utf8");
+const reg = text.match(/identityRegistryAddress:\s*"([^"]+)"/);
+const tok = text.match(/tokenAddress:\s*"([^"]+)"/);
+if (reg) process.stdout.write(`export NEXT_PUBLIC_IDENTITY_REGISTRY_ADDRESS=${JSON.stringify(reg[1])}\n`);
+if (tok) process.stdout.write(`export NEXT_PUBLIC_TOKEN_ADDRESS=${JSON.stringify(tok[1])}\n`);
+' "$node_contracts"
+  )"
 }
 
 ensure_runtime_dir() {
   mkdir -p "$RUNTIME_DIR"
-}
-
-ensure_env_file() {
-  if [ ! -f "$ENV_FILE" ]; then
-    cp "$ENV_TEMPLATE" "$ENV_FILE"
-    log "Created .env.local from .env.example"
-  fi
 }
 
 require_node_version() {
@@ -251,39 +270,15 @@ deploy_contracts() {
   log "Deployment file loaded from $deployments_file"
 }
 
-write_managed_env_block() {
-  local file="$1"
-  local tmp_file
-  tmp_file="$(mktemp)"
-
-  if [ -f "$file" ]; then
-    awk '
-      BEGIN { skip = 0 }
-      /^# BEGIN LOCAL BOOTSTRAP$/ { skip = 1; next }
-      /^# END LOCAL BOOTSTRAP$/ { skip = 0; next }
-      skip == 0 { print }
-    ' "$file" >"$tmp_file"
-  fi
-
-  cat >>"$tmp_file" <<EOF
-
-# BEGIN LOCAL BOOTSTRAP
-LOCAL_RPC_URL=$LOCAL_RPC_URL
-LOCAL_CHAIN_ID=$LOCAL_CHAIN_ID
-LOCAL_PRIVATE_KEY=$LOCAL_PRIVATE_KEY
-CONTRACTS_WORKSPACE=${CONTRACTS_WORKSPACE:-}
-FOUNDRY_DEPLOY_SCRIPT=${FOUNDRY_DEPLOY_SCRIPT:-script/deploy/DeployCore.s.sol:DeployCore}
-LOCAL_FRONTEND_PORT=$LOCAL_FRONTEND_PORT
-LOCAL_BACKEND_ENV_FILE=$LOCAL_BACKEND_ENV_FILE
-NEXT_PUBLIC_API_BASE_URL=/api/backend
-NEXT_PUBLIC_CHAIN_ID=$LOCAL_CHAIN_ID
-NEXT_PUBLIC_RPC_URL=$LOCAL_RPC_URL
-NEXT_PUBLIC_IDENTITY_REGISTRY_ADDRESS=$NEXT_PUBLIC_IDENTITY_REGISTRY_ADDRESS
-NEXT_PUBLIC_TOKEN_ADDRESS=$NEXT_PUBLIC_TOKEN_ADDRESS
-# END LOCAL BOOTSTRAP
+write_contracts_ts() {
+  mkdir -p "$(dirname "$CONTRACTS_TS")"
+  cat >"$CONTRACTS_TS" <<EOF
+/** Written/updated by frontend bootstrap / root stack sync after local deploy. */
+export const generatedContracts = {
+  identityRegistryAddress: "$NEXT_PUBLIC_IDENTITY_REGISTRY_ADDRESS",
+  tokenAddress: "$NEXT_PUBLIC_TOKEN_ADDRESS"
+} as const;
 EOF
-
-  mv "$tmp_file" "$file"
 }
 
 write_backend_consumer_env() {
@@ -300,8 +295,7 @@ EOF
 
 main() {
   ensure_runtime_dir
-  ensure_env_file
-  load_env_file
+  load_contracts_ts
 
   require_cmd node
   require_cmd npm
@@ -325,12 +319,12 @@ main() {
     export NEXT_PUBLIC_IDENTITY_REGISTRY_ADDRESS="${NEXT_PUBLIC_IDENTITY_REGISTRY_ADDRESS:-$IDENTITY_REGISTRY_ADDRESS}"
     export NEXT_PUBLIC_TOKEN_ADDRESS="${NEXT_PUBLIC_TOKEN_ADDRESS:-$TOKEN_ADDRESS}"
 
-    is_real_address "$NEXT_PUBLIC_IDENTITY_REGISTRY_ADDRESS" || fail "SKIP_CHAIN_BOOTSTRAP=true requires NEXT_PUBLIC_IDENTITY_REGISTRY_ADDRESS to be set to a real address."
-    is_real_address "$NEXT_PUBLIC_TOKEN_ADDRESS" || fail "SKIP_CHAIN_BOOTSTRAP=true requires NEXT_PUBLIC_TOKEN_ADDRESS to be set to a real address."
+    is_real_address "$NEXT_PUBLIC_IDENTITY_REGISTRY_ADDRESS" || fail "SKIP_CHAIN_BOOTSTRAP=true requires contract addresses in contracts.generated.ts"
+    is_real_address "$NEXT_PUBLIC_TOKEN_ADDRESS" || fail "SKIP_CHAIN_BOOTSTRAP=true requires contract addresses in contracts.generated.ts"
 
     export IDENTITY_REGISTRY_ADDRESS="$NEXT_PUBLIC_IDENTITY_REGISTRY_ADDRESS"
     export TOKEN_ADDRESS="$NEXT_PUBLIC_TOKEN_ADDRESS"
-    log "Skipping chain bootstrap and using existing contract addresses from the environment"
+    log "Skipping chain bootstrap and using existing contract addresses from contracts.generated.ts"
   else
     local contracts_workspace=""
     if contracts_workspace="$(discover_contracts_workspace)"; then
@@ -359,10 +353,10 @@ main() {
     fi
   fi
 
-  write_managed_env_block "$ENV_FILE"
+  write_contracts_ts
   write_backend_consumer_env
 
-  log "Frontend env updated at $ENV_FILE"
+  log "Frontend contracts config updated at $CONTRACTS_TS"
   log "Backend consumer env written to $LOCAL_BACKEND_ENV_FILE"
   log "Identity registry: $NEXT_PUBLIC_IDENTITY_REGISTRY_ADDRESS"
   log "Permissioned token: $NEXT_PUBLIC_TOKEN_ADDRESS"

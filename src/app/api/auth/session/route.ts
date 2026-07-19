@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { clearAuthCookies, readSession } from "@/features/auth/server/session";
+import { serverRuntime } from "@/shared/config/serverRuntime";
 
 export async function POST() {
   const response = NextResponse.json({ ok: true });
@@ -13,10 +14,10 @@ export async function GET() {
     session,
     authenticated: Boolean(session),
     providers: {
-      google: Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET),
+      google: Boolean(serverRuntime.googleClientId && serverRuntime.googleClientSecret),
       wallet: false,
       email: true
     },
-    mfaEnabled: true
+    mfaEnabled: false
   });
 }

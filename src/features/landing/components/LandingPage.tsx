@@ -19,6 +19,7 @@ import {
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import "../landing.css";
+import { publicRuntime } from "@/shared/config/publicRuntime";
 import { useMessages } from "@/shared/i18n/LocaleProvider";
 import { ExperienceFooter } from "@/shared/ui/ExperienceFooter";
 import { GlobalAppHeader } from "@/shared/ui/GlobalAppHeader";
@@ -29,7 +30,7 @@ const securityIcons = [Lock, Zap, Layers3] as const;
 
 export function LandingPage() {
   const [analyticsLoaded, setAnalyticsLoaded] = useState(false);
-  const measurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
+  const measurementId = publicRuntime.gaMeasurementId;
   const m = useMessages();
   const landingCopy = m.landing;
   const cta = useMemo(
@@ -266,30 +267,6 @@ export function LandingPage() {
               <h3>{item.title}</h3>
               <p>{item.description}</p>
             </article>
-          ))}
-        </div>
-      </section>
-
-      <section className="landing-section landing-platform" aria-labelledby="platform-title" id="platform">
-        <header className="section-head">
-          <span className="section-kicker">{landingCopy.architectureKicker}</span>
-          <h2 id="platform-title">{landingCopy.architectureTitle}</h2>
-          <p>{landingCopy.architectureBody}</p>
-        </header>
-        <div className="platform-pillars">
-          {landingCopy.architecturePillars.map((pillar) => (
-            <div className="platform-pillar" key={pillar.title}>
-              <strong>{pillar.title}</strong>
-              <span>{pillar.description}</span>
-            </div>
-          ))}
-        </div>
-        <div className="feature-strip">
-          {landingCopy.architectureItems.map((item) => (
-            <span key={item}>
-              <ShieldCheck size={16} aria-hidden />
-              {item}
-            </span>
           ))}
         </div>
       </section>

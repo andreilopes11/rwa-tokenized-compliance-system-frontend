@@ -55,6 +55,10 @@ export const pt = {
       "O destinatário não cumpre as regras do emissor para receber este token.",
     tokenPaused: "O token está pausado. Transferências desativadas.",
     wrongNetwork: "Mude a carteira para a rede exigida antes de assinar.",
+    senderNotCompliant:
+      "A sua carteira não está elegível para enviar este token segundo as regras do emissor.",
+    invalidAmount: "Introduza um montante de transferência válido superior a zero.",
+    insufficientBalance: "Saldo de tokens insuficiente para esta transferência.",
     kycWalletMismatch: "A carteira deve coincidir com a sessão e carteira ligada.",
     approveTriggersChain: "Esta ação dispara atestação on-chain. Continuar?"
   },
@@ -265,7 +269,7 @@ export const pt = {
     steps: [
       {
         title: "Criar conta e entrar",
-        description: "Cadastre-se com MFA, selecione a função de investidor ou emissor e acesse o workspace seguro."
+        description: "Cadastre-se com e-mail e senha, selecione a função de investidor ou emissor e acesse o workspace seguro."
       },
       {
         title: "Concluir revisão de conformidade",
@@ -314,7 +318,7 @@ export const pt = {
     howToSteps: [
       {
         title: "Cadastrar-se ou entrar",
-        description: "Selecione a função de investidor ou emissor e conclua MFA conforme exigido pela sua organização."
+        description: "Entre com e-mail e senha para acessar o workspace seguro."
       },
       {
         title: "Vincular carteira e enviar KYC",
@@ -382,7 +386,7 @@ export const pt = {
     mfaHelp: "Informe o código de uso único do seu autenticador ou da política da organização.",
     mfaPlaceholder: "123456",
     provider: "Método de acesso",
-    providerEmailDescription: "Entre com seu e-mail cadastrado e MFA.",
+    providerEmailDescription: "Entre com seu e-mail cadastrado e senha.",
     providerEmailTitle: "E-mail",
     providerGoogleDescription: "OAuth empresarial quando Google Workspace está configurado.",
     providerGoogleTitle: "Google",
@@ -449,6 +453,11 @@ export const pt = {
     strengthGood: "Boa",
     strengthStrong: "Forte",
     strengthWeak: "Fraca",
+    inviteCode: "Código de convite admin",
+    inviteHelp:
+      "Obrigatório para compliance, governance e audit. Não é o código MFA do login. Local: local-admin-invite (AUTH_ADMIN_INVITE_CODE).",
+    invitePlaceholder: "local-admin-invite",
+    inviteRequired: "Código de convite admin é obrigatório.",
     submit: "Criar conta",
     submitError: "Não foi possível criar a conta. Tente novamente.",
     submitting: "Criando conta...",

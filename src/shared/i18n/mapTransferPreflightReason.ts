@@ -10,7 +10,12 @@ export function mapTransferPreflightReason(reasonCode: string | null | undefined
     case "CHAIN_NOT_READY":
       return "errors.chainNotReady";
     case "SENDER_NOT_COMPLIANT":
-      return "errors.chainNotReady";
+      return "errors.senderNotCompliant";
+    case "AMOUNT_INVALID":
+    case "INVALID_AMOUNT":
+      return "errors.invalidAmount";
+    case "INSUFFICIENT_BALANCE":
+      return "errors.insufficientBalance";
     default:
       return "errors.requestFailed";
   }

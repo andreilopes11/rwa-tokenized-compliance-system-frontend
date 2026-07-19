@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { serverRuntime } from "@/shared/config/serverRuntime";
 import { getServerLocale } from "@/shared/i18n/server";
 
 export type SessionRole = "investor" | "compliance" | "governance" | "audit";
@@ -10,6 +11,9 @@ export type ComplianceSession = {
   role: SessionRole;
   walletAddress?: string;
   mfaEnabled: boolean;
+  /** Active tenant for marketplace/ACL orchestration (JWT claim + optional cookie override). */
+  tenantId: string;
+  tenantIds: string[];
   accessToken: string;
   expiresAt: number;
 };
@@ -28,16 +32,25 @@ export type BackendAuthSession = {
     role: "INVESTOR" | "COMPLIANCE_OFFICER" | "SUPER_ADMIN" | "AUDITOR" | "ADMIN";
     walletAddress?: string | null;
     mfaEnabled: boolean;
+    tenantId?: string | null;
+    tenantIds?: string[] | null;
   };
   accessToken: string;
   refreshToken: string;
   expiresInSeconds: number;
 };
 
+const TENANT_COOKIE = "rwa_active_tenant";
+const DEFAULT_TENANT = "default";
+
+export function tenantCookieName() {
+  return TENANT_COOKIE;
+}
+
 type BackendAuthUser = BackendAuthSession["user"];
 
 function backendBaseUrl() {
-  return (process.env.BACKEND_API_BASE_URL ?? "http://localhost:8080").replace(/\/$/, "");
+  return serverRuntime.backendApiBaseUrl.replace(/\/$/, "");
 }
 
 function mapRole(role: BackendAuthUser["role"]): SessionRole {
@@ -47,17 +60,59 @@ function mapRole(role: BackendAuthUser["role"]): SessionRole {
   return "governance";
 }
 
-function decodeJwtExpiry(token: string): number | null {
+function decodeJwtPayload(token: string): {
+  exp?: number;
+  tenant?: string;
+  tenant_ids?: string[];
+} | null {
   try {
     const payload = token.split(".")[1];
     if (!payload) {
       return null;
     }
-    const decoded = JSON.parse(Buffer.from(payload, "base64url").toString("utf8")) as { exp?: number };
-    return typeof decoded.exp === "number" ? decoded.exp * 1000 : null;
+    return JSON.parse(Buffer.from(payload, "base64url").toString("utf8")) as {
+      exp?: number;
+      tenant?: string;
+      tenant_ids?: string[];
+    };
   } catch {
     return null;
   }
+}
+
+function decodeJwtExpiry(token: string): number | null {
+  const decoded = decodeJwtPayload(token);
+  return typeof decoded?.exp === "number" ? decoded.exp * 1000 : null;
+}
+
+function resolveTenantScope(
+  accessToken: string,
+  user?: BackendAuthUser,
+  cookieTenant?: string | null
+): { tenantId: string; tenantIds: string[] } {
+  const claims = decodeJwtPayload(accessToken);
+  const fromUser = Array.isArray(user?.tenantIds)
+    ? user.tenantIds.filter((t): t is string => Boolean(t && t.trim()))
+    : [];
+  const fromClaims = Array.isArray(claims?.tenant_ids)
+    ? claims.tenant_ids.filter((t): t is string => Boolean(t && t.trim()))
+    : [];
+  const tenantIds = Array.from(
+    new Set([
+      ...fromUser,
+      ...fromClaims,
+      user?.tenantId?.trim() || "",
+      claims?.tenant?.trim() || "",
+      DEFAULT_TENANT
+    ].filter(Boolean))
+  );
+  const preferred =
+    (cookieTenant && tenantIds.includes(cookieTenant.trim()) ? cookieTenant.trim() : null) ||
+    user?.tenantId?.trim() ||
+    claims?.tenant?.trim() ||
+    tenantIds[0] ||
+    DEFAULT_TENANT;
+  return { tenantId: preferred, tenantIds };
 }
 
 function isAccessTokenValid(token: string | undefined): token is string {
@@ -95,6 +150,8 @@ export function applyAuthCookies(
 ) {
   response.cookies.set(ACCESS_COOKIE, session.accessToken, authCookieOptions(session.expiresInSeconds));
   response.cookies.set(REFRESH_COOKIE, session.refreshToken, authCookieOptions(REFRESH_TTL_SECONDS));
+  const tenant = resolveTenantScope(session.accessToken, session.user).tenantId;
+  response.cookies.set(TENANT_COOKIE, tenant, authCookieOptions(REFRESH_TTL_SECONDS));
 }
 
 export function clearAuthCookies(
@@ -102,16 +159,24 @@ export function clearAuthCookies(
 ) {
   response.cookies.set(ACCESS_COOKIE, "", authCookieOptions(0));
   response.cookies.set(REFRESH_COOKIE, "", authCookieOptions(0));
+  response.cookies.set(TENANT_COOKIE, "", authCookieOptions(0));
 }
 
-function toComplianceSession(session: BackendAuthSession, accessToken: string): ComplianceSession {
+function toComplianceSession(
+  session: BackendAuthSession,
+  accessToken: string,
+  cookieTenant?: string | null
+): ComplianceSession {
   const expiresAt = decodeJwtExpiry(accessToken) ?? Date.now() + session.expiresInSeconds * 1000;
+  const tenants = resolveTenantScope(accessToken, session.user, cookieTenant);
   return {
     userId: session.user.userId,
     email: session.user.email,
     role: mapRole(session.user.role),
     walletAddress: session.user.walletAddress ?? undefined,
     mfaEnabled: session.user.mfaEnabled,
+    tenantId: tenants.tenantId,
+    tenantIds: tenants.tenantIds,
     accessToken,
     expiresAt
   };
@@ -126,11 +191,15 @@ export async function readCookieValues() {
   const cookieStore = await cookies();
   return {
     accessToken: cookieStore.get(ACCESS_COOKIE)?.value,
-    refreshToken: cookieStore.get(REFRESH_COOKIE)?.value
+    refreshToken: cookieStore.get(REFRESH_COOKIE)?.value,
+    activeTenant: cookieStore.get(TENANT_COOKIE)?.value
   };
 }
 
-async function fetchBackendMe(accessToken: string): Promise<ComplianceSession | null> {
+async function fetchBackendMe(
+  accessToken: string,
+  cookieTenant?: string | null
+): Promise<ComplianceSession | null> {
   const response = await fetch(`${backendBaseUrl()}/api/auth/me`, {
     headers: { Authorization: `Bearer ${accessToken}` },
     cache: "no-store"
@@ -140,12 +209,15 @@ async function fetchBackendMe(accessToken: string): Promise<ComplianceSession | 
   }
   const user = (await response.json()) as BackendAuthUser;
   const expiresAt = decodeJwtExpiry(accessToken) ?? Date.now() + ACCESS_TTL_FALLBACK_SECONDS * 1000;
+  const tenants = resolveTenantScope(accessToken, user, cookieTenant);
   return {
     userId: user.userId,
     email: user.email,
     role: mapRole(user.role),
     walletAddress: user.walletAddress ?? undefined,
     mfaEnabled: user.mfaEnabled,
+    tenantId: tenants.tenantId,
+    tenantIds: tenants.tenantIds,
     accessToken,
     expiresAt
   };
@@ -165,10 +237,10 @@ export async function refreshAuthSession(refreshToken: string): Promise<BackendA
 }
 
 export async function ensureSession(): Promise<ComplianceSession | null> {
-  const { accessToken, refreshToken } = await readCookieValues();
+  const { accessToken, refreshToken, activeTenant } = await readCookieValues();
 
   if (isAccessTokenValid(accessToken)) {
-    const session = await fetchBackendMe(accessToken);
+    const session = await fetchBackendMe(accessToken, activeTenant);
     if (session) {
       return session;
     }
@@ -179,7 +251,7 @@ export async function ensureSession(): Promise<ComplianceSession | null> {
   }
 
   const refreshed = await refreshAuthSession(refreshToken);
-  return refreshed ? toComplianceSession(refreshed, refreshed.accessToken) : null;
+  return refreshed ? toComplianceSession(refreshed, refreshed.accessToken, activeTenant) : null;
 }
 
 export async function readSession(): Promise<PublicSession | null> {

@@ -19,7 +19,6 @@ import { AuthShell } from "@/shared/ui/AuthShell";
 import { Button, buttonClassName } from "@/shared/ui/Button";
 
 type TouchedState = {
-  mfa: boolean;
   subject: boolean;
 };
 
@@ -49,9 +48,7 @@ export function LoginPage() {
 
   const [email, setEmail] = useState(defaultEmail);
   const [password, setPassword] = useState("");
-  const [mfaCode, setMfaCode] = useState("123456");
   const [touched, setTouched] = useState<TouchedState>({
-    mfa: false,
     subject: false
   });
   const [submitAttempted, setSubmitAttempted] = useState(false);
@@ -64,21 +61,18 @@ export function LoginPage() {
   const common = m.common;
 
   const normalizedEmail = email.trim();
-  const normalizedMfa = mfaCode.trim();
   const emailError = !isValidEmail(normalizedEmail) ? loginCopy.invalidEmail : "";
   const passwordError = password.length < 8 ? "Enter your account password." : "";
-  const mfaError = /^\d{6}$/.test(normalizedMfa) ? "" : loginCopy.invalidMfa;
   const showEmailError = (touched.subject || submitAttempted) && Boolean(emailError);
   const showPasswordError = submitAttempted && Boolean(passwordError);
-  const showMfaError = (touched.mfa || submitAttempted) && Boolean(mfaError);
-  const canSubmit = !loading && !emailError && !passwordError && !mfaError;
+  const canSubmit = !loading && !emailError && !passwordError;
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSubmitAttempted(true);
     setError("");
 
-    if (emailError || passwordError || mfaError) {
+    if (emailError || passwordError) {
       return;
     }
 
@@ -89,8 +83,7 @@ export function LoginPage() {
         body: JSON.stringify({
           email: normalizedEmail,
           password,
-          role,
-          mfaCode: normalizedMfa
+          role
         }),
         headers: { "Content-Type": "application/json" },
         method: "POST"
@@ -211,29 +204,6 @@ export function LoginPage() {
             {showPasswordError ? (
               <p className="field-error" id="login-password-error">
                 {passwordError}
-              </p>
-            ) : null}
-          </div>
-
-          <div className="field">
-            <label htmlFor="login-mfa">{loginCopy.mfa}</label>
-            <input
-              aria-describedby={showMfaError ? "login-mfa-error" : "login-mfa-help"}
-              aria-invalid={showMfaError}
-              id="login-mfa"
-              inputMode="numeric"
-              maxLength={6}
-              onBlur={() => setTouched((current) => ({ ...current, mfa: true }))}
-              onChange={(event) => setMfaCode(event.target.value.replace(/\D/g, "").slice(0, 6))}
-              placeholder={loginCopy.mfaPlaceholder}
-              value={mfaCode}
-            />
-            <p className="helper-text" id="login-mfa-help">
-              {loginCopy.mfaHelp}
-            </p>
-            {showMfaError ? (
-              <p className="field-error" id="login-mfa-error">
-                {mfaError}
               </p>
             ) : null}
           </div>

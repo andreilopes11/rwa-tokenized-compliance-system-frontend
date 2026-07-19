@@ -2,6 +2,7 @@
 
 import { formatUnits } from "viem";
 import { useReadContract } from "wagmi";
+import { publicRuntime } from "@/shared/config/publicRuntime";
 
 const erc20BalanceAbi = [
   {
@@ -23,8 +24,18 @@ const identityRegistryAbi = [
   }
 ] as const;
 
-const tokenAddress = process.env.NEXT_PUBLIC_TOKEN_ADDRESS as `0x${string}` | undefined;
-const registryAddress = process.env.NEXT_PUBLIC_IDENTITY_REGISTRY_ADDRESS as `0x${string}` | undefined;
+const tokenPausedAbi = [
+  {
+    type: "function",
+    name: "paused",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [{ name: "", type: "bool" }]
+  }
+] as const;
+
+const tokenAddress = publicRuntime.tokenAddress as `0x${string}` | undefined;
+const registryAddress = publicRuntime.identityRegistryAddress as `0x${string}` | undefined;
 
 export function useInvestorChainReads(walletAddress: string | undefined, recipientAddress?: string) {
   const investor = walletAddress as `0x${string}` | undefined;
@@ -56,6 +67,13 @@ export function useInvestorChainReads(walletAddress: string | undefined, recipie
     query: { enabled: recipientEnabled && Boolean(registryAddress) }
   });
 
+  const pausedRead = useReadContract({
+    address: tokenAddress,
+    abi: tokenPausedAbi,
+    functionName: "paused",
+    query: { enabled: Boolean(tokenAddress) }
+  });
+
   const tokenBalanceFormatted =
     balanceRead.data !== undefined ? formatUnits(balanceRead.data, 18) : null;
 
@@ -64,6 +82,7 @@ export function useInvestorChainReads(walletAddress: string | undefined, recipie
     tokenBalanceFormatted,
     registryVerifiedOnChain: verifiedRead.data,
     recipientVerifiedOnChain: recipientVerifiedRead.data,
+    tokenPausedOnChain: pausedRead.data,
     balanceLoading: balanceRead.isFetching,
     verifiedLoading: verifiedRead.isFetching,
     recipientVerifiedLoading: recipientVerifiedRead.isFetching

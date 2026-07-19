@@ -8,7 +8,6 @@ describe("getRegisterFormBlockers", () => {
     const blockers = getRegisterFormBlockers({
       confirmPassword: password,
       email: "user@company.com",
-      inviteCode: "",
       password,
       passwordChecks: buildPasswordChecks(password),
       role: "investor",
@@ -18,18 +17,17 @@ describe("getRegisterFormBlockers", () => {
     expect(blockers).toEqual([]);
   });
 
-  it("requires invite code for governance registration", () => {
+  it("allows governance registration without invite code", () => {
     const password = "SecurePass1";
     const blockers = getRegisterFormBlockers({
       confirmPassword: password,
       email: "admin@company.com",
-      inviteCode: "",
       password,
       passwordChecks: buildPasswordChecks(password),
       role: "governance",
       walletAddress: ""
     });
 
-    expect(blockers).toContain("Admin invite code is required.");
+    expect(blockers).toEqual([]);
   });
 });

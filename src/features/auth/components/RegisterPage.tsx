@@ -38,7 +38,6 @@ export function RegisterPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [walletAddress, setWalletAddress] = useState("");
-  const [inviteCode, setInviteCode] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [touched, setTouched] = useState<TouchedState>({
@@ -72,8 +71,7 @@ export function RegisterPage() {
     confirmPassword: password !== confirmPassword ? registerCopy.passwordMismatch : "",
     email: !isValidEmail(email) ? registerCopy.invalidEmail : "",
     password: !passwordPolicyMet ? registerCopy.passwordHelp : "",
-    walletAddress: walletAddress && !isValidWalletAddress(walletAddress) ? registerCopy.walletInvalid : "",
-    inviteCode: role !== "investor" && !inviteCode.trim() ? "Admin invite code is required." : ""
+    walletAddress: walletAddress && !isValidWalletAddress(walletAddress) ? registerCopy.walletInvalid : ""
   };
 
   const showFieldError = (field: keyof TouchedState) =>
@@ -82,8 +80,7 @@ export function RegisterPage() {
     !fieldErrors.email &&
     !fieldErrors.password &&
     !fieldErrors.confirmPassword &&
-    !fieldErrors.walletAddress &&
-    !fieldErrors.inviteCode;
+    !fieldErrors.walletAddress;
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -105,8 +102,7 @@ export function RegisterPage() {
           role,
           email: email.trim(),
           password,
-          walletAddress: walletAddress.trim() || undefined,
-          inviteCode: role !== "investor" ? inviteCode.trim() : undefined
+          walletAddress: walletAddress.trim() || undefined
         })
       });
 
@@ -311,19 +307,6 @@ export function RegisterPage() {
                 </p>
               ) : null}
             </div>
-
-            {role !== "investor" ? (
-              <div className="field">
-                <label htmlFor="register-invite">Admin invite code</label>
-                <input
-                  id="register-invite"
-                  onChange={(event) => setInviteCode(event.target.value)}
-                  placeholder="Provided by compliance operations"
-                  type="password"
-                  value={inviteCode}
-                />
-              </div>
-            ) : null}
 
             <div className="field">
               <label htmlFor="register-wallet">{registerCopy.walletAddress}</label>

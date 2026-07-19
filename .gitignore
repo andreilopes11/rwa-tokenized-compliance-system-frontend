@@ -1,7 +1,6 @@
-# Local configuration and secrets
+# Local configuration (credentials live in src/shared/config/runtime.ts)
 .env
 .env.*
-!.env.example
 *.local
 *.secret
 *.secrets

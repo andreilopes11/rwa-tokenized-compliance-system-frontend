@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import {
   applyAuthCookies,
   backendAuthRequest,
-  extractErrorMessage,
   type BackendAuthSession
 } from "@/features/auth/server/session";
 
@@ -10,7 +9,6 @@ type LoginRequest = {
   email?: string;
   password?: string;
   role?: "investor" | "compliance" | "governance" | "audit";
-  mfaCode?: string;
 };
 
 export async function POST(request: NextRequest) {
@@ -25,19 +23,14 @@ export async function POST(request: NextRequest) {
         : payload.role === "governance"
           ? "SUPER_ADMIN"
           : "INVESTOR";
-  const mfaCode = payload.mfaCode?.trim() ?? "";
 
   if (!email || !password) {
     return NextResponse.json({ message: "Email and password are required." }, { status: 400 });
   }
 
-  if (!/^\d{6}$/.test(mfaCode)) {
-    return NextResponse.json({ message: "Enter a valid 6-digit MFA code." }, { status: 400 });
-  }
-
   const result = await backendAuthRequest<BackendAuthSession>("/api/auth/login", {
     method: "POST",
-    body: JSON.stringify({ email, password, role, mfaCode })
+    body: JSON.stringify({ email, password, role })
   });
 
   if (!result.ok) {

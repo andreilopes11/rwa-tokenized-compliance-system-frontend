@@ -2,7 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { fetchInvestorStatus, fetchKycRequest } from "@/features/investor/api/client";
-import { isKycPollingComplete, KYC_POLL_MS } from "@/features/investor/lib/kyc";
+import {
+  isKycPollingComplete,
+  KYC_POLL_MS_MAX,
+  KYC_POLL_MS_MIN,
+  nextKycPollDelayMs
+} from "@/features/investor/lib/kyc";
 import type { InvestorStatusResponse, KycRequestResponse } from "@/shared/api/types";
 
 type UseKycPollingOptions = {
@@ -27,7 +32,14 @@ export function useKycPolling({
     }
 
     let cancelled = false;
+    let timeoutId = 0;
     setPolling(true);
+
+    const schedule = (delayMs: number) => {
+      timeoutId = window.setTimeout(() => {
+        void tick();
+      }, delayMs);
+    };
 
     const tick = async () => {
       try {
@@ -35,23 +47,28 @@ export function useKycPolling({
           fetchKycRequest(requestId),
           fetchInvestorStatus(walletAddress)
         ]);
-        if (!cancelled) {
-          onUpdate?.(kyc, statusResponse);
-          if (isKycPollingComplete(statusResponse.status, statusResponse.onChainVerified)) {
-            setPolling(false);
-          }
+        if (cancelled) {
+          return;
         }
+        onUpdate?.(kyc, statusResponse);
+        if (isKycPollingComplete(statusResponse.status, statusResponse.onChainVerified)) {
+          setPolling(false);
+          return;
+        }
+        schedule(nextKycPollDelayMs(KYC_POLL_MS_MIN, KYC_POLL_MS_MAX));
       } catch {
         // Non-fatal; manual refresh remains available.
+        if (!cancelled) {
+          schedule(nextKycPollDelayMs(KYC_POLL_MS_MIN, KYC_POLL_MS_MAX));
+        }
       }
     };
 
     void tick();
-    const intervalId = window.setInterval(() => void tick(), KYC_POLL_MS);
 
     return () => {
       cancelled = true;
-      window.clearInterval(intervalId);
+      window.clearTimeout(timeoutId);
       setPolling(false);
     };
   }, [enabled, onUpdate, requestId, walletAddress]);

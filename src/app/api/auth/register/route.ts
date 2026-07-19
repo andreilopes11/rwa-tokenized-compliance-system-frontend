@@ -16,7 +16,6 @@ type RegisterRequest = {
   password?: string;
   role?: "investor" | "compliance" | "governance" | "audit";
   walletAddress?: string;
-  inviteCode?: string;
 };
 
 export async function POST(request: NextRequest) {
@@ -28,7 +27,6 @@ export async function POST(request: NextRequest) {
       ? payload.role
       : "investor";
   const walletAddress = payload.walletAddress?.trim() ?? "";
-  const inviteCode = payload.inviteCode?.trim() ?? "";
 
   if (!isValidEmail(email)) {
     return NextResponse.json({ message: "Enter a valid email address." }, { status: 400 });
@@ -50,11 +48,7 @@ export async function POST(request: NextRequest) {
   const body =
     role === "investor"
       ? { email, password, walletAddress: walletAddress || undefined }
-      : { email, password, inviteCode };
-
-  if (role !== "investor" && !inviteCode) {
-    return NextResponse.json({ message: "Admin invite code is required." }, { status: 400 });
-  }
+      : { email, password };
 
   const result = await backendAuthRequest<BackendAuthSession>(path, {
     method: "POST",

@@ -4,6 +4,7 @@ import { QueryClient } from "@tanstack/react-query";
 import { http, createConfig, injected } from "wagmi";
 import { sepolia } from "wagmi/chains";
 import type { Chain } from "viem";
+import { publicRuntime } from "@/shared/config/publicRuntime";
 
 export const anvil: Chain = {
   id: 31337,
@@ -15,20 +16,20 @@ export const anvil: Chain = {
   },
   rpcUrls: {
     default: {
-      http: ["http://127.0.0.1:8545"]
+      http: [publicRuntime.rpcUrl]
     }
   },
   blockExplorers: {
     default: {
       name: "Local EVM",
-      url: "http://localhost:8545"
+      url: publicRuntime.rpcUrl
     }
   }
 };
 
-const configuredChainId = Number(process.env.NEXT_PUBLIC_CHAIN_ID ?? anvil.id);
-const configuredRpcUrl = process.env.NEXT_PUBLIC_RPC_URL;
-const configuredExplorerUrl = process.env.NEXT_PUBLIC_BLOCK_EXPLORER_URL;
+const configuredChainId = publicRuntime.chainId;
+const configuredRpcUrl = publicRuntime.rpcUrl;
+const configuredExplorerUrl = publicRuntime.blockExplorerUrl;
 
 export const supportedChains = [anvil, sepolia] as const;
 
