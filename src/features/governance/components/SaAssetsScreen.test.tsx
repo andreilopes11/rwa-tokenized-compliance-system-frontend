@@ -85,7 +85,7 @@ describe("SaAssetsScreen (SA-S02)", () => {
 
     renderWithProviders(<SaAssetsScreen />);
 
-    await screen.findByText(/contract administration/i);
+    await screen.findByText(/my contracts/i);
 
     fireEvent.change(screen.getByLabelText(/^symbol$/i), { target: { value: "VGNEW" } });
     fireEvent.change(screen.getByLabelText(/^name$/i), { target: { value: "New Fund" } });

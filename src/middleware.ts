@@ -19,15 +19,9 @@ export function middleware(request: NextRequest) {
 
   if (authenticated && AUTH_PAGES.includes(pathname as (typeof AUTH_PAGES)[number])) {
     if (role) {
-      const redirectPath =
-        role === "investor"
-          ? "/dashboard"
-          : role === "compliance"
-            ? "/compliance"
-            : role === "audit"
-              ? "/audit"
-              : "/governance";
-      return NextResponse.redirect(new URL(redirectPath, request.url));
+      return NextResponse.redirect(
+        new URL(role === "investor" ? "/dashboard" : "/governance", request.url)
+      );
     }
     return NextResponse.next();
   }
@@ -44,51 +38,24 @@ export function middleware(request: NextRequest) {
       return NextResponse.redirect(loginUrl);
     }
     if (role !== "governance") {
-      return NextResponse.redirect(
-        new URL(role === "investor" ? "/dashboard" : role === "compliance" ? "/compliance" : "/audit", request.url)
-      );
+      return NextResponse.redirect(new URL("/dashboard", request.url));
     }
     return NextResponse.next();
   }
 
-  if (pathname.startsWith("/compliance")) {
-    if (!authenticated) {
-      const loginUrl = new URL("/login", request.url);
-      loginUrl.searchParams.set("role", "compliance");
-      loginUrl.searchParams.set("next", pathname);
-      return NextResponse.redirect(loginUrl);
-    }
-    if (role !== "compliance") {
-      return NextResponse.redirect(
-        new URL(role === "investor" ? "/dashboard" : role === "governance" ? "/governance" : "/audit", request.url)
-      );
-    }
-    return NextResponse.next();
-  }
-
-  if (pathname.startsWith("/audit")) {
-    if (!authenticated) {
-      const loginUrl = new URL("/login", request.url);
-      loginUrl.searchParams.set("role", "audit");
-      loginUrl.searchParams.set("next", pathname);
-      return NextResponse.redirect(loginUrl);
-    }
-    if (role !== "audit") {
-      return NextResponse.redirect(
-        new URL(role === "investor" ? "/dashboard" : role === "compliance" ? "/compliance" : "/governance", request.url)
-      );
-    }
-    return NextResponse.next();
-  }
-
-  if (pathname.startsWith("/admin")) {
+  // Legacy staff routes and the old admin console now live under /governance.
+  if (
+    pathname.startsWith("/admin")
+    || pathname.startsWith("/compliance")
+    || pathname.startsWith("/audit")
+  ) {
     if (!authenticated) {
       const loginUrl = new URL("/login", request.url);
       loginUrl.searchParams.set("role", "governance");
-      loginUrl.searchParams.set("next", pathname);
+      loginUrl.searchParams.set("next", "/governance");
       return NextResponse.redirect(loginUrl);
     }
-    return NextResponse.redirect(new URL(role === "compliance" ? "/compliance" : "/governance", request.url));
+    return NextResponse.redirect(new URL(role === "investor" ? "/dashboard" : "/governance", request.url));
   }
 
   if (pathname.startsWith("/dashboard")) {
@@ -99,9 +66,7 @@ export function middleware(request: NextRequest) {
       return NextResponse.redirect(loginUrl);
     }
     if (role !== "investor") {
-      return NextResponse.redirect(
-        new URL(role === "compliance" ? "/compliance" : role === "audit" ? "/audit" : "/governance", request.url)
-      );
+      return NextResponse.redirect(new URL("/governance", request.url));
     }
     return NextResponse.next();
   }

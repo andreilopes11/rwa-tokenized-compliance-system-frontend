@@ -911,6 +911,34 @@ a:focus-visible {
   padding: 0.35rem 0.55rem;
 }
 
+.marketplace-badge,
+.status-pill {
+  align-items: center;
+  border: 1px solid var(--vg-border);
+  border-radius: 999px;
+  display: inline-flex;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  margin-left: 0.4rem;
+  padding: 0.2rem 0.55rem;
+  text-transform: uppercase;
+}
+
+.marketplace-badge[data-visibility="PUBLIC"],
+.status-pill[data-visibility="PUBLIC"] {
+  background: rgba(47, 111, 237, 0.12);
+  border-color: rgba(47, 111, 237, 0.35);
+  color: var(--vg-accent);
+}
+
+.marketplace-badge[data-visibility="PRIVATE"],
+.status-pill[data-visibility="PRIVATE"] {
+  background: rgba(196, 146, 20, 0.12);
+  border-color: rgba(196, 146, 20, 0.35);
+  color: var(--vg-warning);
+}
+
 .status.approved {
   background: #dcfce7;
   color: var(--success);

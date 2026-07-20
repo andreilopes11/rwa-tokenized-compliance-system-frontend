@@ -36,7 +36,7 @@ export function LandingPage() {
   const cta = useMemo(
     () => ({
       investor: `/login?next=${encodeURIComponent("/dashboard")}&role=investor`,
-      admin: `/login?next=${encodeURIComponent("/admin")}&role=admin`,
+      admin: `/login?next=${encodeURIComponent("/governance")}&role=governance`,
       register: "/register",
       login: "/login",
       product: "#product",

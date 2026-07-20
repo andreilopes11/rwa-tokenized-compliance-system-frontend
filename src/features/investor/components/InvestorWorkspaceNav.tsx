@@ -1,6 +1,7 @@
 "use client";
 
 import { useMessages } from "@/shared/i18n/LocaleProvider";
+import type { WorkspaceNavItem } from "@/shared/ui/RoleWorkspaceNav";
 
 const SECTIONS = [
   { id: "overview", key: "overview" as const, screenId: "INV-S01" },
@@ -11,26 +12,13 @@ const SECTIONS = [
   { id: "compliance", key: "compliance" as const, screenId: "INV-S03" },
   { id: "transfer", key: "transfer" as const, screenId: "INV-S07" },
   { id: "activity", key: "activity" as const, screenId: "INV-S08" }
-];
+] as const;
 
-export function InvestorWorkspaceNav() {
+export function useInvestorNavItems(): WorkspaceNavItem[] {
   const m = useMessages();
-
-  return (
-    <nav className="investor-section-nav" aria-label="Investor dashboard sections">
-      <ul className="workspace-nav-links">
-        {SECTIONS.map((section) => (
-          <li key={section.id}>
-            <a
-              className="workspace-nav-link"
-              data-screen-id={section.screenId}
-              href={`#${section.id}`}
-            >
-              {m.workspace.investor.nav[section.key]}
-            </a>
-          </li>
-        ))}
-      </ul>
-    </nav>
-  );
+  return SECTIONS.map((section) => ({
+    href: `#${section.id}`,
+    label: m.workspace.investor.nav[section.key],
+    screenId: section.screenId
+  }));
 }

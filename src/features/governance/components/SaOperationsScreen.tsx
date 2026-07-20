@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { fetchAdminOperationsReport } from "@/features/governance/api/client";
 import type { OperationsReportResponse } from "@/shared/api/types";
 import { Alert } from "@/shared/ui/Alert";
+import { WorkspacePanel } from "@/shared/ui/WorkspacePanel";
 
 /** SA-S07 — Operations report */
 export function SaOperationsScreen() {
@@ -17,8 +18,7 @@ export function SaOperationsScreen() {
   }, []);
 
   return (
-    <div className="panel" data-screen-id="SA-S07">
-      <h1>Operations report</h1>
+    <WorkspacePanel screenId="SA-S07" title="Operations report">
       {error ? <Alert tone="error">{error}</Alert> : null}
       {report ? (
         <dl className="definition-grid">
@@ -46,6 +46,6 @@ export function SaOperationsScreen() {
       ) : (
         <p className="muted">Loading…</p>
       )}
-    </div>
+    </WorkspacePanel>
   );
 }

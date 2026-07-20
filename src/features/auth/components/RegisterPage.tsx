@@ -1,9 +1,10 @@
 "use client";
 
-import { Eye, EyeOff, KeyRound, ShieldCheck, Sparkles, UserPlus } from "lucide-react";
+import { KeyRound, ShieldCheck, Sparkles, UserPlus } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useMemo, useState } from "react";
+import { PasswordInput } from "@/features/auth/components/PasswordInput";
 import {
   buildPasswordChecks,
   isValidEmail,
@@ -38,8 +39,6 @@ export function RegisterPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [walletAddress, setWalletAddress] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [touched, setTouched] = useState<TouchedState>({
     confirmPassword: false,
     email: false,
@@ -189,9 +188,7 @@ export function RegisterPage() {
               <div className="segmented-control" role="group" aria-label={registerCopy.role}>
                 {([
                   { id: "investor", label: registerCopy.investor },
-                  { id: "compliance", label: "Compliance" },
-                  { id: "governance", label: "Governance" },
-                  { id: "audit", label: "Audit" }
+                  { id: "governance", label: "Governance" }
                 ] as Array<{ id: AuthRole; label: string }>).map((roleOption) => (
                   <button
                     key={roleOption.id}
@@ -226,87 +223,59 @@ export function RegisterPage() {
               ) : null}
             </div>
 
-            <div className="field">
-              <label htmlFor="register-password">{registerCopy.password}</label>
-              <div className="field-input-row">
-                <input
-                  aria-describedby={showFieldError("password") ? "register-password-error" : "password-strength"}
-                  aria-invalid={showFieldError("password")}
-                  autoComplete="new-password"
-                  id="register-password"
-                  onBlur={() => setTouched((current) => ({ ...current, password: true }))}
-                  onChange={(event) => setPassword(event.target.value)}
-                  placeholder={registerCopy.passwordPlaceholder}
-                  type={showPassword ? "text" : "password"}
-                  value={password}
-                />
-                <button
-                  aria-label={showPassword ? "Hide password" : "Show password"}
-                  className="icon-toggle"
-                  onClick={() => setShowPassword((current) => !current)}
-                  type="button"
-                >
-                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                </button>
-              </div>
-              <div className="password-meter" id="password-strength">
-                <div className="password-meter-track">
-                  <span
-                    className={`password-meter-fill strength-${strengthScore}`}
-                    style={{ width: `${Math.max(strengthScore, 1) * 25}%` }}
-                  />
-                </div>
-                <span className="helper-text">
-                  {registerCopy.passwordStrength}: {strengthLabel}
-                </span>
-              </div>
-              <ul className="requirement-list">
-                <li className={passwordChecks.minLength ? "met" : ""}>{registerCopy.passwordCheckLength}</li>
-                <li className={passwordChecks.uppercase ? "met" : ""}>{registerCopy.passwordCheckUppercase}</li>
-                <li className={passwordChecks.number ? "met" : ""}>{registerCopy.passwordCheckNumber}</li>
-                <li className={passwordChecks.special ? "met" : ""}>{registerCopy.passwordCheckSpecial}</li>
-              </ul>
-              {showFieldError("password") ? (
-                <p className="field-error" id="register-password-error">
-                  {fieldErrors.password}
-                </p>
-              ) : null}
-            </div>
+            <PasswordInput
+              autoComplete="new-password"
+              describedBy="password-strength"
+              error={fieldErrors.password}
+              footer={
+                <>
+                  <div className="password-meter" id="password-strength">
+                    <div className="password-meter-track">
+                      <span
+                        className={`password-meter-fill strength-${strengthScore}`}
+                        style={{ width: `${Math.max(strengthScore, 1) * 25}%` }}
+                      />
+                    </div>
+                    <span className="helper-text">
+                      {registerCopy.passwordStrength}: {strengthLabel}
+                    </span>
+                  </div>
+                  <ul className="requirement-list">
+                    <li className={passwordChecks.minLength ? "met" : ""}>
+                      {registerCopy.passwordCheckLength}
+                    </li>
+                    <li className={passwordChecks.uppercase ? "met" : ""}>
+                      {registerCopy.passwordCheckUppercase}
+                    </li>
+                    <li className={passwordChecks.number ? "met" : ""}>
+                      {registerCopy.passwordCheckNumber}
+                    </li>
+                    <li className={passwordChecks.special ? "met" : ""}>
+                      {registerCopy.passwordCheckSpecial}
+                    </li>
+                  </ul>
+                </>
+              }
+              id="register-password"
+              invalid={showFieldError("password")}
+              label={registerCopy.password}
+              onBlur={() => setTouched((current) => ({ ...current, password: true }))}
+              onChange={setPassword}
+              placeholder={registerCopy.passwordPlaceholder}
+              value={password}
+            />
 
-            <div className="field">
-              <label htmlFor="register-confirm-password">{registerCopy.confirmPassword}</label>
-              <div className="field-input-row">
-                <input
-                  aria-describedby={showFieldError("confirmPassword") ? "register-confirm-password-error" : undefined}
-                  aria-invalid={showFieldError("confirmPassword")}
-                  autoComplete="new-password"
-                  id="register-confirm-password"
-                  onBlur={() =>
-                    setTouched((current) => ({
-                      ...current,
-                      confirmPassword: true
-                    }))
-                  }
-                  onChange={(event) => setConfirmPassword(event.target.value)}
-                  placeholder={registerCopy.confirmPasswordPlaceholder}
-                  type={showConfirmPassword ? "text" : "password"}
-                  value={confirmPassword}
-                />
-                <button
-                  aria-label={showConfirmPassword ? "Hide password confirmation" : "Show password confirmation"}
-                  className="icon-toggle"
-                  onClick={() => setShowConfirmPassword((current) => !current)}
-                  type="button"
-                >
-                  {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                </button>
-              </div>
-              {showFieldError("confirmPassword") ? (
-                <p className="field-error" id="register-confirm-password-error">
-                  {fieldErrors.confirmPassword}
-                </p>
-              ) : null}
-            </div>
+            <PasswordInput
+              autoComplete="new-password"
+              error={fieldErrors.confirmPassword}
+              id="register-confirm-password"
+              invalid={showFieldError("confirmPassword")}
+              label={registerCopy.confirmPassword}
+              onBlur={() => setTouched((current) => ({ ...current, confirmPassword: true }))}
+              onChange={setConfirmPassword}
+              placeholder={registerCopy.confirmPasswordPlaceholder}
+              value={confirmPassword}
+            />
 
             <div className="field">
               <label htmlFor="register-wallet">{registerCopy.walletAddress}</label>

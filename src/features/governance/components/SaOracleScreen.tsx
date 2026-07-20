@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { fetchOracleFeed } from "@/features/governance/api/client";
 import type { OracleFeedResponse } from "@/shared/api/types";
 import { Alert } from "@/shared/ui/Alert";
+import { WorkspacePanel } from "@/shared/ui/WorkspacePanel";
 
 /** SA-S04 — Oracle configuration (read + label stub/production) */
 export function SaOracleScreen() {
@@ -17,8 +18,7 @@ export function SaOracleScreen() {
   }, []);
 
   return (
-    <div className="panel" data-screen-id="SA-S04">
-      <h1>Oracle configuration</h1>
+    <WorkspacePanel screenId="SA-S04" title="Oracle configuration">
       {error ? <Alert tone="error">{error}</Alert> : null}
       {feed?.status === "STUB" ? (
         <Alert tone="warning">
@@ -43,6 +43,6 @@ export function SaOracleScreen() {
           </div>
         </dl>
       ) : null}
-    </div>
+    </WorkspacePanel>
   );
 }

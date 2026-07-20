@@ -10,6 +10,7 @@ import {
 import type { AssetOfferingResponse, PauseStatusResponse } from "@/shared/api/types";
 import { Alert } from "@/shared/ui/Alert";
 import { Button } from "@/shared/ui/Button";
+import { WorkspacePanel } from "@/shared/ui/WorkspacePanel";
 import { useLocale } from "@/shared/i18n/LocaleProvider";
 import { resolveClientError } from "@/shared/i18n/resolveClientError";
 import { isApiError } from "@/shared/api/errors";
@@ -70,8 +71,7 @@ export function SaPauseScreen() {
   }
 
   return (
-    <div className="panel" data-screen-id="SA-S03">
-      <h1>Emergency controls</h1>
+    <WorkspacePanel screenId="SA-S03" title="Emergency controls">
       <div className="field">
         <label htmlFor="pause-reason">Reason (required)</label>
         <input id="pause-reason" onChange={(e) => setReason(e.target.value)} value={reason} />
@@ -112,6 +112,6 @@ export function SaPauseScreen() {
           );
         })}
       </ul>
-    </div>
+    </WorkspacePanel>
   );
 }

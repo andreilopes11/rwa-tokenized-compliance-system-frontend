@@ -857,7 +857,7 @@ html[data-theme="dark"] .experience-shell .ui-button-secondary:hover {
   align-items: center;
   flex-wrap: wrap;
   gap: 0.5rem 1rem;
-  justify-content: flex-end;
+  justify-content: center;
 }
 
 .workspace-nav-links {
@@ -884,15 +884,104 @@ html[data-theme="dark"] .experience-shell .ui-button-secondary:hover {
   color: var(--xp-accent);
 }
 
-.investor-section-nav {
-  margin-bottom: 1rem;
-  width: 100%;
-}
+/* Investor hash nav lives in WorkspaceAppHeader */
 
 .workspace-content {
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
+}
+
+.workspace-hero-band {
+  margin: 0 auto;
+  max-width: 1360px;
+  padding: 0 clamp(1rem, 4vw, 2rem);
+  width: 100%;
+}
+
+.workspace-split {
+  display: grid;
+  gap: 1.25rem;
+  grid-template-columns: minmax(0, 1.15fr) minmax(18rem, 0.85fr);
+}
+
+@media (max-width: 960px) {
+  .workspace-split {
+    grid-template-columns: 1fr;
+  }
+}
+
+.panel-head {
+  align-items: flex-start;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1rem;
+  justify-content: space-between;
+  margin-bottom: 0.85rem;
+}
+
+.panel-head h1,
+.experience-shell.workspace-shell .panel > .panel-head h1,
+.experience-shell.workspace-shell .panel h1 {
+  font-size: 1.35rem;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+.experience-shell .dashboard-hero h1 {
+  font-size: clamp(1.55rem, 2.4vw, 2.1rem);
+  letter-spacing: -0.03em;
+  margin: 0 0 0.55rem;
+}
+
+.panel-head-actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.panel-description {
+  margin: 0 0 1rem;
+}
+
+.panel-lead {
+  margin: 0 0 0.5rem;
+}
+
+.experience-footer-workspace {
+  border-left: 0;
+  border-radius: 0;
+  border-right: 0;
+  margin: 0 auto;
+  max-width: 1360px;
+  padding: 0.85rem clamp(1rem, 4vw, 2rem);
+  width: 100%;
+}
+
+.experience-footer-workspace-inner {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.25rem;
+  justify-content: space-between;
+}
+
+.experience-footer-workspace-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1rem;
+}
+
+.experience-footer-workspace-nav a {
+  color: var(--xp-text-muted);
+  font-size: 0.88rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.experience-footer-workspace-nav a:hover {
+  color: var(--xp-accent);
 }
 
 .filter-row {
@@ -992,8 +1081,138 @@ html[data-theme="dark"] .experience-shell .ui-button-secondary:hover {
   grid-template-columns: minmax(0, 1fr) auto;
 }
 
-.topbar-global-nav {
+.workspace-app-header {
+  align-items: center;
+  column-gap: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  row-gap: 0.75rem;
+}
+
+.workspace-header-start {
+  align-items: center;
+  display: flex;
+  flex: 0 1 auto;
+  flex-wrap: wrap;
+  gap: 0.75rem 1rem;
+  min-width: 0;
+}
+
+.workspace-header-brand {
+  align-items: center;
+  color: var(--xp-text);
+  display: inline-flex;
+  font-family: var(--xp-font-display);
+  font-size: 1.05rem;
+  font-weight: 700;
+  gap: 0.5rem;
+  letter-spacing: -0.02em;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.workspace-header-brand:hover {
+  color: var(--xp-accent);
+}
+
+.workspace-header-brand svg {
+  color: var(--xp-accent);
+  flex-shrink: 0;
+}
+
+.workspace-header-identity {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.workspace-role-badge {
+  align-items: center;
+  background: color-mix(in srgb, var(--xp-accent) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--xp-accent) 35%, transparent);
+  border-radius: 999px;
+  color: var(--xp-accent-dim);
+  display: inline-flex;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  padding: 0.4rem 0.7rem;
+  text-transform: uppercase;
+  width: fit-content;
+}
+
+html[data-theme="dark"] .workspace-role-badge {
+  color: var(--xp-accent);
+}
+
+.workspace-header-context {
+  color: var(--xp-text-muted);
+  font-size: 0.78rem;
+  line-height: 1.35;
+  margin: 0;
+  max-width: 42ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.workspace-header-nav {
+  align-items: center;
+  display: flex;
+  flex: 1 1 16rem;
   justify-content: center;
+  min-width: 0;
+}
+
+.workspace-header-nav .workspace-nav-links {
+  justify-content: center;
+}
+
+.workspace-header-actions {
+  align-items: center;
+  display: flex;
+  flex: 0 1 auto;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: flex-end;
+  margin-left: auto;
+}
+
+.workspace-menu-toggle {
+  align-items: center;
+  background: var(--xp-surface);
+  border: 1px solid var(--xp-border);
+  border-radius: 12px;
+  color: var(--xp-text);
+  cursor: pointer;
+  display: none;
+  justify-content: center;
+  margin-left: auto;
+  min-height: 2.5rem;
+  min-width: 2.5rem;
+  padding: 0.45rem;
+}
+
+.workspace-menu-toggle:hover {
+  background: var(--xp-surface-hover);
+  border-color: var(--xp-border-strong);
+  color: var(--xp-accent);
+}
+
+.experience-shell.workspace-shell {
+  display: grid;
+  gap: 1.2rem;
+  min-height: 100vh;
+  padding-bottom: 2rem;
+}
+
+.experience-shell.workspace-shell .workspace-content {
+  margin: 0 auto;
+  max-width: 1360px;
+  padding: 0 clamp(1rem, 4vw, 2rem);
+  width: 100%;
 }
 
 @media (max-width: 960px) {
@@ -1001,8 +1220,46 @@ html[data-theme="dark"] .experience-shell .ui-button-secondary:hover {
     grid-template-columns: 1fr;
   }
 
-  .topbar-global-nav {
+  .workspace-app-header {
+    align-items: flex-start;
+  }
+
+  .workspace-menu-toggle {
+    display: inline-flex;
+  }
+
+  .workspace-header-nav {
+    display: none;
+    flex: 1 1 100%;
     justify-content: flex-start;
+    order: 4;
+    width: 100%;
+  }
+
+  .workspace-header-nav.is-open {
+    display: flex;
+  }
+
+  .workspace-header-nav .workspace-nav-links {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .workspace-header-nav .workspace-nav-link {
+    display: block;
+    padding: 0.55rem 0.75rem;
+  }
+
+  .workspace-header-actions {
+    flex: 1 1 100%;
+    justify-content: flex-start;
+    margin-left: 0;
+    order: 3;
+    width: 100%;
+  }
+
+  .workspace-header-context {
+    white-space: normal;
   }
 }
 

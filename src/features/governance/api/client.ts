@@ -1,13 +1,25 @@
 export {
+  approveAdminKycRequest,
+  approveAdminRedemption,
+  approveAdminSubscription,
   createAdminAssetOffering,
   fetchAdminAssetPauseStatus,
   fetchAdminOperationsReport,
   fetchOracleFeed,
   grantAssetInvestorAccess,
   listAdminAssetOfferings,
+  listAdminAuditEvents,
+  listAdminBlockchainTransactions,
+  listAdminKycRequests,
+  listAdminRedemptions,
+  listAdminSubscriptions,
   listAssetInvestorAccess,
   pauseAdminAssetToken,
   publishAdminAssetOffering,
+  rejectAdminKycRequest,
+  rejectAdminRedemption,
+  rejectAdminSubscription,
+  revokeAdminIdentity,
   revokeAssetInvestorAccess,
   unpauseAdminAssetToken,
   updateAdminAssetComplianceRules,
@@ -15,7 +27,17 @@ export {
 } from "@/features/admin/api/client";
 
 import { jsonFetch, authorizedRequest } from "@/shared/api/http";
-import type { ForceSyncResponse } from "@/shared/api/types";
+import type { ForceSyncResponse, InvestorStatusResponse } from "@/shared/api/types";
+
+/** Governance staff read of investor status (subscription gating, case review). */
+export async function fetchInvestorStatusForGovernance(
+  walletAddress: string
+): Promise<InvestorStatusResponse> {
+  return jsonFetch<InvestorStatusResponse>(
+    `/api/investors/${encodeURIComponent(walletAddress)}/status`,
+    authorizedRequest()
+  );
+}
 
 export async function initiateForceSync(request: {
   requestId?: string;

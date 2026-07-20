@@ -9,6 +9,7 @@ import {
 import type { OperationsReportResponse, OracleFeedResponse } from "@/shared/api/types";
 import { Alert } from "@/shared/ui/Alert";
 import { UpstreamUnavailableAlert } from "@/shared/ui/UpstreamUnavailableAlert";
+import { WorkspacePanel } from "@/shared/ui/WorkspacePanel";
 import { isApiError } from "@/shared/api/errors";
 
 /** SA-S01 — Governance Overview */
@@ -41,8 +42,7 @@ export function SaOverviewScreen() {
   }, []);
 
   return (
-    <div className="panel" data-screen-id="SA-S01">
-      <h1>Governance overview</h1>
+    <WorkspacePanel screenId="SA-S01" title="Governance overview">
       {gatewayError ? <UpstreamUnavailableAlert onRetry={() => void load()} /> : null}
       <div className="metric-grid">
         <div className="metric">
@@ -61,6 +61,6 @@ export function SaOverviewScreen() {
       {oracle?.status === "STUB" ? (
         <Alert tone="warning">Oracle feed is in STUB mode — not production attestation.</Alert>
       ) : null}
-    </div>
+    </WorkspacePanel>
   );
 }

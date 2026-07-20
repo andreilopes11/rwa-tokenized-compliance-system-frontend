@@ -19,34 +19,39 @@ describe("isInvestorOnlyBackendPath", () => {
   });
 });
 
-describe("denyBackendProxyAccess (TECHNICAL §3)", () => {
-  it("returns 403 key when compliance hits governance assets", () => {
-    expect(denyBackendProxyAccess("compliance", "api/admin/assets", "GET")).toBe(
-      "errors.governanceSessionRequired"
-    );
-    expect(denyBackendProxyAccess("compliance", "api/admin/assets/x/publish", "POST")).toBe(
-      "errors.governanceSessionRequired"
-    );
-  });
-
-  it("returns 403 key when investor hits admin assets", () => {
+describe("denyBackendProxyAccess (two-role model)", () => {
+  it("blocks investors from every admin path", () => {
     expect(denyBackendProxyAccess("investor", "api/admin/assets", "POST")).toBe(
       "errors.governanceSessionRequired"
     );
     expect(denyBackendProxyAccess("investor", "api/admin/reports/ops", "GET")).toBe(
-      "errors.auditSessionRequired"
+      "errors.governanceSessionRequired"
+    );
+    expect(denyBackendProxyAccess("investor", "api/admin/kyc/requests/1/approve", "POST")).toBe(
+      "errors.governanceSessionRequired"
     );
   });
 
-  it("allows governance on admin assets", () => {
+  it("allows governance (SUPER_ADMIN) on the full admin surface", () => {
     expect(denyBackendProxyAccess("governance", "api/admin/assets", "POST")).toBeNull();
     expect(denyBackendProxyAccess("governance", "api/admin/assets/x/publish", "POST")).toBeNull();
+    expect(denyBackendProxyAccess("governance", "api/admin/kyc/requests/1/approve", "POST")).toBeNull();
+    expect(denyBackendProxyAccess("governance", "api/admin/force-sync/requests", "POST")).toBeNull();
+    expect(denyBackendProxyAccess("governance", "api/admin/audit-events", "GET")).toBeNull();
   });
 
-  it("blocks governance from compliance KYC mutate paths", () => {
-    expect(denyBackendProxyAccess("governance", "api/admin/kyc/requests/1/approve", "POST")).toBe(
-      "errors.complianceSessionRequired"
+  it("keeps investor self-service paths off-limits to governance except staff reads", () => {
+    expect(denyBackendProxyAccess("governance", "api/kyc/requests", "POST")).toBe(
+      "errors.investorSessionRequired"
     );
+    expect(
+      denyBackendProxyAccess(
+        "governance",
+        "api/investors/0x1111111111111111111111111111111111111111/status",
+        "GET"
+      )
+    ).toBeNull();
+    expect(denyBackendProxyAccess("investor", "api/kyc/requests", "POST")).toBeNull();
   });
 });
 

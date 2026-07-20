@@ -90,6 +90,7 @@ export type AssetOfferingResponse = {
   issuerName: string;
   issuerMetadata: string | null;
   tokenAddress: string | null;
+  createdBy?: string | null;
   createdAt: string;
   updatedAt: string;
 };

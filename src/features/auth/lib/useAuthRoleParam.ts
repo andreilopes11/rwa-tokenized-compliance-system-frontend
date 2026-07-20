@@ -3,7 +3,7 @@
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-export type AuthRole = "investor" | "compliance" | "governance" | "audit";
+export type AuthRole = "investor" | "governance";
 
 export function useAuthRoleParam(defaultRole: AuthRole = "investor") {
   const router = useRouter();
@@ -13,9 +13,10 @@ export function useAuthRoleParam(defaultRole: AuthRole = "investor") {
   const roleFromUrl = useMemo<AuthRole>(() => {
     const role = searchParams.get("role");
     if (role === "investor") return "investor";
-    if (role === "compliance") return "compliance";
-    if (role === "audit") return "audit";
-    if (role === "governance" || role === "admin") return "governance";
+    // Legacy staff roles collapse into governance.
+    if (role === "governance" || role === "admin" || role === "compliance" || role === "audit") {
+      return "governance";
+    }
     return defaultRole;
   }, [defaultRole, searchParams]);
 

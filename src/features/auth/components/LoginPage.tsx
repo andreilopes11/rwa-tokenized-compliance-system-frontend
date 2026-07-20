@@ -9,6 +9,7 @@ import {
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, useState } from "react";
+import { PasswordInput } from "@/features/auth/components/PasswordInput";
 import { isValidEmail } from "@/features/auth/lib/validators";
 import type { AuthRole } from "@/features/auth/lib/useAuthRole";
 import { useAuthRoleParam } from "@/features/auth/lib/useAuthRoleParam";
@@ -26,22 +27,12 @@ export function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const roleParam = searchParams.get("role");
-  const initialRole =
-    roleParam === "compliance" || roleParam === "governance" || roleParam === "audit" || roleParam === "admin"
-      ? roleParam === "admin"
-        ? "governance"
-        : roleParam
+  const initialRole: AuthRole =
+    roleParam === "governance" || roleParam === "admin" || roleParam === "compliance" || roleParam === "audit"
+      ? "governance"
       : "investor";
   const { role, setRole } = useAuthRoleParam(initialRole);
-  const next =
-    searchParams.get("next")
-    ?? (role === "investor"
-      ? "/dashboard"
-      : role === "compliance"
-        ? "/compliance"
-        : role === "audit"
-          ? "/audit"
-          : "/governance");
+  const next = searchParams.get("next") ?? (role === "investor" ? "/dashboard" : "/governance");
   const registered = searchParams.get("registered") === "1";
   const prefilledEmail = searchParams.get("email")?.trim() ?? "";
   const defaultEmail = prefilledEmail || (role === "investor" ? "investor@company.com" : "admin@compliance.local");
@@ -148,9 +139,7 @@ export function LoginPage() {
             <div className="segmented-control" role="group" aria-label={loginCopy.role}>
               {([
                 { id: "investor", label: loginCopy.investor },
-                { id: "compliance", label: "Compliance" },
-                { id: "governance", label: "Governance" },
-                { id: "audit", label: "Audit" }
+                { id: "governance", label: "Governance" }
               ] as Array<{ id: AuthRole; label: string }>).map((roleOption) => (
                 <button
                   key={roleOption.id}
@@ -189,24 +178,16 @@ export function LoginPage() {
             ) : null}
           </div>
 
-          <div className="field">
-            <label htmlFor="login-password">Password</label>
-            <input
-              aria-describedby={showPasswordError ? "login-password-error" : undefined}
-              aria-invalid={showPasswordError}
-              autoComplete="current-password"
-              id="login-password"
-              onChange={(event) => setPassword(event.target.value)}
-              placeholder="••••••••"
-              type="password"
-              value={password}
-            />
-            {showPasswordError ? (
-              <p className="field-error" id="login-password-error">
-                {passwordError}
-              </p>
-            ) : null}
-          </div>
+          <PasswordInput
+            autoComplete="current-password"
+            error={passwordError}
+            id="login-password"
+            invalid={showPasswordError}
+            label="Password"
+            onChange={setPassword}
+            placeholder="••••••••"
+            value={password}
+          />
 
           <div className="auth-actions">
             <Button

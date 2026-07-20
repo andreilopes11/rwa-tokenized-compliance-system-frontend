@@ -8,21 +8,14 @@ import {
 type LoginRequest = {
   email?: string;
   password?: string;
-  role?: "investor" | "compliance" | "governance" | "audit";
+  role?: "investor" | "governance";
 };
 
 export async function POST(request: NextRequest) {
   const payload = (await request.json()) as LoginRequest;
   const email = payload.email?.trim().toLowerCase() ?? "";
   const password = payload.password ?? "";
-  const role =
-    payload.role === "compliance"
-      ? "COMPLIANCE_OFFICER"
-      : payload.role === "audit"
-        ? "AUDITOR"
-        : payload.role === "governance"
-          ? "SUPER_ADMIN"
-          : "INVESTOR";
+  const role = payload.role === "governance" ? "SUPER_ADMIN" : "INVESTOR";
 
   if (!email || !password) {
     return NextResponse.json({ message: "Email and password are required." }, { status: 400 });
@@ -40,14 +33,7 @@ export async function POST(request: NextRequest) {
   const response = NextResponse.json({
     user: {
       email: result.data.user.email,
-        role:
-          result.data.user.role === "INVESTOR"
-            ? "investor"
-            : result.data.user.role === "COMPLIANCE_OFFICER"
-              ? "compliance"
-              : result.data.user.role === "AUDITOR"
-                ? "audit"
-                : "governance",
+      role: result.data.user.role === "INVESTOR" ? "investor" : "governance",
       walletAddress: result.data.user.walletAddress
     }
   });

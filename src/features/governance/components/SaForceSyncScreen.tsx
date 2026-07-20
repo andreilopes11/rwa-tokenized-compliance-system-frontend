@@ -5,6 +5,7 @@ import { initiateForceSync } from "@/features/governance/api/client";
 import { isWalletAddress } from "@/shared/lib/formatters";
 import { Alert } from "@/shared/ui/Alert";
 import { Button } from "@/shared/ui/Button";
+import { WorkspacePanel } from "@/shared/ui/WorkspacePanel";
 import Link from "next/link";
 
 /** SA-S05 — Force Sync initiate */
@@ -36,12 +37,11 @@ export function SaForceSyncScreen() {
   }
 
   return (
-    <div className="panel" data-screen-id="SA-S05">
-      <h1>Force sync console</h1>
-      <p className="muted">
-        Initiate recovery for failed chain writes. A distinct super-admin must approve on the
-        four-eyes screen.
-      </p>
+    <WorkspacePanel
+      description="Initiate recovery for failed chain writes. A distinct super-admin must approve on the four-eyes screen."
+      screenId="SA-S05"
+      title="Force sync console"
+    >
       {error ? <Alert tone="error">{error}</Alert> : null}
       {syncId ? (
         <Alert tone="success">
@@ -71,6 +71,6 @@ export function SaForceSyncScreen() {
         <input id="fs-ticket" onChange={(e) => setTicket(e.target.value)} value={ticket} />
       </div>
       <Button onClick={() => void initiate()}>Initiate ForceSync</Button>
-    </div>
+    </WorkspacePanel>
   );
 }

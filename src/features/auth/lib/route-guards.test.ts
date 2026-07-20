@@ -6,11 +6,10 @@ import {
 } from "./middleware-auth";
 
 describe("workspacePathForRole", () => {
-  it("maps roles to isolated workspaces", () => {
+  it("maps the two roles to their workspaces", () => {
     expect(workspacePathForRole("investor")).toBe("/dashboard");
-    expect(workspacePathForRole("compliance")).toBe("/compliance");
     expect(workspacePathForRole("governance")).toBe("/governance");
-    expect(workspacePathForRole("audit")).toBe("/audit");
+    expect(workspacePathForRole(null)).toBe("/governance");
   });
 });
 
@@ -19,7 +18,7 @@ describe("BFF path guards", () => {
     expect(isInvestorOnlyBackendPath("api/assets/abc/subscriptions")).toBe(true);
   });
 
-  it("allows compliance to read investor status", () => {
+  it("allows governance to read investor status", () => {
     expect(
       isStaffSharedInvestorReadPath(
         "api/investors/0x1111111111111111111111111111111111111111/status",

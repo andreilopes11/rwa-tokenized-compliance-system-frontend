@@ -14,7 +14,7 @@ import {
 type RegisterRequest = {
   email?: string;
   password?: string;
-  role?: "investor" | "compliance" | "governance" | "audit";
+  role?: "investor" | "governance";
   walletAddress?: string;
 };
 
@@ -22,10 +22,7 @@ export async function POST(request: NextRequest) {
   const payload = (await request.json()) as RegisterRequest;
   const email = payload.email?.trim().toLowerCase() ?? "";
   const password = payload.password ?? "";
-  const role =
-    payload.role === "compliance" || payload.role === "governance" || payload.role === "audit"
-      ? payload.role
-      : "investor";
+  const role = payload.role === "governance" ? "governance" : "investor";
   const walletAddress = payload.walletAddress?.trim() ?? "";
 
   if (!isValidEmail(email)) {
@@ -59,8 +56,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ message: result.message }, { status: result.status });
   }
 
-  const redirectTo =
-    role === "investor" ? "/dashboard" : role === "compliance" ? "/compliance" : role === "audit" ? "/audit" : "/governance";
+  const redirectTo = role === "investor" ? "/dashboard" : "/governance";
   const response = NextResponse.json(
     {
       message: "Account created. You are signed in.",

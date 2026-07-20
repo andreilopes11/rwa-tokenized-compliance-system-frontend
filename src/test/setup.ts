@@ -15,7 +15,7 @@ vi.mock("next/navigation", () => ({
     push: vi.fn(),
     refresh: vi.fn()
   }),
-  usePathname: () => "/compliance",
+  usePathname: () => "/governance",
   useSearchParams: () => new URLSearchParams()
 }));
 

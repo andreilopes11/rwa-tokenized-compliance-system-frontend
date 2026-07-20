@@ -4,6 +4,7 @@ import { useState } from "react";
 import { approveForceSync } from "@/features/governance/api/client";
 import { Alert } from "@/shared/ui/Alert";
 import { Button } from "@/shared/ui/Button";
+import { WorkspacePanel } from "@/shared/ui/WorkspacePanel";
 
 /** SA-S06 — Four-eyes ForceSync approval */
 export function SaForceSyncApproveScreen() {
@@ -27,12 +28,11 @@ export function SaForceSyncApproveScreen() {
   }
 
   return (
-    <div className="panel" data-screen-id="SA-S06">
-      <h1>Four-eyes approval</h1>
-      <p className="muted">
-        Second super-admin principal approves HSM-signed execution. Cannot be the same user who
-        initiated.
-      </p>
+    <WorkspacePanel
+      description="Second super-admin principal approves HSM-signed execution. Cannot be the same user who initiated."
+      screenId="SA-S06"
+      title="Four-eyes approval"
+    >
       {error ? <Alert tone="error">{error}</Alert> : null}
       {notice ? <Alert tone="success">{notice}</Alert> : null}
       <div className="field">
@@ -49,6 +49,6 @@ export function SaForceSyncApproveScreen() {
         />
       </div>
       <Button onClick={() => void approve()}>Approve ForceSync</Button>
-    </div>
+    </WorkspacePanel>
   );
 }

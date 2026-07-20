@@ -12,7 +12,8 @@ export const pt = {
     platform: "Plataforma",
     trust: "Confiança",
     language: "Idioma",
-    openMenu: "Abrir menu"
+    openMenu: "Abrir menu",
+    closeMenu: "Fechar menu"
   },
   wallet: {
     connect: "Conectar carteira",
@@ -33,9 +34,7 @@ export const pt = {
     authRequired: "Autenticação obrigatória.",
     sessionExpired: "Sessão expirada. Entre novamente.",
     adminSessionRequired: "Sessão de administrador obrigatória.",
-    complianceSessionRequired: "Sessão de compliance obrigatória.",
     governanceSessionRequired: "Sessão de governança obrigatória.",
-    auditSessionRequired: "Sessão de auditoria obrigatória.",
     investorSessionRequired:
       "Sessão de investidor obrigatória. Entre como investidor para usar este endpoint.",
     authApiNotFound:
@@ -64,9 +63,8 @@ export const pt = {
   },
   common: {
     retry: "Tentar novamente",
-    adminDashboard: "Painel administrativo",
     backHome: "Voltar ao início",
-    brand: "RWA Compliance",
+    brand: "VaultGuard RWA",
     footerStatusAuth: "Acesso seguro e fluxo de integração",
     footerStatusLive: "Plataforma de conformidade em produção",
     github: "GitHub",
@@ -80,9 +78,7 @@ export const pt = {
     privacy: "Política de privacidade",
     productLinks: [
       { href: "/login?next=%2Fdashboard&role=investor", label: "Portal do investidor" },
-      { href: "/login?next=%2Fcompliance&role=compliance", label: "Workspace de compliance" },
-      { href: "/login?next=%2Fgovernance&role=governance", label: "Workspace de governança" },
-      { href: "/login?next=%2Faudit&role=audit", label: "Workspace de auditoria" }
+      { href: "/login?next=%2Fgovernance&role=governance", label: "Workspace de governança" }
     ],
     productTitle: "Produto",
     resourceLinks: [
@@ -472,15 +468,9 @@ export const pt = {
     walletPlaceholder: "0x..."
   },
   workspace: {
-    admin: {
-      heroDescription:
-        "Opere a superfície do emissor com visão operacional em aprovações de identidade, filas de subscrição e resgate, regras de conformidade, feeds e monitoramento on-chain.",
-      heroEyebrow: "Operações do emissor",
-      heroTitle:
-        "Um painel unificado para decisões de conformidade, configuração de ativos e salvaguardas on-chain",
-      topbarSubtitle:
-        "Fila KYC · aprovações de identidade · operações de ciclo de vida · evidências de auditoria",
-      topbarTitle: "Admin / Sala de controle do emissor"
+    roles: {
+      investor: "Investidor",
+      governance: "Governação"
     },
     investor: {
       heroDescription:
@@ -489,7 +479,6 @@ export const pt = {
       heroTitle: "Portfólio, elegibilidade e ações de ciclo de vida em um só lugar",
       topbarSubtitle:
         "Rede {chainName} {chainId} · elegibilidade off-chain · proteção de transferência on-chain",
-      topbarTitle: "Investidor / Workspace de portfólio",
       nav: {
         overview: "Visão geral",
         onboarding: "Onboarding",
@@ -499,6 +488,10 @@ export const pt = {
         contractsPrivate: "Contratos privados",
         transfer: "Transferir",
         activity: "Atividade"
+      },
+      marketplace: {
+        publicBadge: "Público",
+        inviteBadge: "Convite"
       },
       kyc: {
         submitted: "Submetido",
@@ -513,43 +506,22 @@ export const pt = {
         offChainOnly: "Apenas estado off-chain"
       }
     },
-    compliance: {
-      topbarTitle: "Workspace de conformidade",
-      topbarSubtitle: "Decisões KYC e filas — sem controlos de governação",
-      nav: {
-        dashboard: "Painel",
-        kyc: "Fila KYC",
-        revoke: "Revogar",
-        subscriptions: "Subscrições",
-        redemptions: "Resgates",
-        audit: "Eventos"
-      },
-      approveConfirm: "Dispara atestação on-chain. Continuar?",
-      subscriptionBlocked: "Investidor não verificado on-chain. Aprovação bloqueada."
-    },
     governance: {
-      topbarTitle: "Workspace de governação",
-      topbarSubtitle: "Controlo de emergência, ativos, oracle e ForceSync",
+      topbarSubtitle: "Controlo total: contratos, KYC, ciclo de vida, oracle, ForceSync e auditoria",
       nav: {
         overview: "Visão geral",
-        assets: "Ativos",
+        assets: "Meus contratos",
+        kyc: "Fila KYC",
+        lifecycle: "Ciclo de vida",
+        revoke: "Revogar",
         pause: "Emergência",
         oracle: "Oracle",
         forceSync: "Force sync",
         forceSyncApprove: "Quatro olhos",
+        audit: "Auditoria",
         operations: "Operações"
-      }
-    },
-    audit: {
-      topbarTitle: "Workspace de auditoria",
-      topbarSubtitle: "Supervisão só de leitura",
-      nav: {
-        timeline: "Linha temporal",
-        kyc: "Histórico KYC",
-        chain: "On-chain",
-        export: "Exportar",
-        forceSync: "Trilho Force sync"
-      }
+      },
+      subscriptionBlocked: "Investidor não verificado on-chain. Aprovação bloqueada."
     }
   }
 } as const;

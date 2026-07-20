@@ -1,6 +1,6 @@
 import type { NextRequest } from "next/server";
 
-export type SessionRole = "investor" | "compliance" | "governance" | "audit";
+export type SessionRole = "investor" | "governance";
 
 export const ACCESS_TOKEN_COOKIE = "rwa_access_token";
 export const REFRESH_TOKEN_COOKIE = "rwa_refresh_token";
@@ -32,13 +32,13 @@ export function parseRoleFromAccessToken(request: NextRequest): SessionRole | nu
     if (payload.role === "INVESTOR") {
       return "investor";
     }
-    if (payload.role === "COMPLIANCE_OFFICER") {
-      return "compliance";
-    }
-    if (payload.role === "AUDITOR") {
-      return "audit";
-    }
-    if (payload.role === "SUPER_ADMIN" || payload.role === "ADMIN") {
+    // Two-role model: SUPER_ADMIN + all legacy staff roles collapse into governance.
+    if (
+      payload.role === "SUPER_ADMIN"
+      || payload.role === "ADMIN"
+      || payload.role === "COMPLIANCE_OFFICER"
+      || payload.role === "AUDITOR"
+    ) {
       return "governance";
     }
     return null;
@@ -48,13 +48,10 @@ export function parseRoleFromAccessToken(request: NextRequest): SessionRole | nu
 }
 
 export function workspacePathForRole(role: SessionRole | null): string {
-  if (role === "investor") return "/dashboard";
-  if (role === "compliance") return "/compliance";
-  if (role === "audit") return "/audit";
-  return "/governance";
+  return role === "investor" ? "/dashboard" : "/governance";
 }
 
-/** GET paths compliance/audit may call for case review and subscription gating. */
+/** GET paths governance may call on investor-scoped routes for case review and gating. */
 export function isStaffSharedInvestorReadPath(path: string, method: string): boolean {
   if (method !== "GET") {
     return false;
@@ -88,53 +85,26 @@ export function isInvestorOnlyBackendPath(path: string): boolean {
 }
 
 export type BackendProxyDenial =
-  | "errors.complianceSessionRequired"
   | "errors.governanceSessionRequired"
-  | "errors.auditSessionRequired"
-  | "errors.adminSessionRequired"
   | "errors.investorSessionRequired";
 
 /**
- * TECHNICAL §3 BFF role-path matrix. Returns an i18n error key when the role may not
- * call the path; null when allowed.
+ * Two-role BFF matrix. SUPER_ADMIN (governance) owns every /api/admin/** path (contracts,
+ * KYC, lifecycle, force-sync, audit); investors own their self-service paths. Returns an
+ * i18n error key when the role may not call the path; null when allowed.
  */
 export function denyBackendProxyAccess(
   role: SessionRole,
   path: string,
   method: string
 ): BackendProxyDenial | null {
-  const isComplianceRoute =
-    path.startsWith("api/admin/kyc/")
-    || path.startsWith("api/admin/identities/")
-    || path.startsWith("api/admin/subscriptions/")
-    || path.startsWith("api/admin/redemptions/")
-    || path.startsWith("api/admin/investors/");
-  const isGovernanceRoute =
-    path.startsWith("api/admin/assets/")
-    || path === "api/admin/assets"
-    || path.startsWith("api/admin/force-sync/");
-  const isAuditRoute =
-    path.startsWith("api/admin/audit-events")
-    || path.startsWith("api/admin/blockchain-transactions")
-    || path.startsWith("api/admin/reports/");
-
-  if (isComplianceRoute && role !== "compliance") {
-    return "errors.complianceSessionRequired";
-  }
-  if (isGovernanceRoute && role !== "governance") {
-    return "errors.governanceSessionRequired";
-  }
-  if (isAuditRoute && role !== "audit" && role !== "governance" && role !== "compliance") {
-    return "errors.auditSessionRequired";
-  }
-  if (path.startsWith("api/admin/") && role === "investor") {
-    return "errors.adminSessionRequired";
+  if (path.startsWith("api/admin/")) {
+    return role === "governance" ? null : "errors.governanceSessionRequired";
   }
 
   if (isInvestorOnlyBackendPath(path) && role !== "investor") {
-    const staffRead =
-      isStaffSharedInvestorReadPath(path, method)
-      && (role === "compliance" || role === "audit");
+    // Governance may perform read-only staff reads on shared investor paths (case review).
+    const staffRead = isStaffSharedInvestorReadPath(path, method) && role === "governance";
     if (!staffRead) {
       return "errors.investorSessionRequired";
     }

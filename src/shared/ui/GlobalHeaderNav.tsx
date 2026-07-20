@@ -5,15 +5,11 @@ import { useMessages } from "@/shared/i18n/LocaleProvider";
 
 type GlobalHeaderNavProps = {
   className?: string;
-  variant?: "landing" | "default" | "workspace";
+  variant?: "landing" | "default";
 };
 
 export function GlobalHeaderNav({ className = "global-app-header-nav", variant = "default" }: GlobalHeaderNavProps) {
   const m = useMessages();
-
-  if (variant === "workspace") {
-    return null;
-  }
 
   if (variant === "landing") {
     return (

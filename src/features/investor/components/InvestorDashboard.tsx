@@ -39,7 +39,7 @@ import { useInvestorChainReads } from "@/features/investor/hooks/useInvestorChai
 import { useKycPolling } from "@/features/investor/hooks/useKycPolling";
 import { useTransferPreflight } from "@/features/investor/hooks/useTransferPreflight";
 import { isKycPollingComplete, isLifecycleReady } from "@/features/investor/lib/kyc";
-import { InvestorWorkspaceNav } from "@/features/investor/components/InvestorWorkspaceNav";
+import { useInvestorNavItems } from "@/features/investor/components/InvestorWorkspaceNav";
 import { UpstreamUnavailableAlert } from "@/shared/ui/UpstreamUnavailableAlert";
 import { mapTransferPreflightReason } from "@/shared/i18n/mapTransferPreflightReason";
 import { isApiError } from "@/shared/api/errors";
@@ -68,7 +68,7 @@ import { activeChain, explorerLink } from "@/shared/lib/web3";
 import { Alert } from "@/shared/ui/Alert";
 import { Button } from "@/shared/ui/Button";
 import { DashboardHero } from "@/shared/ui/DashboardHero";
-import { SiteTopBar } from "@/shared/ui/SiteTopBar";
+import { WorkspaceShell } from "@/shared/ui/WorkspaceShell";
 
 import { publicRuntime } from "@/shared/config/publicRuntime";
 
@@ -95,6 +95,7 @@ export function InvestorDashboard({ sessionWalletAddress }: InvestorDashboardPro
   const { switchChainAsync, isPending: switchingNetwork } = useSwitchChain();
   const m = useMessages();
   const { t } = useLocale();
+  const investorNavItems = useInvestorNavItems();
 
   const [walletAddress, setWalletAddress] = useState("");
   const [documentReference, setDocumentReference] = useState("");
@@ -578,76 +579,68 @@ export function InvestorDashboard({ sessionWalletAddress }: InvestorDashboardPro
         : XCircle;
 
   return (
-    <main className="experience-shell dashboard-shell">
-      <SiteTopBar
-        subtitle={formatMessage(m.workspace.investor.topbarSubtitle, {
-          chainId: activeChain.id,
-          chainName: activeChain.name
-        })}
-        title={m.workspace.investor.topbarTitle}
-        actions={
-          <div className="wallet-actions">
-            {wrongNetwork && (
-              <button
-                className="secondary-button"
-                disabled={switchingNetwork}
-                onClick={switchNetwork}
-                type="button"
-              >
-                <RefreshCw size={18} aria-hidden />
-                {formatMessage(m.wallet.switchToChain, { chainName: activeChain.name })}
-              </button>
-            )}
-            {account.isConnected ? (
-              <button className="wallet-pill" onClick={disconnectWallet} type="button">
-                <Wallet size={18} aria-hidden />
-                {shortenAddress(account.address)}
-              </button>
-            ) : (
-              <button
-                className="connect-button"
-                disabled={walletConnecting}
-                onClick={connectWallet}
-                type="button"
-              >
-                <Wallet size={18} aria-hidden />
-                {walletConnecting ? m.wallet.connecting : m.wallet.connect}
-              </button>
-            )}
-            <Button
-              leadingIcon={<XCircle size={16} />}
-              loading={signingOut}
-              onClick={signOut}
-              size="sm"
-              variant="ghost"
-            >
-              {m.common.signOut}
-            </Button>
-          </div>
-        }
-      />
-
-      <InvestorWorkspaceNav />
-
-      <div data-screen-id="INV-S01" id="overview">
-      <DashboardHero
-        description={m.workspace.investor.heroDescription}
-        eyebrow={m.workspace.investor.heroEyebrow}
-        pills={heroPills}
-        stats={heroStats}
-        title={m.workspace.investor.heroTitle}
-      />
-      </div>
-
-      <section className="content">
-        {gatewayError ? (
-          <UpstreamUnavailableAlert
-            onRetry={() => {
-              setGatewayError("");
-              void refreshStatus();
-            }}
+    <WorkspaceShell
+      beforeContent={
+        <div className="workspace-hero-band" data-screen-id="INV-S01" id="overview">
+          <DashboardHero
+            description={m.workspace.investor.heroDescription}
+            eyebrow={m.workspace.investor.heroEyebrow}
+            pills={heroPills}
+            stats={heroStats}
+            title={m.workspace.investor.heroTitle}
           />
-        ) : null}
+        </div>
+      }
+      context={formatMessage(m.workspace.investor.topbarSubtitle, {
+        chainId: activeChain.id,
+        chainName: activeChain.name
+      })}
+      navAriaLabel="Investor workspace navigation"
+      navItems={investorNavItems}
+      onSignOut={signOut}
+      role="investor"
+      signingOut={signingOut}
+      trailing={
+        <div className="wallet-actions">
+          {wrongNetwork && (
+            <button
+              className="secondary-button"
+              disabled={switchingNetwork}
+              onClick={switchNetwork}
+              type="button"
+            >
+              <RefreshCw size={18} aria-hidden />
+              {formatMessage(m.wallet.switchToChain, { chainName: activeChain.name })}
+            </button>
+          )}
+          {account.isConnected ? (
+            <button className="wallet-pill" onClick={disconnectWallet} type="button">
+              <Wallet size={18} aria-hidden />
+              {shortenAddress(account.address)}
+            </button>
+          ) : (
+            <button
+              className="connect-button"
+              disabled={walletConnecting}
+              onClick={connectWallet}
+              type="button"
+            >
+              <Wallet size={18} aria-hidden />
+              {walletConnecting ? m.wallet.connecting : m.wallet.connect}
+            </button>
+          )}
+        </div>
+      }
+    >
+      {gatewayError ? (
+        <UpstreamUnavailableAlert
+          onRetry={() => {
+            setGatewayError("");
+            void refreshStatus();
+          }}
+        />
+      ) : null}
+      <div className="workspace-split">
         <div className="panel-grid">
           <section
             className="panel"
@@ -970,7 +963,10 @@ export function InvestorDashboard({ sessionWalletAddress }: InvestorDashboardPro
                     <div>
                       <h3>{asset.name}</h3>
                       <span className={`status ${asset.status === "ACTIVE" ? "approved" : "pending"}`}>
-                        {asset.status} · PUBLIC
+                        {asset.status}
+                      </span>
+                      <span className="marketplace-badge" data-visibility="PUBLIC">
+                        {m.workspace.investor.marketplace.publicBadge}
                       </span>
                     </div>
                     <dl className="definition-grid">
@@ -1113,7 +1109,10 @@ export function InvestorDashboard({ sessionWalletAddress }: InvestorDashboardPro
                     <div>
                       <h3>{asset.name}</h3>
                       <span className={`status ${asset.status === "ACTIVE" ? "approved" : "pending"}`}>
-                        {asset.status} · PRIVATE
+                        {asset.status}
+                      </span>
+                      <span className="marketplace-badge" data-visibility="PRIVATE">
+                        {m.workspace.investor.marketplace.inviteBadge}
                       </span>
                     </div>
                     <dl className="definition-grid">
@@ -1324,8 +1323,8 @@ export function InvestorDashboard({ sessionWalletAddress }: InvestorDashboardPro
             this UI.
           </p>
         </aside>
-      </section>
-    </main>
+      </div>
+    </WorkspaceShell>
   );
 }
 

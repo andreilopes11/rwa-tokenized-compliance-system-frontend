@@ -15,7 +15,8 @@ export type ExperienceFooterLink = {
 type ExperienceFooterProps = {
   extraLinks?: ExperienceFooterLink[];
   status?: string;
-  variant?: "default" | "landing";
+  /** `workspace` = compact institutional footer for logged-in shells. */
+  variant?: "default" | "landing" | "workspace";
 };
 
 export function ExperienceFooter({
@@ -25,7 +26,24 @@ export function ExperienceFooter({
 }: ExperienceFooterProps) {
   const m = useMessages();
   const footerCopy = m.footer;
-  const common = m.common;
+
+  if (variant === "workspace") {
+    return (
+      <footer className="experience-footer experience-footer-workspace">
+        <div className="experience-footer-workspace-inner">
+          <Link className="experience-footer-logo" href="/">
+            <ShieldCheck aria-hidden size={18} />
+            <strong>{appConfig.brandName}</strong>
+          </Link>
+          <nav aria-label="Legal links" className="experience-footer-workspace-nav">
+            <Link href="/terms">{footerCopy.terms}</Link>
+            <Link href="/privacy">{footerCopy.privacy}</Link>
+          </nav>
+          <span className="muted">{footerCopy.copyright}</span>
+        </div>
+      </footer>
+    );
+  }
 
   return (
     <footer className={`experience-footer${variant === "landing" ? " experience-footer-landing" : ""}`}>

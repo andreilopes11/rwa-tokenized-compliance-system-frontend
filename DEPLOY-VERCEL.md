@@ -15,19 +15,32 @@ Standalone Next.js App Router app. Browser calls same-origin BFF (`/api/backend`
 
 Flow: open PR → Vercel Preview → verify → merge to production branch.
 
+## Production values (current)
+
+| Variable | Value |
+|----------|--------|
+| `BACKEND_API_BASE_URL` | `http://rwatokenizedcomplianceapi-env.eba-ddsh8y8v.eu-north-1.elasticbeanstalk.com` |
+| `NEXT_PUBLIC_CHAIN_ID` | `11155111` |
+| `NEXT_PUBLIC_RPC_URL` | `https://eth-sepolia.g.alchemy.com/v2/<KEY>` |
+| `NEXT_PUBLIC_BLOCK_EXPLORER_URL` | `https://sepolia.etherscan.io` |
+| `NEXT_PUBLIC_IDENTITY_REGISTRY_ADDRESS` | `0xDf47E753589f6f4337999DC72bF0530301AEDe5b` |
+| `NEXT_PUBLIC_TOKEN_ADDRESS` | `0xC85bB59cbaffE561BC5A490BEeb37eC9Fb8c92b0` |
+
+Redeploy after changing any `NEXT_PUBLIC_*` variable. Chain reference: `../rwa-tokenized-compliance-system-blockchain/config/sepolia-addresses.json`
+
 ## Environment variables
 
 Set in Vercel **Project → Settings → Environment Variables** for Production (and Preview as needed).
 
 | Variable | Required | Notes |
 |----------|----------|--------|
-| `BACKEND_API_BASE_URL` | yes | `https://<eb-host>` — no trailing slash required |
+| `BACKEND_API_BASE_URL` | yes | EB origin above |
 | `NEXT_PUBLIC_API_BASE_URL` | no | default `/api/backend` |
-| `NEXT_PUBLIC_CHAIN_ID` | yes (prod) | `11155111` for Sepolia |
-| `NEXT_PUBLIC_RPC_URL` | yes (prod) | public Sepolia HTTPS RPC |
+| `NEXT_PUBLIC_CHAIN_ID` | yes (prod) | `11155111` |
+| `NEXT_PUBLIC_RPC_URL` | yes (prod) | Sepolia HTTPS RPC |
 | `NEXT_PUBLIC_BLOCK_EXPLORER_URL` | recommended | `https://sepolia.etherscan.io` |
-| `NEXT_PUBLIC_IDENTITY_REGISTRY_ADDRESS` | yes (prod) | from `deployments/11155111.json` |
-| `NEXT_PUBLIC_TOKEN_ADDRESS` | yes (prod) | from deploy JSON |
+| `NEXT_PUBLIC_IDENTITY_REGISTRY_ADDRESS` | yes (prod) | see table above |
+| `NEXT_PUBLIC_TOKEN_ADDRESS` | yes (prod) | see table above |
 | `NEXT_PUBLIC_GA_MEASUREMENT_ID` | no | analytics |
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | no | only if Google OAuth enabled |
 

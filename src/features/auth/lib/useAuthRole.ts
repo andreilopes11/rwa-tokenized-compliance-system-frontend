@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-export type AuthRole = "investor" | "compliance" | "governance" | "audit";
+export type AuthRole = "investor" | "governance";
 
 function readRoleFromLocation(defaultRole: AuthRole): AuthRole {
   if (typeof window === "undefined") {
@@ -13,9 +13,15 @@ function readRoleFromLocation(defaultRole: AuthRole): AuthRole {
   if (fromQuery === "investor") {
     return "investor";
   }
-  if (fromQuery === "compliance") return "compliance";
-  if (fromQuery === "audit") return "audit";
-  if (fromQuery === "governance" || fromQuery === "admin") return "governance";
+  // Legacy staff roles collapse into governance.
+  if (
+    fromQuery === "governance"
+    || fromQuery === "admin"
+    || fromQuery === "compliance"
+    || fromQuery === "audit"
+  ) {
+    return "governance";
+  }
   return defaultRole;
 }
 

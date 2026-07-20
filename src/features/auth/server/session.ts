@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { serverRuntime } from "@/shared/config/serverRuntime";
 import { getServerLocale } from "@/shared/i18n/server";
 
-export type SessionRole = "investor" | "compliance" | "governance" | "audit";
+export type SessionRole = "investor" | "governance";
 
 export type ComplianceSession = {
   userId: string;
@@ -54,10 +54,8 @@ function backendBaseUrl() {
 }
 
 function mapRole(role: BackendAuthUser["role"]): SessionRole {
-  if (role === "INVESTOR") return "investor";
-  if (role === "COMPLIANCE_OFFICER") return "compliance";
-  if (role === "AUDITOR") return "audit";
-  return "governance";
+  // Two-role model: INVESTOR stays investor; SUPER_ADMIN and all legacy staff roles → governance.
+  return role === "INVESTOR" ? "investor" : "governance";
 }
 
 function decodeJwtPayload(token: string): {
@@ -265,15 +263,7 @@ export async function requireSession(role?: SessionRole): Promise<ComplianceSess
     redirect("/login");
   }
   if (role && session.role !== role) {
-    const routeForRole =
-      session.role === "investor"
-        ? "/dashboard"
-        : session.role === "compliance"
-          ? "/compliance"
-          : session.role === "audit"
-            ? "/audit"
-            : "/governance";
-    redirect(routeForRole);
+    redirect(session.role === "investor" ? "/dashboard" : "/governance");
   }
   return session;
 }

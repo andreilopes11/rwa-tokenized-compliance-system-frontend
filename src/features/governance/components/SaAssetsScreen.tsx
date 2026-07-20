@@ -17,6 +17,7 @@ import type {
 } from "@/shared/api/types";
 import { Alert } from "@/shared/ui/Alert";
 import { Button } from "@/shared/ui/Button";
+import { WorkspacePanel } from "@/shared/ui/WorkspacePanel";
 
 /** SA-S02 — Contract (asset) administration */
 export function SaAssetsScreen() {
@@ -140,12 +141,11 @@ export function SaAssetsScreen() {
   const selectedAsset = assets.find((asset) => asset.assetId === selectedAssetId);
 
   return (
-    <div className="panel" data-screen-id="SA-S02">
-      <h1>Contract administration</h1>
-      <p className="muted">
-        Create contracts as DRAFT, set PUBLIC or PRIVATE visibility, publish when ready. Private
-        contracts require linking each investor by their unique identity hash (from KYC).
-      </p>
+    <WorkspacePanel
+      description="You only manage contracts you created. Create as DRAFT, set PUBLIC or PRIVATE visibility, and publish when ready. Private contracts require linking each investor by their unique identity hash (from KYC)."
+      screenId="SA-S02"
+      title="My contracts"
+    >
       {error ? <Alert tone="error">{error}</Alert> : null}
       {notice ? <Alert tone="success">{notice}</Alert> : null}
 
@@ -182,41 +182,72 @@ export function SaAssetsScreen() {
       </form>
 
       <h2>Contracts</h2>
-      <ul className="activity-list">
-        {assets.map((asset) => (
-          <li key={asset.assetId}>
-            <strong>
-              {asset.symbol} · {asset.name}
-            </strong>
-            <span className={`status ${asset.status === "ACTIVE" ? "approved" : "pending"}`}>
-              {asset.status} · {asset.visibility}
-            </span>
-            <div className="lifecycle-controls">
-              {asset.status === "DRAFT" ? (
-                <button className="primary-button" onClick={() => publishAsset(asset.assetId)} type="button">
-                  Publish
-                </button>
-              ) : null}
-              <button
-                className="secondary-button"
-                onClick={() =>
-                  setAssetVisibility(asset.assetId, asset.visibility === "PUBLIC" ? "PRIVATE" : "PUBLIC")
-                }
-                type="button"
-              >
-                Set {asset.visibility === "PUBLIC" ? "PRIVATE" : "PUBLIC"}
-              </button>
-              <button
-                className="secondary-button"
-                onClick={() => setSelectedAssetId(asset.assetId)}
-                type="button"
-              >
-                Manage access
-              </button>
-            </div>
-          </li>
-        ))}
-      </ul>
+      {assets.length === 0 ? (
+        <p className="muted">You have not created any contracts yet.</p>
+      ) : (
+        <table className="table">
+          <thead>
+            <tr>
+              <th>Contract</th>
+              <th>Status</th>
+              <th>Visibility</th>
+              <th>Created by</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {assets.map((asset) => (
+              <tr key={asset.assetId}>
+                <td>
+                  <strong>{asset.symbol}</strong>
+                  <p className="muted">{asset.name}</p>
+                </td>
+                <td>
+                  <span className={`status ${asset.status === "ACTIVE" ? "approved" : "pending"}`}>
+                    {asset.status}
+                  </span>
+                </td>
+                <td>
+                  <span className="status-pill" data-visibility={asset.visibility}>
+                    {asset.visibility === "PUBLIC" ? "Public" : "Invite"}
+                  </span>
+                </td>
+                <td className="mono muted">{asset.createdBy ?? "—"}</td>
+                <td className="actions">
+                  {asset.status === "DRAFT" ? (
+                    <button
+                      className="primary-button"
+                      onClick={() => publishAsset(asset.assetId)}
+                      type="button"
+                    >
+                      Publish
+                    </button>
+                  ) : null}
+                  <button
+                    className="secondary-button"
+                    onClick={() =>
+                      setAssetVisibility(
+                        asset.assetId,
+                        asset.visibility === "PUBLIC" ? "PRIVATE" : "PUBLIC"
+                      )
+                    }
+                    type="button"
+                  >
+                    Set {asset.visibility === "PUBLIC" ? "PRIVATE" : "PUBLIC"}
+                  </button>
+                  <button
+                    className="secondary-button"
+                    onClick={() => setSelectedAssetId(asset.assetId)}
+                    type="button"
+                  >
+                    Manage access
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
 
       {selectedAsset?.visibility === "PRIVATE" ? (
         <div className="secondary-panel">
@@ -265,7 +296,7 @@ export function SaAssetsScreen() {
       ) : selectedAsset ? (
         <p className="muted">Public contracts do not require investor linkage.</p>
       ) : null}
-    </div>
+    </WorkspacePanel>
   );
 }
 

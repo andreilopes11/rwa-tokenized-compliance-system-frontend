@@ -64,7 +64,9 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({
     push: vi.fn(),
     refresh: vi.fn()
-  })
+  }),
+  usePathname: () => "/dashboard",
+  useSearchParams: () => new URLSearchParams()
 }));
 
 vi.mock("@/shared/lib/web3", () => ({

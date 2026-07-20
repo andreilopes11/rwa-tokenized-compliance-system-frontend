@@ -39,7 +39,7 @@ export function DashboardHero({
     <section className="dashboard-hero" aria-labelledby="dashboard-hero-title">
       <div className="dashboard-hero-copy">
         <span className="dashboard-hero-eyebrow">{eyebrow}</span>
-        <h2 id="dashboard-hero-title">{title}</h2>
+        <h1 id="dashboard-hero-title">{title}</h1>
         <p>{description}</p>
         <div className="dashboard-pill-row" aria-label="Workspace status">
           {pills.map((pill) => (
