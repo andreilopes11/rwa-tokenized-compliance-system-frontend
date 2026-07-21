@@ -307,10 +307,10 @@ export function LandingPage() {
         </div>
       </section>
 
-      <ExperienceFooter
+      {/*      <ExperienceFooter
         status={measurementId ? landingCopy.analyticsEnabled : landingCopy.analyticsDisabled}
         variant="landing"
-      />
+      />*/}
     </main>
   );
 }
