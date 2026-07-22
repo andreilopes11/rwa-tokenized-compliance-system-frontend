@@ -4,9 +4,11 @@ import {
   stripInvestorAclProbeParams
 } from "@/features/auth/lib/middleware-auth";
 import {
+  applyAuthCookies,
   clearAuthCookies,
-  ensureSession,
-  getAuthorizedBackendHeaders
+  ensureSessionResult,
+  getAuthorizedBackendHeaders,
+  type BackendAuthSession
 } from "@/features/auth/server/session";
 import { serverRuntime } from "@/shared/config/serverRuntime";
 import { LOCALE_COOKIE, normalizeLocale } from "@/shared/i18n/config";
@@ -22,6 +24,16 @@ const GATEWAY_UNAVAILABLE_BODY = {
 
 function localeFromRequest(request: NextRequest): string {
   return normalizeLocale(request.cookies.get(LOCALE_COOKIE)?.value);
+}
+
+function withRotatedCookies(
+  response: NextResponse,
+  rotatedAuth: BackendAuthSession | null | undefined
+) {
+  if (rotatedAuth) {
+    applyAuthCookies(response, rotatedAuth);
+  }
+  return response;
 }
 
 export async function GET(request: NextRequest, context: RouteContext) {
@@ -41,7 +53,8 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
 }
 
 async function proxy(request: NextRequest, context: RouteContext) {
-  const session = await ensureSession();
+  const ensured = await ensureSessionResult();
+  const session = ensured.session;
   if (!session) {
     const response = NextResponse.json({ messages: ["errors.authRequired"] }, { status: 401 });
     clearAuthCookies(response);
@@ -53,7 +66,10 @@ async function proxy(request: NextRequest, context: RouteContext) {
 
   const denial = denyBackendProxyAccess(session.role, path, request.method);
   if (denial) {
-    return NextResponse.json({ messages: [denial] }, { status: 403 });
+    return withRotatedCookies(
+      NextResponse.json({ messages: [denial] }, { status: 403 }),
+      ensured.rotatedAuth
+    );
   }
 
   const backendBaseUrl = serverRuntime.backendApiBaseUrl;
@@ -65,13 +81,18 @@ async function proxy(request: NextRequest, context: RouteContext) {
   target.search = searchParams.toString();
 
   let authHeaders: HeadersInit;
+  let headerRotation: BackendAuthSession | null = null;
   try {
-    authHeaders = await getAuthorizedBackendHeaders(session);
+    const authorized = await getAuthorizedBackendHeaders(session);
+    authHeaders = authorized.headers;
+    headerRotation = authorized.rotatedAuth;
   } catch {
     const response = NextResponse.json({ messages: ["errors.sessionExpired"] }, { status: 401 });
     clearAuthCookies(response);
     return response;
   }
+
+  const rotatedAuth = headerRotation ?? ensured.rotatedAuth;
 
   const headers = new Headers(authHeaders);
   if (session.role === "investor" && session.walletAddress) {
@@ -96,12 +117,18 @@ async function proxy(request: NextRequest, context: RouteContext) {
       method: request.method
     });
   } catch {
-    return NextResponse.json(GATEWAY_UNAVAILABLE_BODY, { status: 502 });
+    return withRotatedCookies(
+      NextResponse.json(GATEWAY_UNAVAILABLE_BODY, { status: 502 }),
+      rotatedAuth
+    );
   }
 
   if (response.status === 401 || response.status === 403) {
     if (response.status === 403 && path.includes("/documents")) {
-      return NextResponse.json({ messages: ["errors.documentForbidden"] }, { status: 403 });
+      return withRotatedCookies(
+        NextResponse.json({ messages: ["errors.documentForbidden"] }, { status: 403 }),
+        rotatedAuth
+      );
     }
     const body = await response.text();
     const proxyResponse = new NextResponse(body, {
@@ -112,6 +139,8 @@ async function proxy(request: NextRequest, context: RouteContext) {
     });
     if (response.status === 401) {
       clearAuthCookies(proxyResponse);
+    } else {
+      withRotatedCookies(proxyResponse, rotatedAuth);
     }
     return proxyResponse;
   }
@@ -119,15 +148,21 @@ async function proxy(request: NextRequest, context: RouteContext) {
   if (response.status >= 502) {
     const body = await response.text();
     if (!body) {
-      return NextResponse.json(GATEWAY_UNAVAILABLE_BODY, { status: 502 });
+      return withRotatedCookies(
+        NextResponse.json(GATEWAY_UNAVAILABLE_BODY, { status: 502 }),
+        rotatedAuth
+      );
     }
   }
 
   const body = await response.text();
-  return new NextResponse(body, {
-    headers: {
-      "content-type": response.headers.get("content-type") ?? "application/json"
-    },
-    status: response.status
-  });
+  return withRotatedCookies(
+    new NextResponse(body, {
+      headers: {
+        "content-type": response.headers.get("content-type") ?? "application/json"
+      },
+      status: response.status
+    }),
+    rotatedAuth
+  );
 }

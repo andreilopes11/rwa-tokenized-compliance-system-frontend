@@ -15,11 +15,11 @@ Standalone Next.js App Router app. Browser calls same-origin BFF (`/api/backend`
 
 Flow: open PR → Vercel Preview → verify → merge to production branch.
 
-## Production values (current)
+## Production values (current Sepolia)
 
 | Variable | Value |
 |----------|--------|
-| `BACKEND_API_BASE_URL` | `http://rwatokenizedcomplianceapi-env.eba-ddsh8y8v.eu-north-1.elasticbeanstalk.com` |
+| `BACKEND_API_BASE_URL` | `https://<your-eb-host>` (**HTTPS required**) |
 | `NEXT_PUBLIC_CHAIN_ID` | `11155111` |
 | `NEXT_PUBLIC_RPC_URL` | `https://eth-sepolia.g.alchemy.com/v2/<KEY>` |
 | `NEXT_PUBLIC_BLOCK_EXPLORER_URL` | `https://sepolia.etherscan.io` |
@@ -28,23 +28,37 @@ Flow: open PR → Vercel Preview → verify → merge to production branch.
 
 Redeploy after changing any `NEXT_PUBLIC_*` variable. Chain reference: `../rwa-tokenized-compliance-system-blockchain/config/sepolia-addresses.json`
 
-## Environment variables
+## Environment variables (complete)
 
 Set in Vercel **Project → Settings → Environment Variables** for Production (and Preview as needed).
 
-| Variable | Required | Notes |
-|----------|----------|--------|
-| `BACKEND_API_BASE_URL` | yes | EB origin above |
-| `NEXT_PUBLIC_API_BASE_URL` | no | default `/api/backend` |
-| `NEXT_PUBLIC_CHAIN_ID` | yes (prod) | `11155111` |
-| `NEXT_PUBLIC_RPC_URL` | yes (prod) | Sepolia HTTPS RPC |
-| `NEXT_PUBLIC_BLOCK_EXPLORER_URL` | recommended | `https://sepolia.etherscan.io` |
-| `NEXT_PUBLIC_IDENTITY_REGISTRY_ADDRESS` | yes (prod) | see table above |
-| `NEXT_PUBLIC_TOKEN_ADDRESS` | yes (prod) | see table above |
-| `NEXT_PUBLIC_GA_MEASUREMENT_ID` | no | analytics |
-| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | no | only if Google OAuth enabled |
+### Required
 
-Do **not** put JWT, MFA, admin passwords, or chain private keys in Vercel — those belong on Elastic Beanstalk only.
+| Variable | Example | Notes |
+|----------|---------|--------|
+| `BACKEND_API_BASE_URL` | `https://rwatokenizedcomplianceapi-env….elasticbeanstalk.com` | EB **HTTPS** origin (no trailing slash). BFF server→server only. |
+| `NEXT_PUBLIC_CHAIN_ID` | `11155111` | Sepolia. Production build warns if left at `11155111`. |
+| `NEXT_PUBLIC_RPC_URL` | `https://eth-sepolia.g.alchemy.com/v2/<KEY>` | Browser wallet + read calls. Must be HTTPS public RPC. |
+| `NEXT_PUBLIC_IDENTITY_REGISTRY_ADDRESS` | `0xDf47…De5b` | Must match EB `IDENTITY_REGISTRY_ADDRESS`. |
+| `NEXT_PUBLIC_TOKEN_ADDRESS` | `0xC85b…92b0` | Must match EB `TOKEN_ADDRESS`. |
+
+### Recommended
+
+| Variable | Example | Notes |
+|----------|---------|--------|
+| `NEXT_PUBLIC_BLOCK_EXPLORER_URL` | `https://sepolia.etherscan.io` | Tx / address links in UI |
+| `NEXT_PUBLIC_API_BASE_URL` | `/api/backend` | Default; keep same-origin BFF |
+
+### Optional
+
+| Variable | Notes |
+|----------|--------|
+| `NEXT_PUBLIC_GA_MEASUREMENT_ID` | Google Analytics |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | Only if Google OAuth is enabled |
+
+### Do **not** put on Vercel
+
+JWT secrets, MFA codes, admin passwords, document encryption keys, chain private keys, Neon credentials, `MODULAR_COMPLIANCE_ADDRESS`, `APP_BLOCKCHAIN_*` — those belong on **Elastic Beanstalk only**.
 
 ## Config modules
 
@@ -54,14 +68,16 @@ Do **not** put JWT, MFA, admin passwords, or chain private keys in Vercel — th
 | [`src/shared/config/serverRuntime.ts`](src/shared/config/serverRuntime.ts) | Server-only (`BACKEND_API_BASE_URL`, Google) |
 | [`src/shared/config/contracts.generated.ts`](src/shared/config/contracts.generated.ts) | Local Anvil addresses; **override with env on Vercel** |
 
-A production build with `NEXT_PUBLIC_CHAIN_ID=31337` logs a warning — set Sepolia before go-live.
+A production build with Anvil defaults or `NEXT_PUBLIC_CHAIN_ID=11155111` logs hard errors — set Sepolia before go-live.
 
 ## Smoke after Preview/Production
 
-1. Landing loads over HTTPS
-2. Login/register reaches EB (no “Compliance API unavailable”)
-3. Auth cookies are `Secure` + `HttpOnly`
-4. Investor chain reads use Sepolia RPC (not `127.0.0.1:8545`)
+1. Tab icon (VaultGuard shield) loads
+2. Landing loads over HTTPS
+3. Login/register reaches EB (no “Compliance API unavailable”)
+4. Auth cookies are `Secure` + `HttpOnly`; session survives >15 minutes (refresh keep-alive)
+5. Investor chain reads use Sepolia RPC (not `127.0.0.1:8545`)
+6. Governance can list contracts / approve KYC against the same IR+token as EB
 
 ## Related
 

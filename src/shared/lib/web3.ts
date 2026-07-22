@@ -7,7 +7,7 @@ import type { Chain } from "viem";
 import { publicRuntime } from "@/shared/config/publicRuntime";
 
 export const anvil: Chain = {
-  id: 31337,
+  id: 11155111,
   name: "Anvil",
   nativeCurrency: {
     decimals: 18,

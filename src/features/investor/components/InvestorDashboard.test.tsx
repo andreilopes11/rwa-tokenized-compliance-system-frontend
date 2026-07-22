@@ -10,7 +10,7 @@ const wagmiMock = vi.hoisted(() => ({
     address: undefined as string | undefined,
     isConnected: false
   },
-  chainId: 31337,
+  chainId: 11155111,
   connectAsync: vi.fn(),
   disconnect: vi.fn(),
   switchChainAsync: vi.fn(),
@@ -71,7 +71,7 @@ vi.mock("next/navigation", () => ({
 
 vi.mock("@/shared/lib/web3", () => ({
   activeChain: {
-    id: 31337,
+    id: 11155111,
     name: "Anvil"
   },
   explorerLink: () => ""
@@ -81,7 +81,7 @@ describe("InvestorDashboard", () => {
   beforeEach(() => {
     wagmiMock.account.address = undefined;
     wagmiMock.account.isConnected = false;
-    wagmiMock.chainId = 31337;
+    wagmiMock.chainId = 11155111;
     wagmiMock.connectors = [{ id: "injected", name: "Injected" }];
     wagmiMock.connectAsync.mockResolvedValue({ accounts: [wallet] });
     wagmiMock.disconnect.mockReset();
@@ -138,7 +138,7 @@ describe("InvestorDashboard", () => {
     await screen.findByText(/investor status refreshed/i);
     expect(wagmiMock.connectAsync).toHaveBeenCalledWith({
       connector: wagmiMock.connectors[0],
-      chainId: 31337
+      chainId: 11155111
     });
 
     fireEvent.change(screen.getByLabelText(/document reference/i), {

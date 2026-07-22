@@ -152,6 +152,19 @@ export function applyAuthCookies(
   response.cookies.set(TENANT_COOKIE, tenant, authCookieOptions(REFRESH_TTL_SECONDS));
 }
 
+/** Persist rotated tokens when refresh runs inside a Route Handler (cookies().set). */
+async function persistAuthCookiesFromStore(session: BackendAuthSession) {
+  try {
+    const cookieStore = await cookies();
+    cookieStore.set(ACCESS_COOKIE, session.accessToken, authCookieOptions(session.expiresInSeconds));
+    cookieStore.set(REFRESH_COOKIE, session.refreshToken, authCookieOptions(REFRESH_TTL_SECONDS));
+    const tenant = resolveTenantScope(session.accessToken, session.user).tenantId;
+    cookieStore.set(TENANT_COOKIE, tenant, authCookieOptions(REFRESH_TTL_SECONDS));
+  } catch {
+    // Server Components cannot mutate cookies; Route Handlers / SessionKeepAlive cover that path.
+  }
+}
+
 export function clearAuthCookies(
   response: { cookies: { set: (name: string, value: string, options: ReturnType<typeof authCookieOptions>) => void } }
 ) {
@@ -234,22 +247,39 @@ export async function refreshAuthSession(refreshToken: string): Promise<BackendA
   return (await response.json()) as BackendAuthSession;
 }
 
-export async function ensureSession(): Promise<ComplianceSession | null> {
+export type EnsuredSession = {
+  session: ComplianceSession | null;
+  /** Present when access was rotated; callers in Route Handlers should rewrite cookies. */
+  rotatedAuth: BackendAuthSession | null;
+};
+
+export async function ensureSessionResult(): Promise<EnsuredSession> {
   const { accessToken, refreshToken, activeTenant } = await readCookieValues();
 
   if (isAccessTokenValid(accessToken)) {
     const session = await fetchBackendMe(accessToken, activeTenant);
     if (session) {
-      return session;
+      return { session, rotatedAuth: null };
     }
   }
 
   if (!refreshToken) {
-    return null;
+    return { session: null, rotatedAuth: null };
   }
 
   const refreshed = await refreshAuthSession(refreshToken);
-  return refreshed ? toComplianceSession(refreshed, refreshed.accessToken, activeTenant) : null;
+  if (!refreshed) {
+    return { session: null, rotatedAuth: null };
+  }
+  await persistAuthCookiesFromStore(refreshed);
+  return {
+    session: toComplianceSession(refreshed, refreshed.accessToken, activeTenant),
+    rotatedAuth: refreshed
+  };
+}
+
+export async function ensureSession(): Promise<ComplianceSession | null> {
+  return (await ensureSessionResult()).session;
 }
 
 export async function readSession(): Promise<PublicSession | null> {
@@ -268,8 +298,16 @@ export async function requireSession(role?: SessionRole): Promise<ComplianceSess
   return session;
 }
 
-export async function getAuthorizedBackendHeaders(session: ComplianceSession): Promise<HeadersInit> {
+export type AuthorizedBackendHeaders = {
+  headers: HeadersInit;
+  rotatedAuth: BackendAuthSession | null;
+};
+
+export async function getAuthorizedBackendHeaders(
+  session: ComplianceSession
+): Promise<AuthorizedBackendHeaders> {
   let accessToken = session.accessToken;
+  let rotatedAuth: BackendAuthSession | null = null;
   if (!isAccessTokenValid(accessToken)) {
     const { refreshToken } = await readCookieValues();
     if (!refreshToken) {
@@ -279,12 +317,17 @@ export async function getAuthorizedBackendHeaders(session: ComplianceSession): P
     if (!refreshed) {
       throw new Error("Session expired.");
     }
+    await persistAuthCookiesFromStore(refreshed);
     accessToken = refreshed.accessToken;
+    rotatedAuth = refreshed;
   }
 
   return {
-    Authorization: `Bearer ${accessToken}`,
-    "Content-Type": "application/json"
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json"
+    },
+    rotatedAuth
   };
 }
 

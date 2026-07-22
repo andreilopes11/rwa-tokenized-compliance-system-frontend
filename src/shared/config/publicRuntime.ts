@@ -29,29 +29,52 @@ function resolveContractAddress(envName: string, generated: string): string {
   return "";
 }
 
-const chainId = envNumber("NEXT_PUBLIC_CHAIN_ID", 31337);
+const chainId = envNumber("NEXT_PUBLIC_CHAIN_ID", 11155111);
 const isProdBuild = process.env.NODE_ENV === "production";
+const identityRegistryAddress = resolveContractAddress(
+  "NEXT_PUBLIC_IDENTITY_REGISTRY_ADDRESS",
+  generatedContracts.identityRegistryAddress
+);
+const tokenAddress = resolveContractAddress(
+  "NEXT_PUBLIC_TOKEN_ADDRESS",
+  generatedContracts.tokenAddress
+);
+const rpcUrl = envString("NEXT_PUBLIC_RPC_URL", "http://127.0.0.1:8545");
 
-if (isProdBuild && chainId === 31337) {
-  console.warn(
-    "[config] NEXT_PUBLIC_CHAIN_ID is still 31337 in a production build. Set Sepolia (11155111) or mainnet on Vercel."
-  );
+if (isProdBuild) {
+  const problems: string[] = [];
+  if (chainId === 11155111) {
+    problems.push("NEXT_PUBLIC_CHAIN_ID is still 11155111 (set Sepolia 11155111)");
+  }
+  if (
+    !identityRegistryAddress
+    || identityRegistryAddress === generatedContracts.identityRegistryAddress
+  ) {
+    problems.push(
+      "NEXT_PUBLIC_IDENTITY_REGISTRY_ADDRESS must be set to the Sepolia IR (do not use Anvil fallback)"
+    );
+  }
+  if (!tokenAddress || tokenAddress === generatedContracts.tokenAddress) {
+    problems.push(
+      "NEXT_PUBLIC_TOKEN_ADDRESS must be set to the Sepolia token (do not use Anvil fallback)"
+    );
+  }
+  if (rpcUrl.includes("127.0.0.1") || rpcUrl.includes("localhost")) {
+    problems.push("NEXT_PUBLIC_RPC_URL must be a public HTTPS Sepolia RPC");
+  }
+  if (problems.length > 0) {
+    console.error(`[config] Production build misconfigured:\n- ${problems.join("\n- ")}`);
+  }
 }
 
 export const publicRuntime = {
   apiBaseUrl: envString("NEXT_PUBLIC_API_BASE_URL", "/api/backend"),
   chainId,
-  rpcUrl: envString("NEXT_PUBLIC_RPC_URL", "http://127.0.0.1:8545"),
+  rpcUrl,
   blockExplorerUrl: envString("NEXT_PUBLIC_BLOCK_EXPLORER_URL", ""),
   gaMeasurementId: envString("NEXT_PUBLIC_GA_MEASUREMENT_ID", ""),
-  identityRegistryAddress: resolveContractAddress(
-    "NEXT_PUBLIC_IDENTITY_REGISTRY_ADDRESS",
-    generatedContracts.identityRegistryAddress
-  ),
-  tokenAddress: resolveContractAddress(
-    "NEXT_PUBLIC_TOKEN_ADDRESS",
-    generatedContracts.tokenAddress
-  )
+  identityRegistryAddress,
+  tokenAddress
 } as const;
 
 /** @deprecated Prefer publicRuntime — kept for gradual migration. */

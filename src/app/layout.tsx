@@ -26,7 +26,14 @@ const plexMono = IBM_Plex_Mono({
 
 export const metadata: Metadata = {
   title: appConfig.brandName,
-  description: appConfig.metadataDescription
+  description: appConfig.metadataDescription,
+  icons: {
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/favicon-32.png", sizes: "32x32", type: "image/png" }
+    ],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }]
+  }
 };
 
 /** Ops default: institutional dark (TECHNICAL §7). Light only when explicitly chosen. */

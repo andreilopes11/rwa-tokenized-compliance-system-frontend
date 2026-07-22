@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="VaultGuard RWA">
+  <defs>
+    <linearGradient id="vg" x1="12" y1="4" x2="52" y2="60" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#14372f"/>
+      <stop offset="0.55" stop-color="#0f766e"/>
+      <stop offset="1" stop-color="#0c5f59"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="url(#vg)"/>
+  <path
+    fill="#f4faf6"
+    d="M32 10c6.5 3.2 12.2 4.8 17 4.8v16.2c0 11.4-7.2 19.4-17 22.8-9.8-3.4-17-11.4-17-22.8V14.8C19.8 14.8 25.5 13.2 32 10z"
+  />
+  <path
+    fill="#0f766e"
+    d="M28.2 34.6l-4.1-4.1-2.5 2.5 6.6 6.6 12.2-12.2-2.5-2.5-9.7 9.7z"
+  />
+</svg>

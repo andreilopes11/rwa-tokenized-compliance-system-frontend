@@ -142,7 +142,7 @@ export function RegisterPage() {
     <AuthShell
       backLabel={common.backHome}
       eyebrow={registerCopy.highlightsTitle}
-      footerStatus={common.footerStatusAuth}
+      // footerStatus={common.footerStatusAuth}
       highlights={registerCopy.highlights.map((item, index) => ({
         ...item,
         icon:
