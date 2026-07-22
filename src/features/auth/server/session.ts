@@ -161,7 +161,7 @@ async function persistAuthCookiesFromStore(session: BackendAuthSession) {
     const tenant = resolveTenantScope(session.accessToken, session.user).tenantId;
     cookieStore.set(TENANT_COOKIE, tenant, authCookieOptions(REFRESH_TTL_SECONDS));
   } catch {
-    // Server Components cannot mutate cookies; Route Handlers / SessionKeepAlive cover that path.
+    // Server Components cannot mutate cookies; Route Handlers / SessionStatusProvider cover that path.
   }
 }
 
@@ -253,7 +253,19 @@ export type EnsuredSession = {
   rotatedAuth: BackendAuthSession | null;
 };
 
-export async function ensureSessionResult(): Promise<EnsuredSession> {
+export type EnsureSessionOptions = {
+  /**
+   * When true, rotate via refresh token (Route Handlers / BFF only).
+   * Server Components must keep this false — cookies().set is a no-op there and
+   * the backend revokes the old refresh token, logging the user out on next navigation.
+   */
+  allowRefresh?: boolean;
+};
+
+export async function ensureSessionResult(
+  options: EnsureSessionOptions = {}
+): Promise<EnsuredSession> {
+  const allowRefresh = options.allowRefresh === true;
   const { accessToken, refreshToken, activeTenant } = await readCookieValues();
 
   if (isAccessTokenValid(accessToken)) {
@@ -263,7 +275,7 @@ export async function ensureSessionResult(): Promise<EnsuredSession> {
     }
   }
 
-  if (!refreshToken) {
+  if (!allowRefresh || !refreshToken) {
     return { session: null, rotatedAuth: null };
   }
 
@@ -278,8 +290,9 @@ export async function ensureSessionResult(): Promise<EnsuredSession> {
   };
 }
 
+/** RSC-safe: never rotates refresh tokens. */
 export async function ensureSession(): Promise<ComplianceSession | null> {
-  return (await ensureSessionResult()).session;
+  return (await ensureSessionResult({ allowRefresh: false })).session;
 }
 
 export async function readSession(): Promise<PublicSession | null> {
@@ -290,7 +303,12 @@ export async function readSession(): Promise<PublicSession | null> {
 export async function requireSession(role?: SessionRole): Promise<ComplianceSession> {
   const session = await ensureSession();
   if (!session) {
-    redirect("/login");
+    const params = new URLSearchParams({ reason: "session_expired" });
+    if (role) {
+      params.set("role", role);
+      params.set("next", role === "investor" ? "/dashboard" : "/governance");
+    }
+    redirect(`/login?${params.toString()}`);
   }
   if (role && session.role !== role) {
     redirect(session.role === "investor" ? "/dashboard" : "/governance");

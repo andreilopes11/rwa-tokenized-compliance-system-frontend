@@ -21,6 +21,7 @@ import { useEffect, useMemo, useState } from "react";
 import "../landing.css";
 import { publicRuntime } from "@/shared/config/publicRuntime";
 import { useMessages } from "@/shared/i18n/LocaleProvider";
+import { useSessionStatus } from "@/shared/providers/SessionStatusProvider";
 import { ExperienceFooter } from "@/shared/ui/ExperienceFooter";
 import { GlobalAppHeader } from "@/shared/ui/GlobalAppHeader";
 
@@ -33,12 +34,15 @@ export function LandingPage() {
   const measurementId = publicRuntime.gaMeasurementId;
   const m = useMessages();
   const landingCopy = m.landing;
+  const { status, workspaceHref } = useSessionStatus();
+  const authenticated = status === "authenticated";
   const cta = useMemo(
     () => ({
       investor: `/login?next=${encodeURIComponent("/dashboard")}&role=investor`,
       admin: `/login?next=${encodeURIComponent("/governance")}&role=governance`,
       register: "/register",
       login: "/login",
+      workspace: workspaceHref,
       product: "#product",
       useCases: "#use-cases",
       howTo: "#how-to",
@@ -48,7 +52,7 @@ export function LandingPage() {
       trust: "#trust",
       cta: "#cta"
     }),
-    []
+    [workspaceHref]
   );
 
   useEffect(() => {
@@ -88,15 +92,27 @@ export function LandingPage() {
           </h1>
           <p className="hero-lead">{landingCopy.subtitle}</p>
           <p className="hero-subtext">{landingCopy.heroSubtext}</p>
+          {authenticated ? (
+            <p className="hero-signed-in-hint">{landingCopy.signedInHint}</p>
+          ) : null}
           <div className="hero-actions">
-            <Link className="lp-btn-primary" href={cta.investor}>
-              <WalletCards size={18} aria-hidden />
-              {landingCopy.investorCta}
-            </Link>
-            <Link className="lp-btn-outline" href={cta.admin}>
-              <Lock size={18} aria-hidden />
-              {landingCopy.adminCta}
-            </Link>
+            {authenticated ? (
+              <Link className="lp-btn-primary" href={cta.workspace}>
+                <ArrowRight size={18} aria-hidden />
+                {landingCopy.returnToWorkspace}
+              </Link>
+            ) : (
+              <>
+                <Link className="lp-btn-primary" href={cta.investor}>
+                  <WalletCards size={18} aria-hidden />
+                  {landingCopy.investorCta}
+                </Link>
+                <Link className="lp-btn-outline" href={cta.admin}>
+                  <Lock size={18} aria-hidden />
+                  {landingCopy.adminCta}
+                </Link>
+              </>
+            )}
           </div>
           <div className="hero-stats-grid" role="list">
             {landingCopy.stats.map((stat) => (
@@ -294,15 +310,24 @@ export function LandingPage() {
       <section className="landing-cta-section" aria-labelledby="cta-title" id="cta">
         <div className="cta-panel">
           <h2 id="cta-title">{landingCopy.ctaTitle}</h2>
-          <p>{landingCopy.ctaBody}</p>
+          <p>{authenticated ? landingCopy.signedInHint : landingCopy.ctaBody}</p>
           <div className="cta-actions">
-            <Link className="lp-btn-primary" href={cta.investor}>
-              {landingCopy.ctaPrimary}
-              <ArrowRight size={18} aria-hidden />
-            </Link>
-            <Link className="lp-btn-outline" href={cta.register}>
-              {landingCopy.joinCta}
-            </Link>
+            {authenticated ? (
+              <Link className="lp-btn-primary" href={cta.workspace}>
+                {landingCopy.sessionCtaPrimary}
+                <ArrowRight size={18} aria-hidden />
+              </Link>
+            ) : (
+              <>
+                <Link className="lp-btn-primary" href={cta.investor}>
+                  {landingCopy.ctaPrimary}
+                  <ArrowRight size={18} aria-hidden />
+                </Link>
+                <Link className="lp-btn-outline" href={cta.register}>
+                  {landingCopy.joinCta}
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </section>

@@ -53,7 +53,7 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
 }
 
 async function proxy(request: NextRequest, context: RouteContext) {
-  const ensured = await ensureSessionResult();
+  const ensured = await ensureSessionResult({ allowRefresh: true });
   const session = ensured.session;
   if (!session) {
     const response = NextResponse.json({ messages: ["errors.authRequired"] }, { status: 401 });

@@ -16,7 +16,6 @@ import {
 } from "lucide-react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { useAccount, useChainId, useConnect, useDisconnect, useSwitchChain } from "wagmi";
 import { fetchAssetOfferings } from "@/features/assets/api/client";
@@ -58,6 +57,7 @@ import type {
 import { formatMessage } from "@/shared/i18n/format";
 import { useLocale, useMessages } from "@/shared/i18n/LocaleProvider";
 import { resolveClientError } from "@/shared/i18n/resolveClientError";
+import { useSessionStatus } from "@/shared/providers/SessionStatusProvider";
 import {
   isWalletAddress,
   shortenAddress,
@@ -87,7 +87,6 @@ type InvestorDashboardProps = {
 };
 
 export function InvestorDashboard({ sessionWalletAddress }: InvestorDashboardProps) {
-  const router = useRouter();
   const account = useAccount();
   const currentChainId = useChainId();
   const { connectors, connectAsync, isPending: walletConnecting } = useConnect();
@@ -95,6 +94,7 @@ export function InvestorDashboard({ sessionWalletAddress }: InvestorDashboardPro
   const { switchChainAsync, isPending: switchingNetwork } = useSwitchChain();
   const m = useMessages();
   const { t } = useLocale();
+  const { signOut: sessionSignOut } = useSessionStatus();
   const investorNavItems = useInvestorNavItems();
 
   const [walletAddress, setWalletAddress] = useState("");
@@ -556,17 +556,14 @@ export function InvestorDashboard({ sessionWalletAddress }: InvestorDashboardPro
     }
   }
 
-  async function signOut() {
+  async function handleSignOut() {
     setSigningOut(true);
     setError("");
     try {
-      await fetch("/api/auth/logout", { method: "POST" });
       disconnect();
-      router.push("/login?role=investor");
-      router.refresh();
+      await sessionSignOut();
     } catch (err) {
       setError(err instanceof Error ? err.message : m.errors.signOutFailed);
-    } finally {
       setSigningOut(false);
     }
   }
@@ -591,13 +588,9 @@ export function InvestorDashboard({ sessionWalletAddress }: InvestorDashboardPro
           />
         </div>
       }
-      context={formatMessage(m.workspace.investor.topbarSubtitle, {
-        chainId: activeChain.id,
-        chainName: activeChain.name
-      })}
       navAriaLabel="Investor workspace navigation"
       navItems={investorNavItems}
-      onSignOut={signOut}
+      onSignOut={handleSignOut}
       role="investor"
       signingOut={signingOut}
       trailing={

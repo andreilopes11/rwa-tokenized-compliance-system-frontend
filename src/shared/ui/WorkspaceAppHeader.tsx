@@ -13,7 +13,7 @@ export type WorkspaceAppHeaderProps = {
   role: AuthRole;
   navItems: WorkspaceNavItem[];
   navAriaLabel: string;
-  /** Short context under the role badge (network, SoD hint). */
+  /** @deprecated Unused — role category under the logo replaces topbar subtitle. */
   context?: string;
   trailing?: ReactNode;
   onSignOut: () => void;
@@ -24,7 +24,6 @@ export function WorkspaceAppHeader({
   role,
   navItems,
   navAriaLabel,
-  context,
   trailing,
   onSignOut,
   signingOut = false
@@ -34,6 +33,7 @@ export function WorkspaceAppHeader({
   const [menuOpen, setMenuOpen] = useState(false);
 
   const roleLabel = m.workspace.roles[role];
+  const homeHref = role === "investor" ? "/dashboard" : "/governance";
 
   useEffect(() => {
     setMenuOpen(false);
@@ -52,15 +52,14 @@ export function WorkspaceAppHeader({
   return (
     <header className="topbar workspace-topbar workspace-app-header">
       <div className="workspace-header-start">
-        <Link className="workspace-header-brand" href="/">
-          <ShieldCheck aria-hidden size={22} />
-          <span>{m.common.brand}</span>
-        </Link>
-        <div className="workspace-header-identity">
+        <div className="workspace-header-brand-block">
+          <Link className="workspace-header-brand" href={homeHref}>
+            <ShieldCheck aria-hidden size={22} />
+            <span>{m.common.brand}</span>
+          </Link>
           <span className="workspace-role-badge" data-role={role}>
             {roleLabel}
           </span>
-          {context ? <p className="workspace-header-context">{context}</p> : null}
         </div>
       </div>
 

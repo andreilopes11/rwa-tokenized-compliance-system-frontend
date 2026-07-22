@@ -10,11 +10,13 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, useState } from "react";
 import { PasswordInput } from "@/features/auth/components/PasswordInput";
+import { sanitizeNextPath } from "@/features/auth/lib/session-client";
 import { isValidEmail } from "@/features/auth/lib/validators";
 import type { AuthRole } from "@/features/auth/lib/useAuthRole";
 import { useAuthRoleParam } from "@/features/auth/lib/useAuthRoleParam";
 import { useLocale, useMessages } from "@/shared/i18n/LocaleProvider";
 import { resolveClientError } from "@/shared/i18n/resolveClientError";
+import { useSessionStatus } from "@/shared/providers/SessionStatusProvider";
 import { Alert } from "@/shared/ui/Alert";
 import { AuthShell } from "@/shared/ui/AuthShell";
 import { Button, buttonClassName } from "@/shared/ui/Button";
@@ -32,8 +34,10 @@ export function LoginPage() {
       ? "governance"
       : "investor";
   const { role, setRole } = useAuthRoleParam(initialRole);
-  const next = searchParams.get("next") ?? (role === "investor" ? "/dashboard" : "/governance");
+  const { refreshStatus } = useSessionStatus();
+  const next = sanitizeNextPath(searchParams.get("next"), role);
   const registered = searchParams.get("registered") === "1";
+  const reason = searchParams.get("reason");
   const prefilledEmail = searchParams.get("email")?.trim() ?? "";
   const defaultEmail = prefilledEmail || (role === "investor" ? "investor@company.com" : "admin@compliance.local");
 
@@ -90,7 +94,9 @@ export function LoginPage() {
         );
       }
 
-      router.push(next);
+      await refreshStatus();
+      router.replace(next);
+      router.refresh();
     } catch (err) {
       setError(
         resolveClientError(err instanceof Error ? err.message : loginCopy.genericError, t)
@@ -125,6 +131,18 @@ export function LoginPage() {
         {registered ? (
           <Alert title={loginCopy.registeredTitle} tone="success">
             {loginCopy.registeredBody}
+          </Alert>
+        ) : null}
+
+        {reason === "session_expired" ? (
+          <Alert title={loginCopy.sessionExpiredTitle} tone="warning">
+            {loginCopy.sessionExpiredBody}
+          </Alert>
+        ) : null}
+
+        {reason === "signed_out" ? (
+          <Alert title={loginCopy.signedOutTitle} tone="info">
+            {loginCopy.signedOutBody}
           </Alert>
         ) : null}
 

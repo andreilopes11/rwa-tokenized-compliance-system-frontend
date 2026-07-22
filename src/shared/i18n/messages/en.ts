@@ -224,6 +224,9 @@ export const en = {
     investorCta: "Investor portal",
     joinCta: "Sign up",
     loginCta: "Sign in",
+    returnToWorkspace: "Return to workspace",
+    signedInHint: "You are signed in. Continue to your regulated workspace.",
+    sessionCtaPrimary: "Open workspace",
     previewCards: [
       {
         title: "Authenticate & bind wallet",
@@ -393,6 +396,10 @@ export const en = {
     registeredTitle: "Registration completed",
     registerHint: "Don't have an account yet?",
     registerLink: "Create account",
+    sessionExpiredTitle: "Session ended",
+    sessionExpiredBody: "Your session expired for security. Sign in again to continue.",
+    signedOutTitle: "Signed out",
+    signedOutBody: "You have been signed out. Sign in again when you are ready.",
     role: "Role",
     roleHelp: "The selected role defines the default destination after authentication.",
     submit: "Sign in",
@@ -469,7 +476,7 @@ export const en = {
   },
   workspace: {
     roles: {
-      investor: "Investor",
+      investor: "INVESTOR",
       governance: "Governance"
     },
     investor: {

@@ -224,6 +224,9 @@ export const es = {
     investorCta: "Portal del inversor",
     joinCta: "Registrarse",
     loginCta: "Iniciar sesión",
+    returnToWorkspace: "Volver al área autenticada",
+    signedInHint: "Sesión activa. Continúe a su espacio de trabajo regulado.",
+    sessionCtaPrimary: "Abrir área autenticada",
     previewCards: [
       {
         title: "Autenticar y vincular billetera",
@@ -393,6 +396,10 @@ export const es = {
     registeredTitle: "Registro completado",
     registerHint: "¿Aún no tiene cuenta?",
     registerLink: "Crear cuenta",
+    sessionExpiredTitle: "Sesión finalizada",
+    sessionExpiredBody: "Su sesión expiró por seguridad. Inicie sesión de nuevo para continuar.",
+    signedOutTitle: "Sesión cerrada",
+    signedOutBody: "Ha cerrado la sesión. Inicie sesión de nuevo cuando quiera continuar.",
     role: "Rol",
     roleHelp: "El rol seleccionado define el destino predeterminado tras la autenticación.",
     submit: "Iniciar sesión",
@@ -469,8 +476,8 @@ export const es = {
   },
   workspace: {
     roles: {
-      investor: "Inversor",
-      governance: "Gobernanza"
+      investor: "Investor",
+      governance: "Governance"
     },
     investor: {
       heroDescription:

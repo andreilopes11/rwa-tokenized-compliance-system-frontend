@@ -224,6 +224,9 @@ export const pt = {
     investorCta: "Portal do investidor",
     joinCta: "Cadastrar-se",
     loginCta: "Entrar",
+    returnToWorkspace: "Voltar à área logada",
+    signedInHint: "Sessão ativa. Continue para a área regulada.",
+    sessionCtaPrimary: "Abrir área logada",
     previewCards: [
       {
         title: "Autenticar e vincular carteira",
@@ -393,6 +396,10 @@ export const pt = {
     registeredTitle: "Cadastro concluído",
     registerHint: "Ainda não tem conta?",
     registerLink: "Criar conta",
+    sessionExpiredTitle: "Sessão encerrada",
+    sessionExpiredBody: "Sua sessão expirou por segurança. Entre novamente para continuar.",
+    signedOutTitle: "Sessão finalizada",
+    signedOutBody: "Você saiu da conta. Entre novamente quando quiser continuar.",
     role: "Função",
     roleHelp: "A função selecionada define o destino padrão após a autenticação.",
     submit: "Entrar",
@@ -469,8 +476,8 @@ export const pt = {
   },
   workspace: {
     roles: {
-      investor: "Investidor",
-      governance: "Governação"
+      investor: "INVESTOR",
+      governance: "Governance"
     },
     investor: {
       heroDescription:

@@ -32,6 +32,8 @@ describe("Role chrome (two-role model)", () => {
     expect(nav.querySelector('a[href="/governance/pause"]')).not.toBeNull();
     expect(nav.querySelector('a[href="/governance/force-sync"]')).not.toBeNull();
     expect(nav.querySelector('a[href="/governance/audit"]')).not.toBeNull();
+    expect(screen.getByText("Governance")).toBeTruthy();
+    expect(screen.queryByText(/Full control:/i)).toBeNull();
   });
 
   it("investor chrome has no governance/management controls", () => {
@@ -42,5 +44,6 @@ describe("Role chrome (two-role model)", () => {
     expect(nav.querySelector('a[href="/governance/kyc"]')).toBeNull();
     expect(nav.querySelector('a[href="/governance/pause"]')).toBeNull();
     expect(screen.queryByRole("link", { name: /force.?sync/i })).toBeNull();
+    expect(screen.getByText("INVESTOR")).toBeTruthy();
   });
 });

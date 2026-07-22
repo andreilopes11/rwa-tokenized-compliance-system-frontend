@@ -1,9 +1,10 @@
 "use client";
 
-import { ShieldCheck } from "lucide-react";
+import { ArrowRight, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { useMessages } from "@/shared/i18n/LocaleProvider";
+import { useOptionalSessionStatus } from "@/shared/providers/SessionStatusProvider";
 import { GlobalHeaderNav } from "./GlobalHeaderNav";
 import { HeaderUtilities } from "./HeaderUtilities";
 
@@ -23,6 +24,9 @@ export function GlobalAppHeader({
   variant = "default"
 }: GlobalAppHeaderProps) {
   const m = useMessages();
+  const sessionStatus = useOptionalSessionStatus();
+  const authenticated = sessionStatus?.status === "authenticated";
+  const workspaceHref = sessionStatus?.workspaceHref ?? "/dashboard";
 
   const headerClass =
     variant === "landing"
@@ -50,14 +54,32 @@ export function GlobalAppHeader({
         {actions}
         <HeaderUtilities themeToggleClassName={variant === "landing" ? "landing-theme-toggle" : undefined} />
         {variant === "landing" ? (
-          <>
-            <Link className="landing-nav-ghost" href="/login">
-              {m.landing.loginCta}
-            </Link>
-            <Link className="landing-nav-cta" href="/register">
-              {m.landing.joinCta}
-            </Link>
-          </>
+          authenticated ? (
+            <>
+              <button
+                className="landing-nav-ghost"
+                onClick={() => {
+                  void sessionStatus?.signOut();
+                }}
+                type="button"
+              >
+                {m.common.signOut}
+              </button>
+              <Link className="landing-nav-cta" href={workspaceHref}>
+                {m.landing.returnToWorkspace}
+                <ArrowRight aria-hidden size={16} />
+              </Link>
+            </>
+          ) : (
+            <>
+              <Link className="landing-nav-ghost" href="/login">
+                {m.landing.loginCta}
+              </Link>
+              <Link className="landing-nav-cta" href="/register">
+                {m.landing.joinCta}
+              </Link>
+            </>
+          )
         ) : null}
       </div>
     </header>

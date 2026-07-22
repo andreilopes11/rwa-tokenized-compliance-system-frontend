@@ -1,15 +1,15 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { WorkspaceNavItem } from "@/shared/ui/RoleWorkspaceNav";
 import { WorkspaceShell } from "@/shared/ui/WorkspaceShell";
 import { useMessages } from "@/shared/i18n/LocaleProvider";
+import { useSessionStatus } from "@/shared/providers/SessionStatusProvider";
 
 export function GovernanceShell({ children }: { children: ReactNode }) {
   const m = useMessages();
-  const router = useRouter();
+  const { signOut } = useSessionStatus();
   const [signingOut, setSigningOut] = useState(false);
 
   const navItems: WorkspaceNavItem[] = [
@@ -38,19 +38,16 @@ export function GovernanceShell({ children }: { children: ReactNode }) {
     }
   ];
 
-  async function signOut() {
+  async function handleSignOut() {
     setSigningOut(true);
-    await fetch("/api/auth/logout", { method: "POST" });
-    router.push("/login?role=governance");
-    router.refresh();
+    await signOut();
   }
 
   return (
     <WorkspaceShell
-      context={m.workspace.governance.topbarSubtitle}
       navAriaLabel="Governance workspace navigation"
       navItems={navItems}
-      onSignOut={signOut}
+      onSignOut={handleSignOut}
       role="governance"
       signingOut={signingOut}
     >

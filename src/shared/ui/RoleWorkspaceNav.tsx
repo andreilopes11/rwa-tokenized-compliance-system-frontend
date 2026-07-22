@@ -94,6 +94,7 @@ export function RoleWorkspaceNav({
                 className={active ? "workspace-nav-link active" : "workspace-nav-link"}
                 href={item.href}
                 onClick={onNavigate}
+                prefetch={false}
                 {...(item.screenId ? { "data-screen-id": item.screenId } : {})}
               >
                 {item.label}

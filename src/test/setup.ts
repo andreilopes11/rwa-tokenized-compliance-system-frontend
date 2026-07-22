@@ -1,5 +1,5 @@
 import "@testing-library/jest-dom/vitest";
-import { vi } from "vitest";
+import { afterEach, beforeEach, vi } from "vitest";
 
 vi.mock("@/shared/providers/ThemeProvider", () => ({
   ThemeProvider: ({ children }: { children: unknown }) => children,
@@ -13,6 +13,7 @@ vi.mock("@/shared/providers/ThemeProvider", () => ({
 vi.mock("next/navigation", () => ({
   useRouter: () => ({
     push: vi.fn(),
+    replace: vi.fn(),
     refresh: vi.fn()
   }),
   usePathname: () => "/governance",
@@ -27,3 +28,41 @@ vi.mock("next/dynamic", () => ({
     return DynamicMock;
   }
 }));
+
+const defaultSessionResponse = {
+  authenticated: false,
+  session: null,
+  expiresAt: null,
+  providers: { google: false, wallet: false, email: true },
+  mfaEnabled: false
+};
+
+beforeEach(() => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.includes("/api/auth/session")) {
+        return new Response(JSON.stringify(defaultSessionResponse), {
+          status: 200,
+          headers: { "Content-Type": "application/json" }
+        });
+      }
+      if (url.includes("/api/auth/logout") || url.includes("/api/auth/refresh")) {
+        return new Response(JSON.stringify({ ok: true }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" }
+        });
+      }
+      return new Response(JSON.stringify({}), {
+        status: 404,
+        headers: { "Content-Type": "application/json" }
+      });
+    })
+  );
+});
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+  vi.restoreAllMocks();
+});

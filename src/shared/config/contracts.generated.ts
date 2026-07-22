@@ -1,5 +1,5 @@
 /** Written/updated by root stack sync after local deploy. */
 export const generatedContracts = {
-  identityRegistryAddress: "0x5FbDB2315678afecb367f032d93F642f64180aa3",
-  tokenAddress: "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9"
+  identityRegistryAddress: "0xDf47E753589f6f4337999DC72bF0530301AEDe5b",
+  tokenAddress: "0xC85bB59cbaffE561BC5A490BEeb37eC9Fb8c92b0"
 } as const;

@@ -6,7 +6,8 @@ export const ACCESS_TOKEN_COOKIE = "rwa_access_token";
 export const REFRESH_TOKEN_COOKIE = "rwa_refresh_token";
 
 export const PUBLIC_PATHS = ["/", "/login", "/register", "/terms", "/privacy"] as const;
-export const AUTH_PAGES = ["/", "/login", "/register"] as const;
+/** Login/register bounce authenticated users to their workspace. Landing (`/`) stays public. */
+export const AUTH_PAGES = ["/login", "/register"] as const;
 
 export function hasSessionCookie(request: NextRequest): boolean {
   return Boolean(

@@ -37,7 +37,8 @@ export function middleware(request: NextRequest) {
       loginUrl.searchParams.set("next", pathname);
       return NextResponse.redirect(loginUrl);
     }
-    if (role !== "governance") {
+    // role may be null briefly while access JWT is expired but refresh cookie remains.
+    if (role && role !== "governance") {
       return NextResponse.redirect(new URL("/dashboard", request.url));
     }
     return NextResponse.next();
@@ -65,7 +66,7 @@ export function middleware(request: NextRequest) {
       loginUrl.searchParams.set("next", pathname);
       return NextResponse.redirect(loginUrl);
     }
-    if (role !== "investor") {
+    if (role && role !== "investor") {
       return NextResponse.redirect(new URL("/governance", request.url));
     }
     return NextResponse.next();
