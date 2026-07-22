@@ -33,6 +33,7 @@ export const pt = {
     gatewayUnavailableTitle: "API de conformidade indisponível",
     authRequired: "Autenticação obrigatória.",
     sessionExpired: "Sessão expirada. Entre novamente.",
+    rateLimit: "Muitas tentativas. Aguarde um momento e tente novamente.",
     adminSessionRequired: "Sessão de administrador obrigatória.",
     governanceSessionRequired: "Sessão de governança obrigatória.",
     investorSessionRequired:

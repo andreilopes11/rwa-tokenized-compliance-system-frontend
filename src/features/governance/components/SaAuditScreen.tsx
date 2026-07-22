@@ -10,6 +10,7 @@ import { explorerLink } from "@/shared/lib/web3";
 import { statusClass, statusLabel } from "@/shared/lib/formatters";
 import { Alert } from "@/shared/ui/Alert";
 import { Button } from "@/shared/ui/Button";
+import { EmptyState } from "@/shared/ui/EmptyState";
 import { WorkspacePanel } from "@/shared/ui/WorkspacePanel";
 
 /** SA-S12 — Audit read (timeline + on-chain activity + export). Read-only, no write controls. */
@@ -87,6 +88,9 @@ export function SaAuditScreen() {
       </div>
 
       <h2>Timeline</h2>
+      {filtered.length === 0 ? (
+        <EmptyState>No audit events match the current filters.</EmptyState>
+      ) : null}
       <ul className="activity-list">
         {filtered.map((event) => (
           <li key={event.eventId}>
@@ -102,6 +106,9 @@ export function SaAuditScreen() {
       </ul>
 
       <h2>On-chain activity</h2>
+      {transactions.length === 0 ? (
+        <EmptyState>No on-chain transactions recorded yet.</EmptyState>
+      ) : null}
       <ul className="activity-list">
         {transactions.map((tx) => (
           <li key={tx.transactionId}>

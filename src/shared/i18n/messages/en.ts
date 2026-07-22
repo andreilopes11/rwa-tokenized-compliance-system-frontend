@@ -33,6 +33,7 @@ export const en = {
     gatewayUnavailableTitle: "Compliance API unavailable",
     authRequired: "Authentication required.",
     sessionExpired: "Session expired. Sign in again.",
+    rateLimit: "Too many requests. Please wait a moment and try again.",
     adminSessionRequired: "Admin session required.",
     governanceSessionRequired: "Super-admin governance session required.",
     investorSessionRequired:

@@ -7,6 +7,7 @@ import type { KycRequestResponse } from "@/shared/api/types";
 import { statusClass, statusLabel } from "@/shared/lib/formatters";
 import { Alert } from "@/shared/ui/Alert";
 import { Button } from "@/shared/ui/Button";
+import { EmptyState } from "@/shared/ui/EmptyState";
 import { UpstreamUnavailableAlert } from "@/shared/ui/UpstreamUnavailableAlert";
 import { WorkspacePanel } from "@/shared/ui/WorkspacePanel";
 import { isApiError } from "@/shared/api/errors";
@@ -48,7 +49,7 @@ export function SaKycQueueScreen() {
       {gatewayError ? <UpstreamUnavailableAlert onRetry={() => void refresh()} /> : null}
       {error ? <Alert tone="error">{error}</Alert> : null}
       {requests.length === 0 ? (
-        <p className="muted">No KYC requests.</p>
+        <EmptyState>No KYC requests in the queue.</EmptyState>
       ) : (
         <table className="table">
           <thead>

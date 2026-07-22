@@ -16,6 +16,7 @@ export function SaForceSyncScreen() {
   const [ticket, setTicket] = useState("");
   const [syncId, setSyncId] = useState<string | null>(null);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   async function initiate() {
     if (!isWalletAddress(wallet) || !ticket.trim()) {
@@ -23,6 +24,7 @@ export function SaForceSyncScreen() {
       return;
     }
     setError("");
+    setLoading(true);
     try {
       const created = await initiateForceSync({
         walletAddress: wallet,
@@ -33,6 +35,8 @@ export function SaForceSyncScreen() {
       setSyncId(created.syncId);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Force sync initiation failed.");
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -70,7 +74,9 @@ export function SaForceSyncScreen() {
         <label htmlFor="fs-ticket">Incident ticket</label>
         <input id="fs-ticket" onChange={(e) => setTicket(e.target.value)} value={ticket} />
       </div>
-      <Button onClick={() => void initiate()}>Initiate ForceSync</Button>
+      <Button loading={loading} loadingLabel="Initiating…" onClick={() => void initiate()}>
+        Initiate ForceSync
+      </Button>
     </WorkspacePanel>
   );
 }

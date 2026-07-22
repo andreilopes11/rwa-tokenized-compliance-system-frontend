@@ -18,9 +18,11 @@ export function SaOverviewScreen() {
   const [oracle, setOracle] = useState<OracleFeedResponse | null>(null);
   const [pausedCount, setPausedCount] = useState(0);
   const [gatewayError, setGatewayError] = useState(false);
+  const [error, setError] = useState("");
 
   async function load() {
     setGatewayError(false);
+    setError("");
     try {
       const [ops, feed, assets] = await Promise.all([
         fetchAdminOperationsReport(),
@@ -33,6 +35,8 @@ export function SaOverviewScreen() {
     } catch (err) {
       if (isApiError(err) && err.retryable) {
         setGatewayError(true);
+      } else {
+        setError(err instanceof Error ? err.message : "Unable to load governance overview.");
       }
     }
   }
@@ -44,6 +48,7 @@ export function SaOverviewScreen() {
   return (
     <WorkspacePanel screenId="SA-S01" title="Governance overview">
       {gatewayError ? <UpstreamUnavailableAlert onRetry={() => void load()} /> : null}
+      {error ? <Alert tone="error">{error}</Alert> : null}
       <div className="metric-grid">
         <div className="metric">
           <span>Failed chain txs (24h)</span>

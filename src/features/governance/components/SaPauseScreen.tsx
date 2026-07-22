@@ -10,6 +10,7 @@ import {
 import type { AssetOfferingResponse, PauseStatusResponse } from "@/shared/api/types";
 import { Alert } from "@/shared/ui/Alert";
 import { Button } from "@/shared/ui/Button";
+import { EmptyState } from "@/shared/ui/EmptyState";
 import { WorkspacePanel } from "@/shared/ui/WorkspacePanel";
 import { useLocale } from "@/shared/i18n/LocaleProvider";
 import { resolveClientError } from "@/shared/i18n/resolveClientError";
@@ -78,6 +79,7 @@ export function SaPauseScreen() {
       </div>
       {error ? <Alert tone="error">{error}</Alert> : null}
       {notice ? <Alert tone="success">{notice}</Alert> : null}
+      {assets.length === 0 ? <EmptyState>No contracts available to control.</EmptyState> : null}
       <ul className="activity-list">
         {assets.map((asset) => {
           const paused = pauseStatuses[asset.assetId]?.paused === true;

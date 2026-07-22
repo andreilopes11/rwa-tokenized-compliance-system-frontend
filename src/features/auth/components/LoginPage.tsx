@@ -7,8 +7,8 @@ import {
   Sparkles
 } from "lucide-react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import { FormEvent, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { FormEvent, useEffect, useState } from "react";
 import { PasswordInput } from "@/features/auth/components/PasswordInput";
 import { sanitizeNextPath } from "@/features/auth/lib/session-client";
 import { isValidEmail } from "@/features/auth/lib/validators";
@@ -25,8 +25,11 @@ type TouchedState = {
   subject: boolean;
 };
 
+type SessionNotice = "session_expired" | "signed_out" | null;
+
 export function LoginPage() {
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const roleParam = searchParams.get("role");
   const initialRole: AuthRole =
@@ -37,7 +40,7 @@ export function LoginPage() {
   const { refreshStatus } = useSessionStatus();
   const next = sanitizeNextPath(searchParams.get("next"), role);
   const registered = searchParams.get("registered") === "1";
-  const reason = searchParams.get("reason");
+  const reasonParam = searchParams.get("reason");
   const prefilledEmail = searchParams.get("email")?.trim() ?? "";
   const defaultEmail = prefilledEmail || (role === "investor" ? "investor@company.com" : "admin@compliance.local");
 
@@ -49,6 +52,28 @@ export function LoginPage() {
   const [submitAttempted, setSubmitAttempted] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  /** One-shot: shown only for the redirect that ended the previous session. */
+  const [sessionNotice, setSessionNotice] = useState<SessionNotice>(
+    reasonParam === "session_expired" || reasonParam === "signed_out" ? reasonParam : null
+  );
+
+  // Strip ?reason= from the URL after capturing it so refresh/retry won't re-show the banner
+  // until the next hard logout / session expiry redirect.
+  useEffect(() => {
+    if (reasonParam !== "session_expired" && reasonParam !== "signed_out") {
+      return;
+    }
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("reason");
+    const query = params.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+  }, [pathname, reasonParam, router, searchParams]);
+
+  function dismissSessionNotice() {
+    if (sessionNotice) {
+      setSessionNotice(null);
+    }
+  }
 
   const m = useMessages();
   const { t } = useLocale();
@@ -66,6 +91,7 @@ export function LoginPage() {
     event.preventDefault();
     setSubmitAttempted(true);
     setError("");
+    dismissSessionNotice();
 
     if (emailError || passwordError) {
       return;
@@ -134,13 +160,13 @@ export function LoginPage() {
           </Alert>
         ) : null}
 
-        {reason === "session_expired" ? (
+        {sessionNotice === "session_expired" ? (
           <Alert title={loginCopy.sessionExpiredTitle} tone="warning">
             {loginCopy.sessionExpiredBody}
           </Alert>
         ) : null}
 
-        {reason === "signed_out" ? (
+        {sessionNotice === "signed_out" ? (
           <Alert title={loginCopy.signedOutTitle} tone="info">
             {loginCopy.signedOutBody}
           </Alert>
@@ -163,7 +189,10 @@ export function LoginPage() {
                   key={roleOption.id}
                   aria-pressed={role === roleOption.id}
                   className={role === roleOption.id ? "selected" : ""}
-                  onClick={() => setRole(roleOption.id)}
+                  onClick={() => {
+                    dismissSessionNotice();
+                    setRole(roleOption.id);
+                  }}
                   type="button"
                 >
                   {roleOption.label}
@@ -181,7 +210,10 @@ export function LoginPage() {
               id="login-email"
               inputMode="email"
               onBlur={() => setTouched((current) => ({ ...current, subject: true }))}
-              onChange={(event) => setEmail(event.target.value)}
+              onChange={(event) => {
+                dismissSessionNotice();
+                setEmail(event.target.value);
+              }}
               placeholder={loginCopy.subjectEmailPlaceholder}
               type="email"
               value={email}
@@ -202,7 +234,10 @@ export function LoginPage() {
             id="login-password"
             invalid={showPasswordError}
             label="Password"
-            onChange={setPassword}
+            onChange={(value) => {
+              dismissSessionNotice();
+              setPassword(value);
+            }}
             placeholder="••••••••"
             value={password}
           />

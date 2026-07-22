@@ -17,6 +17,7 @@ import type {
 } from "@/shared/api/types";
 import { Alert } from "@/shared/ui/Alert";
 import { Button } from "@/shared/ui/Button";
+import { EmptyState } from "@/shared/ui/EmptyState";
 import { WorkspacePanel } from "@/shared/ui/WorkspacePanel";
 
 /** SA-S02 — Contract (asset) administration */
@@ -183,7 +184,7 @@ export function SaAssetsScreen() {
 
       <h2>Contracts</h2>
       {assets.length === 0 ? (
-        <p className="muted">You have not created any contracts yet.</p>
+        <EmptyState>You have not created any contracts yet.</EmptyState>
       ) : (
         <table className="table">
           <thead>
@@ -215,33 +216,29 @@ export function SaAssetsScreen() {
                 <td className="mono muted">{asset.createdBy ?? "—"}</td>
                 <td className="actions">
                   {asset.status === "DRAFT" ? (
-                    <button
-                      className="primary-button"
-                      onClick={() => publishAsset(asset.assetId)}
-                      type="button"
-                    >
+                    <Button onClick={() => publishAsset(asset.assetId)} size="sm">
                       Publish
-                    </button>
+                    </Button>
                   ) : null}
-                  <button
-                    className="secondary-button"
+                  <Button
                     onClick={() =>
                       setAssetVisibility(
                         asset.assetId,
                         asset.visibility === "PUBLIC" ? "PRIVATE" : "PUBLIC"
                       )
                     }
-                    type="button"
+                    size="sm"
+                    variant="secondary"
                   >
                     Set {asset.visibility === "PUBLIC" ? "PRIVATE" : "PUBLIC"}
-                  </button>
-                  <button
-                    className="secondary-button"
+                  </Button>
+                  <Button
                     onClick={() => setSelectedAssetId(asset.assetId)}
-                    type="button"
+                    size="sm"
+                    variant="secondary"
                   >
                     Manage access
-                  </button>
+                  </Button>
                 </td>
               </tr>
             ))}
@@ -282,13 +279,13 @@ export function SaAssetsScreen() {
                 {access.walletAddress ? (
                   <span className="mono muted">{access.walletAddress}</span>
                 ) : null}
-                <button
-                  className="secondary-button"
+                <Button
                   onClick={() => unlinkInvestor(access.identityHash)}
-                  type="button"
+                  size="sm"
+                  variant="secondary"
                 >
                   Revoke
-                </button>
+                </Button>
               </li>
             ))}
           </ul>

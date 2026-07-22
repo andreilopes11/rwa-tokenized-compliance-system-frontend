@@ -12,10 +12,12 @@ import {
   meetsPasswordPolicy,
   passwordStrengthScore
 } from "@/features/auth/lib/validators";
+import { sanitizeNextPath } from "@/features/auth/lib/session-client";
 import { useAuthRoleParam } from "@/features/auth/lib/useAuthRoleParam";
 import type { AuthRole } from "@/features/auth/lib/useAuthRole";
 import { useLocale, useMessages } from "@/shared/i18n/LocaleProvider";
 import { resolveClientError } from "@/shared/i18n/resolveClientError";
+import { useSessionStatus } from "@/shared/providers/SessionStatusProvider";
 import { Alert } from "@/shared/ui/Alert";
 import { AuthShell } from "@/shared/ui/AuthShell";
 import { Button, buttonClassName } from "@/shared/ui/Button";
@@ -34,6 +36,7 @@ type RegisterSuccess = {
 
 export function RegisterPage() {
   const router = useRouter();
+  const { refreshStatus } = useSessionStatus();
   const { role, setRole } = useAuthRoleParam("investor");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -118,7 +121,10 @@ export function RegisterPage() {
       }
 
       if (payload?.autoLogin && payload?.redirectTo) {
-        router.push(payload.redirectTo);
+        // Sync the session provider before navigating so client chrome (header,
+        // landing CTA) reflects the authenticated session immediately.
+        await refreshStatus();
+        router.replace(sanitizeNextPath(payload.redirectTo, role));
         router.refresh();
         return;
       }

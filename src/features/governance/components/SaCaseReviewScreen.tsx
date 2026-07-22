@@ -72,7 +72,11 @@ export function SaCaseReviewScreen({ requestId }: { requestId: string }) {
   if (!record) {
     return (
       <WorkspacePanel screenId="SA-S09" title="Case review">
-        <p className="muted">Loading case…</p>
+        {error ? (
+          <Alert tone="error">{error}</Alert>
+        ) : (
+          <p className="muted">Loading case…</p>
+        )}
       </WorkspacePanel>
     );
   }

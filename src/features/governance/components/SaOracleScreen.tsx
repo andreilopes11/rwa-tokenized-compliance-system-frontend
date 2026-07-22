@@ -20,13 +20,15 @@ export function SaOracleScreen() {
   return (
     <WorkspacePanel screenId="SA-S04" title="Oracle configuration">
       {error ? <Alert tone="error">{error}</Alert> : null}
-      {feed?.status === "STUB" ? (
+      {!error && feed?.status === "STUB" ? (
         <Alert tone="warning">
           STUB feed — production deployments must use Chainlink/API3 attestation per deployment.md.
         </Alert>
-      ) : (
+      ) : null}
+      {!error && feed && feed.status !== "STUB" ? (
         <Alert tone="success">Production oracle feed connected.</Alert>
-      )}
+      ) : null}
+      {!error && !feed ? <p className="muted">Loading oracle feed…</p> : null}
       {feed ? (
         <dl className="definition-grid">
           <div>

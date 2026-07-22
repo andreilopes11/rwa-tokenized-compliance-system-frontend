@@ -68,6 +68,7 @@ import { activeChain, explorerLink } from "@/shared/lib/web3";
 import { Alert } from "@/shared/ui/Alert";
 import { Button } from "@/shared/ui/Button";
 import { DashboardHero } from "@/shared/ui/DashboardHero";
+import { EmptyState } from "@/shared/ui/EmptyState";
 import { WorkspaceShell } from "@/shared/ui/WorkspaceShell";
 
 import { publicRuntime } from "@/shared/config/publicRuntime";
@@ -678,25 +679,6 @@ export function InvestorDashboard({ sessionWalletAddress }: InvestorDashboardPro
               </div>
             </form>
             {error && <Alert tone="error">{error}</Alert>}
-            {gatewayError ? (
-              <Alert tone="error" title={m.errors.gatewayUnavailableTitle}>
-                {gatewayError}
-                <div className="actions">
-                  <button
-                    className="secondary-button"
-                    disabled={!canRefresh || loading}
-                    onClick={() => {
-                      setGatewayError("");
-                      void refreshStatus();
-                    }}
-                    type="button"
-                  >
-                    <RefreshCw size={16} aria-hidden />
-                    {m.common.retry}
-                  </button>
-                </div>
-              </Alert>
-            ) : null}
             {notice && <Alert tone="info">{notice}</Alert>}
             {showPollingBanner ? (
               <Alert tone="info">{m.workspace.investor.kyc.polling}</Alert>
@@ -904,10 +886,9 @@ export function InvestorDashboard({ sessionWalletAddress }: InvestorDashboardPro
             </div>
             <div className="chart-wrap" aria-label="Portfolio lifecycle chart">
               {chartData.length === 0 ? (
-                <div className="empty-state">
-                  <Calculator size={18} aria-hidden />
+                <EmptyState icon={<Calculator size={18} aria-hidden />}>
                   No position values to chart yet.
-                </div>
+                </EmptyState>
               ) : (
                 <PortfolioChart data={chartData} />
               )}
@@ -942,10 +923,9 @@ export function InvestorDashboard({ sessionWalletAddress }: InvestorDashboardPro
             </p>
             {assetError && <Alert tone="error">{assetError}</Alert>}
             {publicContracts.length === 0 ? (
-              <div className="empty-state">
-                <Landmark size={20} aria-hidden />
+              <EmptyState icon={<Landmark size={20} aria-hidden />}>
                 No public contracts are available right now.
-              </div>
+              </EmptyState>
             ) : (
               <div className="offering-grid">
                 {publicContracts.map((asset) => {
@@ -1088,10 +1068,9 @@ export function InvestorDashboard({ sessionWalletAddress }: InvestorDashboardPro
               Invite-only contracts. Visible only when an administrator links your investor identity hash.
             </p>
             {privateContracts.length === 0 ? (
-              <div className="empty-state">
-                <Landmark size={20} aria-hidden />
+              <EmptyState icon={<Landmark size={20} aria-hidden />}>
                 No private contracts are linked to your investor profile.
-              </div>
+              </EmptyState>
             ) : (
               <div className="offering-grid">
                 {privateContracts.map((asset) => {
@@ -1239,10 +1218,9 @@ export function InvestorDashboard({ sessionWalletAddress }: InvestorDashboardPro
               Notifications
             </h3>
             {notifications.length === 0 ? (
-              <div className="empty-state">
-                <Bell size={16} aria-hidden />
+              <EmptyState icon={<Bell size={16} aria-hidden />}>
                 Refresh a wallet to load notifications.
-              </div>
+              </EmptyState>
             ) : (
               <ul className="activity-list">
                 {notifications.map((notification) => (
@@ -1282,10 +1260,9 @@ export function InvestorDashboard({ sessionWalletAddress }: InvestorDashboardPro
           <div className="secondary-panel" aria-labelledby="history-title">
             <h3 id="history-title">Recent investor activity</h3>
             {auditEvents.length === 0 ? (
-              <div className="empty-state">
-                <FileCheck2 size={16} aria-hidden />
+              <EmptyState icon={<FileCheck2 size={16} aria-hidden />}>
                 No transaction history is available yet.
-              </div>
+              </EmptyState>
             ) : (
               <ul className="activity-list">
                 {auditEvents.map((event) => (

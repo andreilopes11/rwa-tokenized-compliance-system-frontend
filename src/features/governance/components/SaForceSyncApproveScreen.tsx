@@ -12,6 +12,7 @@ export function SaForceSyncApproveScreen() {
   const [identityHash, setIdentityHash] = useState("");
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const [loading, setLoading] = useState(false);
 
   async function approve() {
     if (!syncId.trim() || !identityHash.startsWith("0x")) {
@@ -19,11 +20,14 @@ export function SaForceSyncApproveScreen() {
       return;
     }
     setError("");
+    setLoading(true);
     try {
       const result = await approveForceSync(syncId.trim(), identityHash.trim());
       setNotice(`Approved. Status: ${result.status}, tx: ${result.transactionHash ?? "pending"}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Approval failed (distinct approver required).");
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -48,7 +52,9 @@ export function SaForceSyncApproveScreen() {
           value={identityHash}
         />
       </div>
-      <Button onClick={() => void approve()}>Approve ForceSync</Button>
+      <Button loading={loading} loadingLabel="Approving…" onClick={() => void approve()}>
+        Approve ForceSync
+      </Button>
     </WorkspacePanel>
   );
 }

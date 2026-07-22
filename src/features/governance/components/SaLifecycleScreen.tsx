@@ -14,6 +14,7 @@ import type { LifecycleStatus, RedemptionResponse, SubscriptionResponse } from "
 import { statusClass, statusLabel } from "@/shared/lib/formatters";
 import { Alert } from "@/shared/ui/Alert";
 import { Button } from "@/shared/ui/Button";
+import { EmptyState } from "@/shared/ui/EmptyState";
 import { WorkspacePanel } from "@/shared/ui/WorkspacePanel";
 import { useMessages } from "@/shared/i18n/LocaleProvider";
 
@@ -149,7 +150,7 @@ function LifecycleTable({
     <div className="secondary-panel">
       <h2>{title}</h2>
       {items.length === 0 ? (
-        <p className="muted">No pending requests.</p>
+        <EmptyState>No pending requests.</EmptyState>
       ) : (
         <table className="table">
           <thead>
